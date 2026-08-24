@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>CE-5 BEACON — CONTACT CONSOLE</title>
+<meta name="description" content="Pick a departure system, ride Polaris to Sol to Luna to Earth, then a slow satellite descent onto your own spot. Set your target, share the link, breathe." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://pizzy00.github.io/ce5-beacon/" />
+<meta property="og:title" content="CE-5 Beacon — Contact Console" />
+<meta property="og:description" content="Pick a departure system, ride Polaris to Sol to Luna to Earth, then a slow satellite descent onto your own spot. Set your target, share the link, breathe." />
+<meta property="og:image" content="https://pizzy00.github.io/ce5-beacon/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  :root {
+    --bg: #050510;
+    --amber: #ffc46b;
+    --amber-dim: #8a6a3a;
+    --cyan: #6be3ff;
+    --alert: #ff5c39;
+    --ink: #e8e2d4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); }
+  body {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--ink);
+    -webkit-user-select: none; user-select: none;
+  }
+  .display {
+    font-family: Futura, "Century Gothic", "Trebuchet MS", Verdana, sans-serif;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  #map { position: fixed; inset: 0; z-index: 1; background:
+    linear-gradient(rgba(107,227,255,0.05) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(107,227,255,0.05) 1px, transparent 1px) 0 0 / 48px 48px,
+    var(--bg);
+  }
+  #space { position: fixed; inset: 0; z-index: 3; background: var(--bg);
+    transition: opacity 0.9s ease; touch-action: manipulation; }
+  #space.gone { opacity: 0; pointer-events: none; }
+
+  /* scanlines + vignette */
+  #crt { position: fixed; inset: 0; z-index: 6; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply; }
+  #vig { position: fixed; inset: 0; z-index: 6; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(3,3,12,0.55) 100%); }
+
+  /* HUD */
+  #hud { position: fixed; inset: 0; z-index: 7; pointer-events: none;
+    padding: max(10px, env(safe-area-inset-top)) 12px 12px; }
+  #log { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px;
+    max-width: 62vw; font-size: 11px; line-height: 1.5; color: var(--amber);
+    text-shadow: 0 0 6px rgba(255,196,107,0.5); }
+  #log .old { opacity: 0.45; }
+  #log .alert { color: var(--alert); text-shadow: 0 0 6px rgba(255,92,57,0.6); }
+  #log .cy { color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
+  @keyframes typein { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  #log div { animation: typein 0.35s steps(24) both; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; }
+
+  #data { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px;
+    text-align: right; font-size: 11px; line-height: 1.7; color: var(--cyan);
+    text-shadow: 0 0 6px rgba(107,227,255,0.45); }
+  #data b { color: var(--ink); font-weight: 400; }
+  #data .lbl { color: var(--amber-dim); font-size: 9px; letter-spacing: 0.18em; }
+
+  #phase { position: absolute; left: 50%; bottom: 118px; transform: translateX(-50%);
+    font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); }
+  #blink { animation: bl 1.1s steps(2) infinite; }
+  @keyframes bl { 50% { opacity: 0; } }
+
+  #reticle { position: fixed; left: 50%; top: 50%; width: 66px; height: 66px; z-index: 5;
+    transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+  #reticle.on { opacity: 0.9; }
+  #reticle::before, #reticle::after { content: ""; position: absolute; inset: 0;
+    border: 1px solid var(--amber); border-radius: 50%; }
+  #reticle::after { inset: 26px; border-color: var(--cyan); }
+
+  #cue { position: fixed; left: 50%; top: 63%; transform: translateX(-50%); z-index: 5;
+    text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
+  #cue.on { opacity: 1; }
+  #cue .stage { font-size: 13px; letter-spacing: 0.28em; color: var(--amber);
+    text-shadow: 0 0 8px rgba(255,196,107,0.6); white-space: nowrap; }
+  #cue .breath { font-size: 10px; letter-spacing: 0.34em; color: var(--cyan); margin-top: 6px;
+    text-shadow: 0 0 6px rgba(107,227,255,0.5); }
+
+  /* controls */
+  #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, rgba(5,5,16,0.92) 40%); }
+  #chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; border: 1px solid var(--amber-dim); background: rgba(10,10,24,0.8);
+    color: var(--ink); border-radius: 3px; padding: 7px 10px; font: inherit; font-size: 10px;
+    line-height: 1.4; text-align: left; }
+  .chip small { display: block; color: var(--amber-dim); font-size: 9px; }
+  .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
+  .chip.sel { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,196,107,0.35) inset,
+    0 0 8px rgba(255,196,107,0.25); }
+  #btns { display: flex; gap: 8px; }
+  .btn { flex: 1; border: 1px solid var(--amber); background: rgba(255,196,107,0.08);
+    color: var(--amber); font: inherit; font-size: 11px; letter-spacing: 0.18em;
+    padding: 12px 4px; border-radius: 3px; text-transform: uppercase; }
+  .btn:active { background: rgba(255,196,107,0.25); }
+  .btn.cy { border-color: var(--cyan); color: var(--cyan); background: rgba(107,227,255,0.06); }
+  .btn.on { background: rgba(255,196,107,0.3); color: #fff; }
+  .hide { display: none !important; }
+
+  #bGear { flex: 0 0 56px; }
+  #settings { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
+    display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #settings.hide { display: none; }
+  #setCard { width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
+    background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px;
+    box-shadow: 0 0 30px rgba(255,196,107,0.15); }
+  .setHead { display: flex; justify-content: space-between; align-items: center;
+    color: var(--amber); font-size: 12px; margin-bottom: 12px; }
+  #bClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  .setRow { margin-bottom: 14px; }
+  .setLbl { font-size: 10px; letter-spacing: 0.18em; color: var(--amber-dim); margin-bottom: 6px; }
+  .setStat { font-size: 9px; color: var(--cyan); margin-top: 5px; letter-spacing: 0.08em; }
+  .setFlex { display: flex; gap: 8px; }
+  #setCard input:not([type="range"]):not([type="checkbox"]) { flex: 1; min-width: 0;
+    background: rgba(10,10,24,0.9); border: 1px solid var(--cyan); color: var(--ink);
+    font: inherit; font-size: 13px; padding: 9px; border-radius: 3px; }
+  #setCard input[type="range"] { width: 100%; accent-color: var(--amber); }
+  #setCard select { width: 100%; background: #0d0d20; border: 1px solid var(--amber-dim);
+    color: var(--ink); font: inherit; font-size: 11px; padding: 9px; border-radius: 3px; }
+  .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
+  .setChk input { accent-color: var(--amber); margin-right: 8px; }
+
+  /* beacon marker */
+  .beacon { position: relative; }
+  .beacon i { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px;
+    background: var(--alert); border-radius: 50%; transform: translate(-50%,-50%);
+    box-shadow: 0 0 12px var(--alert); }
+  .beacon s { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px;
+    border: 1.5px solid var(--alert); border-radius: 50%;
+    transform: translate(-50%,-50%); animation: ring 2.4s ease-out infinite; }
+  .beacon s:nth-child(2) { animation-delay: 0.8s; }
+  .beacon s:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes ring { from { width: 10px; height: 10px; opacity: 1; }
+    to { width: 150px; height: 150px; opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .beacon s { animation: none; opacity: 0.4; width: 60px; height: 60px; }
+    #log div { animation: none; }
+  }
+
+  .leaflet-control-attribution { background: rgba(5,5,16,0.6) !important;
+    color: #777 !important; font-size: 8px !important; }
+  .leaflet-control-attribution a { color: #999 !important; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+<canvas id="space"></canvas>
+<div id="reticle"></div>
+<div id="cue" class="display"><div class="stage"></div><div class="breath"></div></div>
+<div id="settings" class="hide">
+  <div id="setCard">
+    <div class="setHead display">CONSOLE SETTINGS <span id="bClose">✕</span></div>
+    <div class="setRow">
+      <div class="setLbl">TARGET — ADDRESS OR "LAT, LON"</div>
+      <div class="setFlex">
+        <input id="addrIn" autocomplete="off" placeholder="123 Main St, Yourtown — or 39.76, -86.15" />
+        <button class="btn" id="bLocate">Set</button>
+      </div>
+      <div class="setStat" id="addrStatus">DEFAULT: MONUMENT CIRCLE, INDIANAPOLIS</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">SHARE THIS TARGET</div>
+      <div class="setFlex">
+        <input id="shareIn" readonly />
+        <button class="btn cy" id="bCopy">Copy</button>
+      </div>
+      <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
+      <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
+      <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
+      <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
+      <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
+      <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1" />
+      <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">DESCENT DETAIL</div>
+      <select id="selDetail">
+        <option value="full">FULL — 10 ALTITUDE HOLDS</option>
+        <option value="medium">MEDIUM — 6 HOLDS</option>
+        <option value="quick">QUICK — 4 HOLDS</option>
+      </select>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">FLYBYS</div>
+      <label class="setChk"><input type="checkbox" id="ckPolaris" checked />POLARIS — THE NORTH STAR</label>
+      <label class="setChk"><input type="checkbox" id="ckSun" checked />SOL</label>
+      <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">TILE PRECACHE</div>
+      <select id="selCache">
+        <option value="normal">NORMAL</option>
+        <option value="aggressive">AGGRESSIVE — SHARPEST, MORE DATA</option>
+        <option value="off">OFF</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div id="crt"></div>
+<div id="vig"></div>
+
+<div id="hud">
+  <div id="log"></div>
+  <div id="data">
+    <div class="lbl">LAT</div><div><b id="dLat">--</b></div>
+    <div class="lbl">LON</div><div><b id="dLon">--</b></div>
+    <div class="lbl">RANGE</div><div><b id="dRng">--</b></div>
+    <div class="lbl">SIG</div><div><b id="dSig">0%</b></div>
+  </div>
+  <div id="phase" class="display"><span id="phaseTxt">STAR CHART</span> <span id="blink">▌</span></div>
+</div>
+
+<div id="ctl">
+  <div id="chips"></div>
+  <div id="btns">
+    <button class="btn" id="bEngage">Engage Approach</button>
+    <button class="btn cy" id="bAll">All Channels</button>
+    <button class="btn" id="bGear">⚙</button>
+    <button class="btn hide" id="bReplay">Replay</button>
+    <button class="btn cy hide" id="bTone">Tone</button>
+    <button class="btn hide" id="bTarget">Retarget</button>
+    <button class="btn cy hide" id="bGps">GPS</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------- target ---------------- */
+const ADDRESS = "Monument Circle, Indianapolis (default)";
+let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
+const S = { breath: 3.2, spaceMul: 1, diveMul: 1, detail: "full",
+  polaris: true, sun: true, moon: true, cache: "normal" };
+const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
+
+/* ---------------- lore chart ---------------- */
+const SYSTEMS = [
+  { id: "zeta", name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.60, c: "#9be8ff" },
+  { id: "plei", name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.20, c: "#bfd9ff", cluster: true },
+  { id: "siri", name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.42, c: "#eaf6ff" },
+  { id: "arct", name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.47, c: "#ffb36b" },
+  { id: "vega", name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.13, c: "#cff3ff" },
+  { id: "orio", name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.66, c: "#ff8e5e" },
+  { id: "andr", name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.15, c: "#d9c9ff", galaxy: true }
+];
+const POLARIS = { x: 0.5, y: 0.09, c: "#ffe9a6" };
+const SOL = { x: 0.5, y: 0.84, c: "#ffd34d" };
+let selected = SYSTEMS[0]; // Zeta Reticuli default
+let allChannels = false;
+
+/* ---------------- dom ---------------- */
+const $ = (id) => document.getElementById(id);
+const cvs = $("space"), ctx = cvs.getContext("2d");
+const logEl = $("log");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let phase = "chart"; // chart | warp | earth | dive | active
+let map = null, beacon = null, retargetMode = false;
+
+function log(txt, cls) {
+  const d = document.createElement("div");
+  d.textContent = "▸ " + txt;
+  if (cls) d.className = cls;
+  logEl.appendChild(d);
+  [...logEl.children].slice(0, -6).forEach((n) => n.classList.add("old"));
+  while (logEl.children.length > 9) logEl.removeChild(logEl.firstChild);
+}
+function setPhase(p, label) {
+  phase = p;
+  $("phaseTxt").textContent = label;
+}
+
+/* ---------------- canvas ---------------- */
+let W = 0, H = 0, DPR = 1, bgStars = [], warpStars = [];
+function resize() {
+  DPR = Math.min(2, devicePixelRatio || 1);
+  W = innerWidth; H = innerHeight;
+  cvs.width = W * DPR; cvs.height = H * DPR;
+  cvs.style.width = W + "px"; cvs.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  bgStars = Array.from({ length: 220 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.1 + 0.2, tw: Math.random() * 6.28
+  }));
+}
+addEventListener("resize", resize); resize();
+
+function glow(x, y, r, color, a) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color); g.addColorStop(1, "transparent");
+  ctx.globalAlpha = a; ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+function star(x, y, r, color) {
+  glow(x, y, r * 5, color, 0.55);
+  ctx.fillStyle = "#fff";
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
+}
+function label(x, y, main, sub, color, align) {
+  ctx.textAlign = align || "left";
+  ctx.fillStyle = color; ctx.font = "10px ui-monospace, Menlo, monospace";
+  ctx.shadowColor = color; ctx.shadowBlur = 6;
+  ctx.fillText(main, x, y);
+  ctx.shadowBlur = 0; ctx.fillStyle = "rgba(232,226,212,0.55)";
+  ctx.font = "9px ui-monospace, Menlo, monospace";
+  if (sub) ctx.fillText(sub, x, y + 12);
+  ctx.textAlign = "left";
+}
+function fmtLy(ly) {
+  return ly >= 1e6 ? (ly / 1e6).toFixed(1) + "M LY" : ly + " LY";
+}
+function dashLine(x1, y1, x2, y2, color, t) {
+  ctx.strokeStyle = color; ctx.globalAlpha = 0.8; ctx.lineWidth = 1;
+  ctx.setLineDash([3, 6]); ctx.lineDashOffset = -t * 30;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+}
+
+function drawChart(t) {
+  ctx.clearRect(0, 0, W, H);
+  for (const s of bgStars) {
+    ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
+    ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+
+  // routes: origin(s) -> Polaris -> Sol
+  const px = POLARIS.x * W, py = POLARIS.y * H;
+  const sx = SOL.x * W, sy = SOL.y * H;
+  const origins = allChannels ? SYSTEMS : [selected];
+  for (const o of origins) dashLine(o.x * W, o.y * H, px, py, o.c, t);
+  dashLine(px, py, sx, sy, "#ffe9a6", t);
+
+  // Polaris gate
+  star(px, py, 3.2, POLARIS.c);
+  glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
+  label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+
+  // systems
+  for (const s of SYSTEMS) {
+    const x = s.x * W, y = s.y * H;
+    if (s.cluster) {
+      for (let i = 0; i < 7; i++)
+        star(x + Math.cos(i * 2.4) * (6 + i * 2.4), y + Math.sin(i * 1.9) * (5 + i * 2), 1.1, s.c);
+    } else if (s.galaxy) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(-0.5);
+      glow(0, 0, 22, s.c, 0.5);
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.6;
+      ctx.beginPath(); ctx.ellipse(0, 0, 16, 5, 0, 0, 6.29); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.restore();
+    } else star(x, y, 2.4, s.c);
+
+    if (s === selected || allChannels) {
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.arc(x, y, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    const right = s.x > 0.55;
+    label(x + (right ? -12 : 12), y - 8, s.name,
+      fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
+  }
+
+  // Sol
+  star(sx, sy, 2.6, SOL.c);
+  label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
+}
+
+/* warp */
+function initWarp() {
+  warpStars = Array.from({ length: reduced ? 60 : 340 }, () => ({
+    a: Math.random() * 6.29, d: Math.random() * Math.max(W, H) * 0.5 + 8,
+    v: Math.random() * 0.9 + 0.25
+  }));
+}
+const WAYPOINTS = [
+  [0.3, "CROSSING THE ORION SPUR"], [0.6, "LOCAL BUBBLE"], [0.85, "POLARIS AHEAD"]
+];
+let wpHit = new Set();
+function drawWarp(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2, spd = 6 + p * 60;
+  ctx.strokeStyle = "#dfe8ff"; ctx.lineWidth = 1.2;
+  for (const s of warpStars) {
+    s.d += s.v * spd;
+    if (s.d > Math.max(W, H) * 0.75) s.d = 6;
+    const x = cx + Math.cos(s.a) * s.d, y = cy + Math.sin(s.a) * s.d;
+    const x2 = cx + Math.cos(s.a) * (s.d + s.v * spd * 2.2),
+      y2 = cy + Math.sin(s.a) * (s.d + s.v * spd * 2.2);
+    ctx.globalAlpha = Math.min(1, s.d / 220);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // range countdown
+  const rem = selected.ly * Math.pow(1 - p, 3.2);
+  let txt;
+  if (rem > 0.05) txt = rem >= 1e6 ? (rem / 1e6).toFixed(2) + "M LY" : rem.toFixed(2) + " LY";
+  else { const au = rem * 63241; txt = au > 1 ? au.toFixed(1) + " AU" : (au * 1.496e8).toFixed(0) + " KM"; }
+  $("dRng").textContent = txt;
+  $("dSig").textContent = Math.round(p * 60) + "%";
+
+  for (const [th, name] of WAYPOINTS)
+    if (p >= th && !wpHit.has(th)) { wpHit.add(th); log("PASSING: " + name, "cy"); }
+}
+
+/* holo earth */
+function drawEarth(p) {
+  ctx.fillStyle = "rgba(5,5,16,0.6)"; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2 + H * 0.06;
+  const R = 26 + p * p * Math.max(W, H) * 0.8;
+  glow(cx, cy, R * 1.25, "rgba(107,227,255,0.7)", 0.25);
+  ctx.strokeStyle = "#6be3ff"; ctx.lineWidth = 1.1; ctx.globalAlpha = 0.9;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.stroke();
+  const rot = p * 0.9;
+  for (let i = -2; i <= 2; i++) { // parallels
+    const yy = cy - Math.sin(i * 0.5) * R * 0.86;
+    const rx = Math.cos(i * 0.5) * R;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath(); ctx.ellipse(cx, yy, rx, rx * 0.16, 0, 0, 6.29); ctx.stroke();
+  }
+  for (let i = 0; i < 6; i++) { // meridians
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, R * Math.abs(Math.cos(i * 0.52 + rot)), R, 0, 0, 6.29);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // polar approach vector from Polaris down onto the pole
+  ctx.strokeStyle = "#ffe9a6"; ctx.setLineDash([3, 6]);
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - R); ctx.stroke();
+  ctx.setLineDash([]);
+  star(cx, Math.max(14, cy - R - 40), 2.5, "#ffe9a6");
+  label(cx + 10, Math.max(24, cy - R - 34), "POLARIS", "POLAR APPROACH", "#ffe9a6");
+  // target latitude ring (live)
+  const tla = (TARGET.lat * Math.PI) / 180;
+  const ty = cy - Math.sin(tla) * R * 0.86, trx = Math.cos(tla) * R;
+  ctx.strokeStyle = "#ff5c39"; ctx.globalAlpha = 0.9;
+  ctx.beginPath(); ctx.ellipse(cx, ty, trx, trx * 0.16, 0, 0, 6.29); ctx.stroke();
+  ctx.globalAlpha = 1;
+  if (R > 60 && trx > 10) label(cx + trx * 0.5, ty - 8, "TARGET LAT " +
+    Math.abs(TARGET.lat).toFixed(1) + "°" + (TARGET.lat >= 0 ? "N" : "S"), "", "#ff5c39");
+  if (p > 0.88) { ctx.fillStyle = "rgba(230,240,255," + (p - 0.88) / 0.12 + ")"; ctx.fillRect(0, 0, W, H); }
+  $("dSig").textContent = Math.round(72 + p * 6) + "%";
+}
+
+/* ---------------- galaxy / polaris / sun / moon stages ---------------- */
+const easeIO = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const SOLG = { x: -0.31, y: -0.14 };
+let galPts = null;
+function initGalaxy() {
+  const P = [];
+  for (let i = 0; i < 240; i++) {
+    const a = Math.random() * 6.29, d = Math.pow(Math.random(), 2) * 0.15;
+    P.push({ x: Math.cos(a) * d * 1.25, y: Math.sin(a) * d * 0.7,
+      s: Math.random() * 1.4 + 0.4, c: "#ffe3b0" });
+  }
+  for (let arm = 0; arm < 2; arm++)
+    for (let i = 0; i < 430; i++) {
+      const th = Math.random() * 3.9 + 0.3;
+      const r = Math.min(1.05, 0.1 * Math.exp(0.42 * th)) +
+        (Math.random() - 0.5) * (0.05 + th * 0.02);
+      const a = th + arm * Math.PI;
+      const c = Math.random() < 0.07 ? "#ff9bb0" : Math.random() < 0.5 ? "#cfe0ff" : "#eef4ff";
+      P.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * 0.62,
+        s: Math.random() * 1.5 + 0.3, c });
+    }
+  return P;
+}
+function drawGalaxy(p, t) {
+  if (!galPts) galPts = initGalaxy();
+  ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2, e = easeIO(p);
+  const z = Math.min(W, H) * (0.42 + e * 3.4);
+  const rot = t * 0.008, cR = Math.cos(rot), sR = Math.sin(rot);
+  const mrx = SOLG.x * cR - SOLG.y * sR, mry = SOLG.x * sR + SOLG.y * cR;
+  const camx = mrx * e, camy = mry * e;
+  glow(cx - camx * z, cy - camy * z, Math.max(24, z * 0.15), "#ffdca0", 0.5);
+  for (const q of galPts) {
+    const rx = q.x * cR - q.y * sR, ry = q.x * sR + q.y * cR;
+    const sx = cx + (rx - camx) * z, sy = cy + (ry - camy) * z;
+    if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
+    ctx.globalAlpha = 0.75; ctx.fillStyle = q.c;
+    ctx.fillRect(sx, sy, q.s, q.s);
+  }
+  ctx.globalAlpha = 1;
+  const mx = cx + (mrx - camx) * z, my = cy + (mry - camy) * z;
+  ctx.strokeStyle = "#ffd34d";
+  ctx.beginPath(); ctx.arc(mx, my, 10 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+  star(mx, my, 1.6, "#ffd34d");
+  label(mx + 14, my - 6, "SOL", "ORION ARM — 26,000 LY FROM CORE", "#ffd34d");
+  if (p < 0.45) {
+    ctx.globalAlpha = 1 - p / 0.45;
+    label(cx, 44, "MILKY WAY", "100,000 LY ACROSS", "#cfe0ff", "center");
+    ctx.globalAlpha = 1;
+  }
+  $("dRng").textContent = Math.max(50, Math.round(26000 * (1 - e))) + " LY";
+  $("dSig").textContent = Math.round(5 + p * 15) + "%";
+}
+function drawPolaris(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.4)"; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2;
+  const cy = H * (0.42 - Math.max(0, p - 0.65) * 1.6); // slides overhead — we pass under it
+  for (const s of bgStars) {
+    ctx.globalAlpha = 0.3; ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect(s.x, (s.y + t * 30) % H, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+  glow(cx, cy, 90 + 25 * Math.sin(t * 2), "#ffe9a6", 0.5);
+  star(cx, cy, 4 + p * 6, "#ffe9a6");
+  for (let i = 0; i < 3; i++) {
+    const rr = ((t * 40 + i * 60) % 180) + 20;
+    ctx.strokeStyle = "#ffe9a6"; ctx.globalAlpha = Math.max(0, 1 - rr / 200);
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 6.29); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  dashLine(cx, cy, cx, H, "#ffe9a6", t);
+  label(cx, Math.max(60, cy + 40), "POLARIS — THE NORTH STAR",
+    "433 LY — FINAL WAYPOINT · SOL DEAD AHEAD", "#ffe9a6", "center");
+  $("dRng").textContent = "433 LY";
+  $("dSig").textContent = "62%";
+}
+function drawSun(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  const drift = Math.max(0, (p - 0.62) / 0.38);
+  const cx = W / 2 - drift * W * 0.75, cy = H / 2 - drift * H * 0.2;
+  const R = (14 + easeIO(Math.min(1, p / 0.62)) * Math.min(W, H) * 0.3) * (1 - drift * 0.45);
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * 6.29 + t * 0.35;
+    const len = R * (1.25 + 0.18 * Math.sin(t * 6 + i * 2.1));
+    ctx.strokeStyle = "rgba(255,176,58,0.5)";
+    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
+  }
+  glow(cx, cy, R * 2.1, "#ffb03a", 0.55);
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  g.addColorStop(0, "#fff7d0"); g.addColorStop(0.75, "#ffcf6b"); g.addColorStop(1, "#ff9b2f");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
+  if (drift < 0.5) label(W / 2, Math.min(H - 30, cy + R + 26), "SOL — HOME STAR",
+    "G2V — 8.3 LIGHT-MINUTES OUT", "#ffcf6b", "center");
+  $("dRng").textContent = "1.0 AU";
+  $("dSig").textContent = "66%";
+}
+function moonInfo() {
+  const syn = 29.530588853;
+  let age = ((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % syn;
+  if (age < 0) age += syn;
+  const illum = Math.round(((1 - Math.cos((2 * Math.PI * age) / syn)) / 2) * 100);
+  const names = [[1.85, "NEW MOON"], [5.54, "WAXING CRESCENT"], [9.23, "FIRST QUARTER"],
+    [12.92, "WAXING GIBBOUS"], [16.61, "FULL MOON"], [20.3, "WANING GIBBOUS"],
+    [23.99, "LAST QUARTER"], [27.68, "WANING CRESCENT"], [99, "NEW MOON"]];
+  let name = "NEW MOON";
+  for (const [lim, n] of names) if (age <= lim) { name = n; break; }
+  return { ph: age / syn, illum, name };
+}
+function drawMoonDisc(x, y, r, ph) {
+  ctx.fillStyle = "#141420";
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
+  const cosT = Math.cos(2 * Math.PI * ph);
+  ctx.fillStyle = "#d8d8de";
+  ctx.beginPath();
+  if (ph <= 0.5) {
+    ctx.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
+    ctx.ellipse(x, y, Math.abs(cosT) * r, r, 0, Math.PI / 2, -Math.PI / 2, cosT > 0);
+  } else {
+    ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5, false);
+    ctx.ellipse(x, y, Math.abs(cosT) * r, r, 0, Math.PI * 1.5, Math.PI / 2, cosT > 0);
+  }
+  ctx.fill();
+  ctx.globalAlpha = 0.14; ctx.fillStyle = "#000";
+  [[-0.3, -0.25, 0.16], [0.25, 0.1, 0.12], [0.05, 0.38, 0.1], [-0.15, 0.15, 0.07]]
+    .forEach(([dx, dy, dr]) => {
+      ctx.beginPath(); ctx.arc(x + dx * r, y + dy * r, dr * r, 0, 6.29); ctx.fill();
+    });
+  ctx.globalAlpha = 1;
+}
+function drawMoonStage(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  const m = moonInfo();
+  star(W / 2, H * 0.55, 2.2, "#6be3ff");
+  label(W / 2, H * 0.55 + 20, "EARTH AHEAD", "", "#6be3ff", "center");
+  const drift = Math.max(0, (p - 0.7) / 0.3);
+  const mx = W * (0.82 - easeIO(Math.min(1, p / 0.6)) * 0.32) - drift * W * 0.9;
+  const my = H * 0.3;
+  const r = Math.min(84, Math.min(W, H) * 0.2) * (0.35 + easeIO(Math.min(1, p / 0.6)) * 0.65);
+  glow(mx, my, r * 1.7, "#aab0cc", 0.25);
+  drawMoonDisc(mx, my, r, m.ph);
+  label(W / 2, my + r + 34, "LUNA — LIVE PHASE: " + m.name,
+    m.illum + "% LIT · 384,400 KM · 1.3 LIGHT-SECONDS", "#d8d8de", "center");
+  $("dRng").textContent = "384,400 KM";
+  $("dSig").textContent = "70%";
+}
+
+/* ---------------- sequencer ---------------- */
+let t0 = 0, raf = 0;
+const STAGE_LABEL = { warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
+  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH" };
+function stageAfter(cur) {
+  const order = ["warp", "polaris", "sun", "moon", "earth"];
+  const on = { warp: true, polaris: S.polaris, sun: S.sun, moon: S.moon, earth: true };
+  let i = order.indexOf(cur) + 1;
+  while (i < order.length - 1 && !on[order[i]]) i++;
+  return order[i];
+}
+function advance(cur, ts) {
+  const n = stageAfter(cur);
+  setPhase(n, STAGE_LABEL[n]); t0 = ts;
+  if (n === "polaris") log("POLARIS FLYBY — PASSING OVERHEAD", "cy");
+  else if (n === "sun") log("SOL CONFIRMED — HOME SYSTEM", "cy");
+  else if (n === "moon") log("LUNAR FLYBY — PHASE IS LIVE", "cy");
+}
+function loop(ts) {
+  const t = ts / 1000;
+  const seg = (ms) => Math.min(1, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul));
+  if (phase === "chart") drawChart(t);
+  else if (phase === "galaxy") {
+    const p = seg(15000);
+    drawGalaxy(p, t);
+    if (p >= 1) { wpHit.clear(); initWarp(); advance("galaxy", ts); }
+  } else if (phase === "warp") {
+    const p = seg(5600);
+    drawWarp(p, t);
+    if (p >= 1) advance("warp", ts);
+  } else if (phase === "polaris") {
+    const p = seg(3600);
+    drawPolaris(p, t);
+    if (p >= 1) advance("polaris", ts);
+  } else if (phase === "sun") {
+    const p = seg(4600);
+    drawSun(p, t);
+    if (p >= 1) advance("sun", ts);
+  } else if (phase === "moon") {
+    const p = seg(4600);
+    drawMoonStage(p, t);
+    if (p >= 1) advance("moon", ts);
+  } else if (phase === "earth") {
+    const p = seg(3200);
+    drawEarth(p);
+    if (p >= 1) return startDive();
+  }
+  raf = requestAnimationFrame(loop);
+}
+raf = requestAnimationFrame(loop);
+
+function engage() {
+  if (phase !== "chart") return;
+  wpHit.clear(); initWarp();
+  log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
+  log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
+  log("STAGE 1: MILKY WAY OVERVIEW — FIND SOL", "cy");
+  precacheTiles();
+  setPhase("galaxy", "MILKY WAY"); t0 = performance.now();
+  $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
+  $("chips").classList.add("hide"); $("reticle").classList.add("on");
+}
+
+const DESCENT = [
+  { z: 4, fly: 6, hold: 5, msg: "CONTINENTAL VIEW" },
+  { z: 6, fly: 7, hold: 5, msg: "YOUR REGION" },
+  { z: 8, fly: 7, hold: 5, msg: "STATE LEVEL" },
+  { z: 10, fly: 7, hold: 5, msg: "YOUR COUNTY" },
+  { z: 12, fly: 8, hold: 6, msg: "HOME TERRITORY" },
+  { z: 14, fly: 8, hold: 6, msg: "YOUR TOWN" },
+  { z: 15, fly: 8, hold: 6, msg: "THE NEIGHBORHOOD" },
+  { z: 16, fly: 8, hold: 7, msg: "YOUR STREETS" },
+  { z: 17, fly: 9, hold: 7, msg: "ALMOST THERE" },
+  { z: 18, fly: 9, hold: 0, msg: "YOUR SPOT" }
+];
+function tileXY(lat, lon, z) {
+  const n = Math.pow(2, z);
+  const x = Math.floor(((lon + 180) / 360) * n);
+  const la = (lat * Math.PI) / 180;
+  const y = Math.floor(((1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2) * n);
+  return { x, y, n };
+}
+let precached = "";
+function activeDescent() {
+  if (S.detail === "quick") return DESCENT.filter((s) => [4, 10, 15, 18].includes(s.z));
+  if (S.detail === "medium") return DESCENT.filter((s) => [4, 8, 12, 15, 17, 18].includes(s.z));
+  return DESCENT;
+}
+function precacheTiles() {
+  if (S.cache === "off") return;
+  const key = TARGET.lat.toFixed(4) + "," + TARGET.lon.toFixed(4) + S.cache + S.detail;
+  if (precached === key) return;
+  precached = key;
+  const zooms = S.cache === "aggressive"
+    ? Array.from({ length: 15 }, (_, i) => i + 4)
+    : activeDescent().map((s) => s.z);
+  const RX = S.cache === "aggressive" ? 2 : 1;
+  const RY = S.cache === "aggressive" ? 3 : 2;
+  const urls = [];
+  for (const z of zooms) {
+    const { x, y, n } = tileXY(TARGET.lat, TARGET.lon, z);
+    for (let dx = -RX; dx <= RX; dx++)
+      for (let dy = -RY; dy <= RY; dy++) {
+        const tx = (((x + dx) % n) + n) % n, ty = y + dy;
+        if (ty < 0 || ty >= n) continue;
+        urls.push("https://server.arcgisonline.com/ArcGIS/rest/services/" +
+          "World_Imagery/MapServer/tile/" + z + "/" + ty + "/" + tx);
+      }
+  }
+  let done = 0;
+  const total = urls.length;
+  log("PRECACHING " + total + " TILES...", "cy");
+  urls.forEach((u) => {
+    const im = new Image();
+    im.onload = im.onerror = () => {
+      if (++done === total) log("TILE CACHE READY", "cy");
+    };
+    im.src = u;
+  });
+}
+let diveToken = 0, diveStep = -1, holdTimer = 0, breathTimer = 0;
+let divePlan = DESCENT;
+function cueStage(txt) {
+  $("cue").classList.add("on");
+  $("cue").querySelector(".stage").textContent = txt || "";
+}
+function startBreath() {
+  let inhale = true;
+  const set = () =>
+    ($("cue").querySelector(".breath").textContent = inhale ? "BREATHE IN" : "BREATHE OUT");
+  set();
+  breathTimer = setInterval(() => { inhale = !inhale; set(); }, S.breath * 1000);
+}
+function startDive() {
+  cancelAnimationFrame(raf);
+  setPhase("dive", "SLOW DESCENT");
+  $("space").classList.add("gone");
+  if (!map) { failNoMap(); return; }
+  lockMap(true);
+  divePlan = activeDescent();
+  map.setView([55, -95], 3, { animate: false });
+  log("ENTRY: POLAR VECTOR — SLOW DESCENT", "cy");
+  log("HOLDS AT EACH ALTITUDE — LET IT LOAD", "cy");
+  log("TAP SCREEN = NEXT STAGE");
+  startBreath();
+  const token = ++diveToken;
+  setTimeout(() => runStep(0, token), 600);
+}
+function runStep(i, token) {
+  if (token !== diveToken || phase !== "dive") return;
+  if (i >= divePlan.length) return arrive();
+  diveStep = i;
+  const s = divePlan[i];
+  cueStage(s.msg);
+  map.flyTo([TARGET.lat, TARGET.lon], s.z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
+  map.once("moveend", () => {
+    if (token !== diveToken || phase !== "dive") return;
+    holdTimer = setTimeout(() => runStep(i + 1, token), (reduced ? 1 : s.hold * S.diveMul) * 1000);
+  });
+}
+function skipStep() {
+  if (phase !== "dive") return;
+  clearTimeout(holdTimer);
+  const token = ++diveToken;
+  map.stop();
+  runStep(diveStep + 1, token);
+}
+
+function arrive() {
+  if (phase !== "dive") return;
+  setPhase("active", "BEACON ACTIVE");
+  clearInterval(breathTimer);
+  $("cue").classList.remove("on");
+  $("reticle").classList.remove("on");
+  lockMap(false);
+  placeBeacon();
+  log("BEACON ACTIVE — " + fmtLL(TARGET.lat, TARGET.lon), "alert");
+  log("TOUCHDOWN — TARGET CONFIRMED", "cy");
+  log("RELAY: POLARIS GATE OPEN");
+  log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
+  log("AWAITING RESPONSE...");
+  ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
+}
+
+function replay() {
+  ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
+  $("cue").classList.remove("on");
+  if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
+  if (beacon) { map.removeLayer(beacon); beacon = null; }
+  retargetMode = false; $("bTarget").classList.remove("on");
+  ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.add("hide"));
+  $("bEngage").classList.remove("hide"); $("bAll").classList.remove("hide");
+  $("chips").classList.remove("hide");
+  $("space").classList.remove("gone");
+  setPhase("chart", "STAR CHART");
+  raf = requestAnimationFrame(loop);
+}
+
+/* ---------------- map ---------------- */
+function fmtLL(lat, lon) {
+  return Math.abs(lat).toFixed(4) + (lat >= 0 ? "N " : "S ") +
+    Math.abs(lon).toFixed(4) + (lon >= 0 ? "E" : "W");
+}
+function lockMap(l) {
+  const m = ["dragging", "touchZoom", "doubleClickZoom", "scrollWheelZoom", "boxZoom", "keyboard"];
+  m.forEach((k) => map[k] && map[k][l ? "disable" : "enable"]());
+}
+function placeBeacon() {
+  const icon = L.divIcon({ className: "", iconSize: [0, 0],
+    html: '<div class="beacon"><s></s><s></s><s></s><i></i></div>' });
+  if (beacon) map.removeLayer(beacon);
+  beacon = L.marker([TARGET.lat, TARGET.lon], { icon }).addTo(map);
+}
+function failNoMap() {
+  log("MAP CORE OFFLINE — CDN UNREACHABLE", "alert");
+  log("OPEN FILE WITH INTERNET FOR SATELLITE DIVE", "cy");
+}
+try {
+  if (typeof L === "undefined") throw 0;
+  map = L.map("map", { zoomControl: false, attributionControl: true,
+    center: [55, -95], zoom: 3, maxZoom: 19 });
+  let tileFail = false;
+  const tiles = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 19, keepBuffer: 8, updateWhenIdle: false,
+      attribution: "Esri World Imagery" }).addTo(map);
+  tiles.on("tileerror", () => {
+    if (tileFail) return; tileFail = true;
+    log("IMAGERY LINK DEGRADED — GRID MODE", "alert");
+    log("(preview may block tiles — open file in browser)", "cy");
+  });
+  map.on("move", () => {
+    const c = map.getCenter();
+    $("dLat").textContent = c.lat.toFixed(4) + "°";
+    $("dLon").textContent = c.lng.toFixed(4) + "°";
+    if (phase === "dive" || phase === "active") {
+      const km = Math.pow(2, 19 - map.getZoom()) * 0.3;
+      $("dRng").textContent = km >= 1 ? Math.round(km) + " KM" : Math.round(km * 1000) + " M";
+      $("dSig").textContent = Math.min(100, Math.round(78 + ((map.getZoom() - 3) / 15) * 22)) + "%";
+    }
+  });
+  map.on("click", (e) => {
+    if (!retargetMode || phase !== "active") return;
+    TARGET = { lat: e.latlng.lat, lon: e.latlng.lng, exact: true };
+    placeBeacon();
+    log("TARGET UPDATED — " + fmtLL(TARGET.lat, TARGET.lon), "cy");
+    retargetMode = false; $("bTarget").classList.remove("on");
+  });
+} catch (e) { map = null; }
+
+/* ---------------- controls ---------------- */
+const chipsEl = $("chips");
+for (const s of SYSTEMS) {
+  const b = document.createElement("button");
+  b.className = "chip" + (s === selected ? " sel" : "");
+  b.innerHTML = '<span class="dot" style="color:' + s.c + ";background:" + s.c + '"></span>' +
+    s.name + "<small>" + fmtLy(s.ly) + " · " + s.tag + "</small>";
+  b.onclick = () => {
+    selected = s; allChannels = false; $("bAll").classList.remove("on");
+    [...chipsEl.children].forEach((c) => c.classList.remove("sel"));
+    b.classList.add("sel");
+    log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
+  };
+  chipsEl.appendChild(b);
+}
+$("bEngage").onclick = engage;
+$("bAll").onclick = () => {
+  allChannels = !allChannels;
+  $("bAll").classList.toggle("on", allChannels);
+  log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
+};
+$("bReplay").onclick = replay;
+$("bTarget").onclick = () => {
+  retargetMode = !retargetMode;
+  $("bTarget").classList.toggle("on", retargetMode);
+  if (retargetMode) log("RETARGET: TAP YOUR ROOF", "cy");
+};
+$("bGps").onclick = () => {
+  if (!navigator.geolocation) return log("GPS UNAVAILABLE", "alert");
+  log("GPS: ACQUIRING...", "cy");
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
+      TARGET = { lat: p.coords.latitude, lon: p.coords.longitude, exact: true };
+      placeBeacon(); map && map.flyTo([TARGET.lat, TARGET.lon], 17);
+      log("GPS LOCK — " + fmtLL(TARGET.lat, TARGET.lon), "cy");
+    },
+    () => log("GPS DENIED — BEACON UNCHANGED", "alert"),
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+};
+
+/* tone: 528 + 432 Hz soft beat */
+let ac = null, toneOn = false, oscs = [];
+$("bTone").onclick = () => {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (!toneOn) {
+      const g = ac.createGain(); g.gain.value = 0.045; g.connect(ac.destination);
+      oscs = [528, 432].map((f) => {
+        const o = ac.createOscillator(); o.frequency.value = f; o.type = "sine";
+        o.connect(g); o.start(); return o;
+      });
+      oscs.gain = g; toneOn = true;
+      $("bTone").classList.add("on"); log("TONE: 528/432 HZ CARRIER ON", "cy");
+    } else {
+      oscs.forEach((o) => o.stop && o.stop()); oscs.gain.disconnect();
+      toneOn = false; $("bTone").classList.remove("on"); log("TONE OFF");
+    }
+  } catch (e) { log("AUDIO BLOCKED", "alert"); }
+};
+
+/* chart tap: select system / skip warp */
+cvs.addEventListener("pointerdown", (e) => {
+  if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
+  if (phase !== "chart") return;
+  const r = cvs.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  for (const s of SYSTEMS) {
+    if (Math.hypot(x - s.x * W, y - s.y * H) < 34) {
+      selected = s; allChannels = false; $("bAll").classList.remove("on");
+      [...chipsEl.children].forEach((c, i) => c.classList.toggle("sel", SYSTEMS[i] === s));
+      log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
+      return;
+    }
+  }
+});
+
+document.addEventListener("pointerdown", (e) => {
+  if (phase === "dive" && !e.target.closest("#ctl,#settings")) skipStep();
+});
+
+/* ---------------- settings panel ---------------- */
+function updateShareLink() {
+  $("shareIn").value = location.href.split("#")[0] + "#ll=" +
+    TARGET.lat.toFixed(6) + "," + TARGET.lon.toFixed(6);
+}
+function setTargetTo(lat, lon, name) {
+  TARGET = { lat, lon, exact: true };
+  precached = "";
+  precacheTiles();
+  $("addrStatus").textContent = "LOCKED: " + fmtLL(lat, lon) + (name ? " — " + name : "");
+  log("TARGET SET — " + fmtLL(lat, lon), "cy");
+  updateShareLink();
+  if (phase === "active" && map) { placeBeacon(); map.flyTo([lat, lon], 17); }
+}
+function locate() {
+  const v = $("addrIn").value.trim();
+  if (!v) return;
+  const m = v.match(/^(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)$/);
+  if (m) return setTargetTo(+m[1], +m[2]);
+  $("addrStatus").textContent = "SEARCHING...";
+  fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+    encodeURIComponent(v))
+    .then((r) => r.json())
+    .then((j) => {
+      if (j && j[0])
+        setTargetTo(+j[0].lat, +j[0].lon, (j[0].display_name || "").split(",")[0].toUpperCase());
+      else $("addrStatus").textContent = "NOT FOUND — ADD CITY / STATE AND RETRY";
+    })
+    .catch(() => {
+      $("addrStatus").textContent =
+        "GEOCODER BLOCKED IN THIS PREVIEW — WORKS ON THE HOSTED SITE. OR PASTE: LAT, LON";
+    });
+}
+$("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
+$("bClose").onclick = () => $("settings").classList.add("hide");
+$("settings").addEventListener("pointerdown", (e) => {
+  if (e.target === $("settings")) $("settings").classList.add("hide");
+});
+$("bLocate").onclick = locate;
+$("addrIn").addEventListener("keydown", (e) => { if (e.key === "Enter") locate(); });
+$("bCopy").onclick = () => {
+  updateShareLink();
+  const el = $("shareIn");
+  el.focus(); el.select();
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(el.value)
+      .then(() => log("SHARE LINK COPIED", "cy"))
+      .catch(() => log("LONG-PRESS THE LINK TO COPY", "cy"));
+  else log("LONG-PRESS THE LINK TO COPY", "cy");
+};
+$("rBreath").oninput = (e) => {
+  S.breath = +e.target.value;
+  $("vBreath").textContent = S.breath.toFixed(1);
+  if (breathTimer) { clearInterval(breathTimer); startBreath(); }
+};
+$("rSpace").oninput = (e) => { S.spaceMul = +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
+$("rDive").oninput = (e) => { S.diveMul = +e.target.value; $("vDive").textContent = S.diveMul.toFixed(1); };
+$("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
+$("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
+$("ckSun").onchange = (e) => (S.sun = e.target.checked);
+$("ckMoon").onchange = (e) => (S.moon = e.target.checked);
+$("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
+
+/* boot log */
+log("CE-5 BEACON CONSOLE — SHARED EDITION");
+log(hashLL ? "TARGET LOADED FROM SHARED LINK" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
+log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
+log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
+log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
+updateShareLink();
+</script>
+</body>
+</html>
