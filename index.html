@@ -117,6 +117,31 @@
   .hide { display: none !important; }
 
   #bGear { flex: 0 0 56px; }
+  #bInfo { flex: 0 0 56px; padding: 9px 4px; display: flex; align-items: center;
+    justify-content: center; }
+  #bInfo svg { width: 22px; height: 14px; display: block; }
+  @media (max-width: 430px) {
+    .btn { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 0.12em; }
+    #bGear, #bInfo { flex-basis: 44px; }
+  }
+  #info { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
+    display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #info.hide { display: none; }
+  #infoCard { width: 100%; max-width: 460px; max-height: 84dvh; overflow-y: auto;
+    background: #0a0a18; border: 1px solid var(--cyan); border-radius: 4px; padding: 14px;
+    box-shadow: 0 0 30px rgba(107,227,255,0.15); -webkit-user-select: text; user-select: text; }
+  #infoCard .setHead { color: var(--cyan); }
+  #bInfoClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  .infoP { font-size: 11px; line-height: 1.55; color: var(--ink); margin-bottom: 10px; }
+  .infoP b { color: var(--amber); font-weight: 400; }
+  .infoStep { display: flex; gap: 10px; margin-bottom: 9px; font-size: 11px; line-height: 1.5; }
+  .infoStep .n { flex: 0 0 22px; color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
+  .infoStep .t { color: var(--amber); display: block; letter-spacing: 0.12em; margin-bottom: 2px; }
+  .infoRule { font-size: 11px; line-height: 1.5; color: var(--ink); margin: 0 0 6px 12px;
+    text-indent: -12px; }
+  .infoRule::before { content: "\25B8 "; color: var(--amber-dim); }
+  .infoFoot { font-size: 9px; color: var(--amber-dim); letter-spacing: 0.08em; line-height: 1.5;
+    margin-top: 12px; border-top: 1px solid rgba(138,106,58,0.4); padding-top: 8px; }
   #settings { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #settings.hide { display: none; }
@@ -225,6 +250,57 @@
     </div>
   </div>
 </div>
+<div id="info" class="hide">
+  <div id="infoCard">
+    <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
+    <div class="setRow">
+      <div class="setLbl">WHAT IT IS</div>
+      <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
+        instead of waiting for it. The term and the practice come from Dr. Steven Greer and CSETI
+        (early 1990s). What follows is a plain-language summary in our own words.</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">THE CORE STEPS</div>
+      <div class="infoStep"><span class="n">01</span><span><span class="t">SETTLE</span>Sit outside,
+        ideally with a group, at a dark-sky spot away from city light. Get comfortable, screens dim,
+        fear off.</span></div>
+      <div class="infoStep"><span class="n">02</span><span><span class="t">GO QUIET</span>A few minutes
+        of slow breathing and stillness. Let thought settle until awareness feels open and wide.
+        (The BREATHE IN / OUT cue here paces this.)</span></div>
+      <div class="infoStep"><span class="n">03</span><span><span class="t">VECTOR</span>Picture the
+        galaxy, find the Sun, find Earth, then descend in your mind to the exact spot you are
+        sitting. Hold a clear, welcoming invitation: you are welcome here. (This console&#39;s
+        flight path is a guided version of this step.)</span></div>
+      <div class="infoStep"><span class="n">04</span><span><span class="t">SIGNAL</span>A bright light
+        in slow, deliberate flashes, or tones played into the night. Signals say where you are and
+        that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)</span></div>
+      <div class="infoStep"><span class="n">05</span><span><span class="t">STAY OPEN</span>Keep
+        watching without straining. Note lights, flashes, orbs, flashbulb events, or a felt sense
+        of presence. Do not chase. Stay calm.</span></div>
+      <div class="infoStep"><span class="n">06</span><span><span class="t">LOG IT</span>Time,
+        direction, duration, weather, and what everyone saw or felt. Repeat over weeks; consistency
+        beats one big night.</span></div>
+      <div class="infoStep"><span class="n">07</span><span><span class="t">CLOSE WITH THANKS</span>End
+        with gratitude and a clear goodbye.</span></div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">GROUND RULES</div>
+      <div class="infoRule">Consent and peaceful intent are the whole point. No fear, no demands.</div>
+      <div class="infoRule">One shared intention on the same timing beats a big headcount.</div>
+      <div class="infoRule">Typical session: 1 to 2 hours on a clear night, darker is better.</div>
+      <div class="infoRule">Stay safe and legal: a spot you are allowed to be at night, and never
+        point a laser at an aircraft.</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">HOW THIS CONSOLE MAPS TO IT</div>
+      <div class="infoP">Departure system = who you are inviting · Galaxy → Sol → Luna
+        → Earth → descent = the vectoring visualization · Breath cue = step 02 ·
+        TONE = step 04 · The beacon = we are here.</div>
+    </div>
+    <div class="infoFoot">CE-5 AND CSETI ARE TERMS ASSOCIATED WITH DR. STEVEN GREER. THIS CARD IS AN
+      INDEPENDENT SUMMARY, NOT AFFILIATED. USE AT YOUR OWN DISCRETION.</div>
+  </div>
+</div>
 <div id="crt"></div>
 <div id="vig"></div>
 
@@ -245,6 +321,7 @@
     <button class="btn" id="bEngage">Engage Approach</button>
     <button class="btn cy" id="bAll">All Channels</button>
     <button class="btn" id="bGear">⚙</button>
+    <button class="btn cy" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
     <button class="btn hide" id="bReplay">Replay</button>
     <button class="btn cy hide" id="bTone">Tone</button>
     <button class="btn hide" id="bTarget">Retarget</button>
@@ -949,7 +1026,7 @@ cvs.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointerdown", (e) => {
-  if (phase === "dive" && !e.target.closest("#ctl,#settings")) skipStep();
+  if (phase === "dive" && !e.target.closest("#ctl,#settings,#info")) skipStep();
 });
 
 /* ---------------- settings panel ---------------- */
@@ -987,6 +1064,11 @@ function locate() {
 }
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
 $("bClose").onclick = () => $("settings").classList.add("hide");
+$("bInfo").onclick = () => { $("settings").classList.add("hide"); $("info").classList.remove("hide"); };
+$("bInfoClose").onclick = () => $("info").classList.add("hide");
+$("info").addEventListener("pointerdown", (e) => {
+  if (e.target === $("info")) $("info").classList.add("hide");
+});
 $("settings").addEventListener("pointerdown", (e) => {
   if (e.target === $("settings")) $("settings").classList.add("hide");
 });
