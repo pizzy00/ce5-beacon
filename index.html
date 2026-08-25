@@ -222,6 +222,11 @@
       <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
     </div>
     <div class="setRow">
+      <div class="setLbl">ORIGIN LEG PACE — <span id="vOrigin">1.0</span>×</div>
+      <input type="range" id="rOrigin" min="0.5" max="3" step="0.1" value="1" />
+      <div class="setStat">THEIR HOME SYSTEM + THE CROSSING — HIGHER = SLOWER</div>
+    </div>
+    <div class="setRow">
       <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
       <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1" />
       <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
@@ -293,7 +298,7 @@
     </div>
     <div class="setRow">
       <div class="setLbl">HOW THIS CONSOLE MAPS TO IT</div>
-      <div class="infoP">Departure system = who you are inviting · Galaxy → Sol → Luna
+      <div class="infoP">Departure system = who you are inviting · Their star → Galaxy → Sol → Luna
         → Earth → descent = the vectoring visualization · Breath cue = step 02 ·
         TONE = step 04 · The beacon = we are here.</div>
     </div>
@@ -335,7 +340,7 @@
 /* ---------------- target ---------------- */
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
-const S = { breath: 3.2, spaceMul: 1, diveMul: 1, detail: "full",
+const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -481,12 +486,13 @@ function initWarp() {
   }));
 }
 const WAYPOINTS = [
-  [0.3, "CROSSING THE ORION SPUR"], [0.6, "LOCAL BUBBLE"], [0.85, "POLARIS AHEAD"]
+  [0.08, "CLEARING THE HOME SYSTEM"], [0.28, "CROSSING THE ORION SPUR"], [0.5, "LOCAL BUBBLE"],
+  [0.7, "LOCAL INTERSTELLAR CLOUD"], [0.88, "POLARIS AHEAD"]
 ];
 let wpHit = new Set();
 function drawWarp(p, t) {
   ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
-  const cx = W / 2, cy = H / 2, spd = 6 + p * 60;
+  const cx = W / 2, cy = H / 2, spd = 2.5 + Math.pow(p, 1.6) * 70; // slow out of the system, then build
   ctx.strokeStyle = "#dfe8ff"; ctx.lineWidth = 1.2;
   for (const s of warpStars) {
     s.d += s.v * spd;
@@ -500,6 +506,8 @@ function drawWarp(p, t) {
   ctx.globalAlpha = 1;
 
   // range countdown
+  label(W / 2, H - 160, allChannels ? "ALL CHANNELS \u2014 7 SYSTEMS" : "FROM " + selected.name,
+    "\u2192 POLARIS GATE \u2192 SOL", selected.c, "center");
   const rem = selected.ly * Math.pow(1 - p, 3.2);
   let txt;
   if (rem > 0.05) txt = rem >= 1e6 ? (rem / 1e6).toFixed(2) + "M LY" : rem.toFixed(2) + " LY";
@@ -509,6 +517,72 @@ function drawWarp(p, t) {
 
   for (const [th, name] of WAYPOINTS)
     if (p >= th && !wpHit.has(th)) { wpHit.add(th); log("PASSING: " + name, "cy"); }
+}
+
+/* origin system: sit with them at home, then depart */
+function drawOrigin(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.55)"; ctx.fillRect(0, 0, W, H);
+  const s = selected;
+  const dep = Math.max(0, (p - 0.55) / 0.45);            // 0 = at home, 1 = gone
+  const arr = Math.min(1, p / 0.12);                      // ease in on arrival
+  const sc = (0.35 + 0.65 * easeIO(arr)) * (1 - 0.94 * easeIO(dep)) * (1 + 0.03 * Math.sin(t * 2));
+  for (const q of bgStars) {                              // slow drift, faster as we leave
+    ctx.globalAlpha = 0.3 + 0.2 * Math.sin(t * 1.5 + q.tw); ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect(q.x, (q.y + t * (4 + dep * 60)) % H, q.r, q.r);
+  }
+  ctx.globalAlpha = 1;
+  const cx = W / 2, cy = H * 0.46;
+  const base = Math.min(W, H) * 0.11, R = Math.max(1.5, base * sc);
+  glow(cx, cy, R * 2.8, s.c, 0.35 + 0.08 * Math.sin(t * 2));
+  if (s.cluster) {
+    for (let i = 0; i < 7; i++)
+      star(cx + Math.cos(i * 2.4) * (0.5 + i * 0.22) * R, cy + Math.sin(i * 1.9) * (0.4 + i * 0.2) * R,
+        Math.max(0.6, R * 0.09), s.c);
+  } else if (s.galaxy) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.5 + t * 0.02);
+    glow(0, 0, R * 1.4, s.c, 0.5);
+    ctx.strokeStyle = s.c; ctx.globalAlpha = 0.6;
+    for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.ellipse(0, 0, R * i / 3, R * i / 9, 0, 0, 6.29); ctx.stroke(); }
+    ctx.globalAlpha = 1; ctx.restore();
+  } else {
+    for (let i = 0; i < 8; i++) {                         // corona
+      const a = (i / 8) * 6.29 + t * 0.3, len = R * (1.3 + 0.15 * Math.sin(t * 5 + i * 2));
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.35;
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+      ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+    g.addColorStop(0, "#ffffff"); g.addColorStop(0.55, s.c); g.addColorStop(1, s.c);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
+  }
+  if (sc > 0.3 && !s.galaxy) {                            // their worlds
+    const orbits = [[1.9, 0.9, 0.9], [2.6, 0.55, 2.4], [3.3, 0.35, 4.1]];
+    for (const [k, w, ph] of orbits) {
+      const rx = R * k, ry = rx * 0.32;
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.22;
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.29); ctx.stroke();
+      const a = t * w + ph;
+      ctx.globalAlpha = 0.95; ctx.fillStyle = "#e8e2d4";
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry, Math.max(1, R * 0.07), 0, 6.29);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  label(cx, Math.max(30, cy - R * 1.9 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
+    (allChannels ? " \u00b7 +6 SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
+  if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
+  if (p >= 0.3 && !wpHit.has("o2")) {
+    wpHit.add("o2"); log("HAILING " + s.tag + " \u2014 INVITATION SENT");
+    cueSub("INVITATION SENT \u00b7 YOU ARE WELCOME HERE");
+  }
+  if (p >= 0.55 && !wpHit.has("o3")) {
+    wpHit.add("o3"); log("DEPARTURE \u2014 DRIVE ENGAGED", "cy");
+    cueStage("THEY ARE COMING WITH YOU"); cueSub("COURSE SET: POLARIS GATE");
+  }
+  if (p > 0.92) { ctx.fillStyle = "rgba(5,5,16," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  $("dRng").textContent = fmtLy(s.ly);
+  $("dSig").textContent = Math.round(6 + p * 8) + "%";
 }
 
 /* holo earth */
@@ -700,7 +774,7 @@ function drawMoonStage(p, t) {
 
 /* ---------------- sequencer ---------------- */
 let t0 = 0, raf = 0;
-const STAGE_LABEL = { warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
+const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
   moon: "LUNAR FLYBY", earth: "TERRAN APPROACH" };
 function stageAfter(cur) {
   const order = ["warp", "polaris", "sun", "moon", "earth"];
@@ -711,6 +785,8 @@ function stageAfter(cur) {
 }
 function advance(cur, ts) {
   const n = stageAfter(cur);
+  if (n === "warp") { cueStage("HOLD THE INVITATION"); cueSub("GUIDE THEM IN"); }
+  if (cur === "warp") $("cue").classList.remove("on");
   setPhase(n, STAGE_LABEL[n]); t0 = ts;
   if (n === "polaris") log("POLARIS FLYBY — PASSING OVERHEAD", "cy");
   else if (n === "sun") log("SOL CONFIRMED — HOME SYSTEM", "cy");
@@ -718,14 +794,22 @@ function advance(cur, ts) {
 }
 function loop(ts) {
   const t = ts / 1000;
-  const seg = (ms) => Math.min(1, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul));
+  const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   if (phase === "chart") drawChart(t);
-  else if (phase === "galaxy") {
+  else if (phase === "origin") {
+    const p = seg(12000 * S.originMul);
+    drawOrigin(p, t);
+    if (p >= 1) {
+      setPhase("galaxy", "MILKY WAY"); t0 = ts;
+      log("STAGE 2: MILKY WAY OVERVIEW \u2014 FIND SOL", "cy");
+      cueStage("FIND SOL TOGETHER"); cueSub("ORION ARM \u00b7 26,000 LY FROM THE CORE");
+    }
+  } else if (phase === "galaxy") {
     const p = seg(15000);
     drawGalaxy(p, t);
     if (p >= 1) { wpHit.clear(); initWarp(); advance("galaxy", ts); }
   } else if (phase === "warp") {
-    const p = seg(5600);
+    const p = seg(26000 * S.originMul);
     drawWarp(p, t);
     if (p >= 1) advance("warp", ts);
   } else if (phase === "polaris") {
@@ -754,9 +838,10 @@ function engage() {
   wpHit.clear(); initWarp();
   log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
   log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
-  log("STAGE 1: MILKY WAY OVERVIEW — FIND SOL", "cy");
+  log("STAGE 1: ORIGIN \u2014 " + selected.name, "cy");
   precacheTiles();
-  setPhase("galaxy", "MILKY WAY"); t0 = performance.now();
+  setPhase("origin", "ORIGIN SYSTEM"); t0 = performance.now();
+  cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " \u00b7 " + selected.name);
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
   $("chips").classList.add("hide"); $("reticle").classList.add("on");
 }
@@ -824,6 +909,7 @@ function cueStage(txt) {
   $("cue").classList.add("on");
   $("cue").querySelector(".stage").textContent = txt || "";
 }
+function cueSub(txt) { $("cue").querySelector(".breath").textContent = txt || ""; }
 function startBreath() {
   let inhale = true;
   const set = () =>
@@ -1091,6 +1177,7 @@ $("rBreath").oninput = (e) => {
 };
 $("rSpace").oninput = (e) => { S.spaceMul = +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
 $("rDive").oninput = (e) => { S.diveMul = +e.target.value; $("vDive").textContent = S.diveMul.toFixed(1); };
+$("rOrigin").oninput = (e) => { S.originMul = +e.target.value; $("vOrigin").textContent = S.originMul.toFixed(1); };
 $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
 $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
