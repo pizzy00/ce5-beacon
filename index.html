@@ -107,6 +107,7 @@
     margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
   .chip.sel { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,196,107,0.35) inset,
     0 0 8px rgba(255,196,107,0.25); }
+  .chip.mode { border-style: dashed; }
   #btns { display: flex; gap: 8px; }
   .btn { flex: 1; border: 1px solid var(--amber); background: rgba(255,196,107,0.08);
     color: var(--amber); font: inherit; font-size: 11px; letter-spacing: 0.18em;
@@ -300,7 +301,7 @@
       <div class="setLbl">HOW THIS CONSOLE MAPS TO IT</div>
       <div class="infoP">Departure system = who you are inviting · Their star → Galaxy → Sol → Luna
         → Earth → descent = the vectoring visualization · Breath cue = step 02 ·
-        TONE = step 04 · The beacon = we are here.</div>
+        TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO).</div>
     </div>
     <div class="infoFoot">CE-5 AND CSETI ARE TERMS ASSOCIATED WITH DR. STEVEN GREER. THIS CARD IS AN
       INDEPENDENT SUMMARY, NOT AFFILIATED. USE AT YOUR OWN DISCRETION.</div>
@@ -357,6 +358,27 @@ const SYSTEMS = [
 ];
 const POLARIS = { x: 0.5, y: 0.09, c: "#ffe9a6" };
 const SOL = { x: 0.5, y: 0.84, c: "#ffd34d" };
+const MODES = [
+  { id: "luna", name: "LUNA · FAR SIDE", tag: "UAP", dist: "384,400 KM", c: "#d8d8de", mode: "moon" },
+  { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" }
+];
+const USO_SITES = [
+  { name: "PUERTO RICO TRENCH", lat: 19.7, lon: -66.5, depth: "8,376 M" },
+  { name: "CATALINA BASIN", lat: 33.2, lon: -118.7, depth: "1,300 M" },
+  { name: "MARIANA TRENCH", lat: 11.35, lon: 142.2, depth: "10,935 M" },
+  { name: "MID-ATLANTIC RIDGE", lat: 37.5, lon: -25.5, depth: "3,000 M" }
+];
+let usoSite = USO_SITES[0];
+function kmBetween(a, b) {
+  const dLa = ((b.lat - a.lat) * Math.PI) / 180, dLo = ((b.lon - a.lon) * Math.PI) / 180;
+  const h = Math.sin(dLa / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLo / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+function nearestSite() {
+  return USO_SITES.reduce((b, s) => (kmBetween(s, TARGET) < kmBetween(b, TARGET) ? s : b), USO_SITES[0]);
+}
+const modeOf = () => (allChannels ? "" : selected.mode || "");
 let selected = SYSTEMS[0]; // Zeta Reticuli default
 let allChannels = false;
 
@@ -440,7 +462,7 @@ function drawChart(t) {
   // routes: origin(s) -> Polaris -> Sol
   const px = POLARIS.x * W, py = POLARIS.y * H;
   const sx = SOL.x * W, sy = SOL.y * H;
-  const origins = allChannels ? SYSTEMS : [selected];
+  const origins = (allChannels ? SYSTEMS : [selected]).filter((o) => !o.mode);
   for (const o of origins) dashLine(o.x * W, o.y * H, px, py, o.c, t);
   dashLine(px, py, sx, sy, "#ffe9a6", t);
 
@@ -476,6 +498,14 @@ function drawChart(t) {
   // Sol
   star(sx, sy, 2.6, SOL.c);
   label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
+  if (modeOf()) {
+    ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.arc(sx, sy, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+    ctx.globalAlpha = 1;
+    label(sx, sy - 46, "DEPARTURE: " + selected.name,
+      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
+      selected.c, "center");
+  }
 }
 
 /* warp */
@@ -583,6 +613,113 @@ function drawOrigin(p, t) {
   if (p > 0.92) { ctx.fillStyle = "rgba(5,5,16," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
   $("dRng").textContent = fmtLy(s.ly);
   $("dSig").textContent = Math.round(6 + p * 8) + "%";
+}
+
+/* lunar origin: the far side, lit live (the phase we never see) */
+function drawMoonOrigin(p, t) {
+  ctx.fillStyle = "rgba(5,5,16,0.55)"; ctx.fillRect(0, 0, W, H);
+  const dep = Math.max(0, (p - 0.55) / 0.45), arr = Math.min(1, p / 0.12);
+  const sc = (0.5 + 0.5 * easeIO(arr)) * (1 - 0.9 * easeIO(dep));
+  for (const q of bgStars) {
+    ctx.globalAlpha = 0.3 + 0.2 * Math.sin(t * 1.5 + q.tw); ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect(q.x, (q.y + t * (3 + dep * 50)) % H, q.r, q.r);
+  }
+  ctx.globalAlpha = 1;
+  const m = moonInfo();
+  const cx = W / 2, cy = H * 0.46;
+  const R = Math.max(2, Math.min(W, H) * 0.2 * sc);
+  glow(cx, cy, R * 1.6, "#aab0cc", 0.25);
+  drawMoonDisc(cx, cy, R, (m.ph + 0.5) % 1); ctx.strokeStyle = "rgba(216,216,222,0.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.stroke();
+  if (sc > 0.35) {                                        // signal source on the far side
+    const ax = cx - R * 0.45, ay = cy - R * 0.35, rr = ((t * 25) % 40) + 4;
+    ctx.strokeStyle = "#5ee0c0"; ctx.globalAlpha = Math.max(0, 1 - rr / 44);
+    ctx.beginPath(); ctx.arc(ax, ay, rr * (R / 90), 0, 6.29); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.fillStyle = "#5ee0c0";
+    ctx.beginPath(); ctx.arc(ax, ay, Math.max(1.5, R * 0.03), 0, 6.29); ctx.fill();
+    if (R > 40) label(ax - 8, ay - 8, "SIGNAL SOURCE", "TSIOLKOVSKIY BASIN", "#5ee0c0", "right");
+  }
+  label(cx, Math.max(30, cy - R - 26), "LUNA — FAR SIDE",
+    "FAR SIDE " + (100 - m.illum) + "% LIT · NEAR SIDE: " + m.name + " · 384,400 KM", "#d8d8de", "center");
+  if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: LUNA — FAR SIDE · NEVER SEEN FROM EARTH", "cy"); }
+  if (p >= 0.3 && !wpHit.has("o2")) {
+    wpHit.add("o2"); log("HAILING THE FAR SIDE — INVITATION SENT");
+    cueSub("INVITATION SENT · YOU ARE WELCOME HERE");
+  }
+  if (p >= 0.55 && !wpHit.has("o3")) {
+    wpHit.add("o3"); log("DEPARTURE — LIFTING OFF THE FAR SIDE", "cy");
+    cueStage("THEY ARE COMING WITH YOU"); cueSub("COURSE SET: EARTH · 384,400 KM");
+  }
+  if (p > 0.92) { ctx.fillStyle = "rgba(5,5,16," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  $("dRng").textContent = "384,400 KM";
+  $("dSig").textContent = Math.round(20 + p * 30) + "%";
+}
+
+/* deep origin: a craft on the seafloor of the nearest trench, then the rise */
+function drawOceanOrigin(p, t) {
+  const dep = Math.max(0, (p - 0.55) / 0.45), rise = easeIO(dep);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "rgb(" + Math.round(8 + rise * 30) + "," + Math.round(28 + rise * 100) + "," +
+    Math.round(48 + rise * 130) + ")");
+  g.addColorStop(1, "#02060e");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 5; i++) {                           // light shafts from the surface
+    const x = W * (0.2 + i * 0.15) + Math.sin(t * 0.4 + i) * 20;
+    ctx.fillStyle = "rgba(120,200,230," + (0.03 + rise * 0.08) + ")";
+    ctx.beginPath(); ctx.moveTo(x - 10, 0); ctx.lineTo(x + 10, 0); ctx.lineTo(x + 90, H); ctx.lineTo(x - 50, H); ctx.fill();
+  }
+  ctx.fillStyle = "#cfe8f0";                              // marine snow, streams as we rise
+  for (const q of bgStars) {
+    ctx.globalAlpha = 0.25 + 0.2 * Math.sin(t * 1.2 + q.tw);
+    ctx.fillRect(q.x, (q.y + t * (6 + dep * 90)) % H, q.r, q.r);
+  }
+  ctx.globalAlpha = 1;
+  const floorY = H * 0.7 + rise * H * 0.6;                // seafloor falls away
+  if (floorY < H + 20) {
+    ctx.fillStyle = "#040a14";
+    ctx.beginPath(); ctx.moveTo(0, floorY + 10);
+    for (let x = 0; x <= W + 40; x += 40) ctx.lineTo(x, floorY + Math.sin(x * 0.05 + 1) * 8);
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  }
+  const cx = W / 2, cy = H * 0.5 - rise * H * 0.36, R = Math.min(W, H) * 0.13;
+  glow(cx, cy, R * 2.2, "#5ee0c0", 0.25 + 0.1 * Math.sin(t * 2));
+  ctx.fillStyle = "#0b2a2a"; ctx.strokeStyle = "#5ee0c0"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.ellipse(cx, cy, R, R * 0.3, 0, 0, 6.29); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx, cy - R * 0.18, R * 0.45, R * 0.28, 0, Math.PI, 0); ctx.stroke();
+  for (let i = 0; i < 10; i++) {                          // running lights
+    const a = (i / 10) * 6.29 + t * 0.8;
+    ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6 + i); ctx.fillStyle = "#bffff0";
+    ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R * 0.92, cy + Math.sin(a) * R * 0.27, 1.6, 0, 6.29); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  for (let i = 0; i < 3; i++) {                           // sonar / hail rings
+    const rr = ((t * 60 + i * 80) % 240) + 10;
+    ctx.strokeStyle = "#5ee0c0"; ctx.globalAlpha = Math.max(0, 0.6 - rr / 260);
+    ctx.beginPath(); ctx.ellipse(cx, cy, rr, rr * 0.35, 0, 0, 6.29); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  if (rise > 0) {                                         // bubbles trail below on the way up
+    ctx.strokeStyle = "rgba(200,240,255,0.5)"; ctx.lineWidth = 1;
+    for (let i = 0; i < 14; i++) {
+      const by = cy + R * 0.3 + (H * 0.5 - ((t * 120 + i * 53) % (H * 0.5)));
+      const bx = cx + Math.sin(i * 1.7 + t) * R * 0.6;
+      ctx.beginPath(); ctx.arc(bx, by, 1.5 + (i % 3), 0, 6.29); ctx.stroke();
+    }
+  }
+  const km = Math.round(kmBetween(usoSite, TARGET)).toLocaleString();
+  label(cx, Math.max(30, cy - R * 0.9 - 22), usoSite.name,
+    "DEPTH " + usoSite.depth + " · USO · " + km + " KM FROM YOUR SPOT", "#5ee0c0", "center");
+  if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + usoSite.name + " — " + usoSite.depth + " DOWN", "cy"); }
+  if (p >= 0.3 && !wpHit.has("o2")) {
+    wpHit.add("o2"); log("HAILING THE DEEP — INVITATION SENT");
+    cueSub("INVITATION SENT · YOU ARE WELCOME HERE");
+  }
+  if (p >= 0.55 && !wpHit.has("o3")) {
+    wpHit.add("o3"); log("DEPARTURE — RISING", "cy");
+    cueStage("THEY ARE COMING WITH YOU"); cueSub("RISING TO THE SURFACE");
+  }
+  if (p > 0.92) { ctx.fillStyle = "rgba(230,245,255," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  $("dRng").textContent = km + " KM";
+  $("dSig").textContent = Math.round(20 + p * 30) + "%";
 }
 
 /* holo earth */
@@ -797,12 +934,21 @@ function loop(ts) {
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   if (phase === "chart") drawChart(t);
   else if (phase === "origin") {
-    const p = seg(12000 * S.originMul);
-    drawOrigin(p, t);
+    const p = seg(12000 * S.originMul), mode = modeOf();
+    if (mode === "moon") drawMoonOrigin(p, t);
+    else if (mode === "ocean") drawOceanOrigin(p, t);
+    else drawOrigin(p, t);
     if (p >= 1) {
-      setPhase("galaxy", "MILKY WAY"); t0 = ts;
-      log("STAGE 2: MILKY WAY OVERVIEW \u2014 FIND SOL", "cy");
-      cueStage("FIND SOL TOGETHER"); cueSub("ORION ARM \u00b7 26,000 LY FROM THE CORE");
+      if (mode === "ocean") return startDive();
+      if (mode === "moon") {
+        setPhase("moon", "LUNAR DEPARTURE"); t0 = ts;
+        log("LUNAR DEPARTURE — EARTH AHEAD", "cy");
+        cueStage("THEY ARE COMING WITH YOU"); cueSub("EARTH AHEAD · 1.3 LIGHT-SECONDS");
+      } else {
+        setPhase("galaxy", "MILKY WAY"); t0 = ts;
+        log("STAGE 2: MILKY WAY OVERVIEW — FIND SOL", "cy");
+        cueStage("FIND SOL TOGETHER"); cueSub("ORION ARM · 26,000 LY FROM THE CORE");
+      }
     }
   } else if (phase === "galaxy") {
     const p = seg(15000);
@@ -823,7 +969,7 @@ function loop(ts) {
   } else if (phase === "moon") {
     const p = seg(4600);
     drawMoonStage(p, t);
-    if (p >= 1) advance("moon", ts);
+    if (p >= 1) { if (modeOf() === "moon") return startDive(); advance("moon", ts); }
   } else if (phase === "earth") {
     const p = seg(3200);
     drawEarth(p);
@@ -836,12 +982,31 @@ raf = requestAnimationFrame(loop);
 function engage() {
   if (phase !== "chart") return;
   wpHit.clear(); initWarp();
-  log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
-  log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
-  log("STAGE 1: ORIGIN \u2014 " + selected.name, "cy");
   precacheTiles();
-  setPhase("origin", "ORIGIN SYSTEM"); t0 = performance.now();
-  cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " \u00b7 " + selected.name);
+  const mode = modeOf();
+  if (mode === "moon") {
+    log("DEPARTURE: LUNA — FAR SIDE", "cy");
+    log("ROUTE: LUNA → EARTH · 384,400 KM");
+    log("STAGE 1: LUNAR ORIGIN — THE SIDE WE NEVER SEE", "cy");
+    setPhase("origin", "LUNAR ORIGIN");
+    cueStage("PICTURE THEM ON THE FAR SIDE"); cueSub("UAP · LUNA");
+  } else if (mode === "ocean") {
+    usoSite = nearestSite();
+    log("DEPARTURE: " + usoSite.name + " — " + usoSite.depth + " DOWN", "cy");
+    log("ROUTE: " + usoSite.name + " → SURFACE → " +
+      Math.round(kmBetween(usoSite, TARGET)).toLocaleString() + " KM TO YOU");
+    log("STAGE 1: DEEP ORIGIN — NEAREST TRENCH TO YOUR SPOT", "cy");
+    if (map) map.setView([usoSite.lat, usoSite.lon], 6, { animate: false }); // warm tiles behind the canvas
+    setPhase("origin", "DEEP ORIGIN");
+    cueStage("PICTURE THEM IN THE DEEP"); cueSub("USO · " + usoSite.name);
+  } else {
+    log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
+    log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
+    log("STAGE 1: ORIGIN — " + selected.name, "cy");
+    setPhase("origin", "ORIGIN SYSTEM");
+    cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
+  }
+  t0 = performance.now();
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
   $("chips").classList.add("hide"); $("reticle").classList.add("on");
 }
@@ -924,8 +1089,11 @@ function startDive() {
   if (!map) { failNoMap(); return; }
   lockMap(true);
   divePlan = activeDescent();
-  map.setView([55, -95], 3, { animate: false });
-  log("ENTRY: POLAR VECTOR — SLOW DESCENT", "cy");
+  if (modeOf() === "ocean") map.setView([usoSite.lat, usoSite.lon], 6, { animate: false });
+  else map.setView([55, -95], 3, { animate: false });
+  log(modeOf() === "ocean" ? "ENTRY: SURFACE BREACH — " + usoSite.name
+    : modeOf() === "moon" ? "ENTRY: CISLUNAR VECTOR — SLOW DESCENT"
+    : "ENTRY: POLAR VECTOR — SLOW DESCENT", "cy");
   log("HOLDS AT EACH ALTITUDE — LET IT LOAD", "cy");
   log("TAP SCREEN = NEXT STAGE");
   startBreath();
@@ -962,7 +1130,7 @@ function arrive() {
   placeBeacon();
   log("BEACON ACTIVE — " + fmtLL(TARGET.lat, TARGET.lon), "alert");
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
-  log("RELAY: POLARIS GATE OPEN");
+  log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN" : "RELAY: POLARIS GATE OPEN");
   log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
   log("AWAITING RESPONSE...");
   ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
@@ -1036,11 +1204,11 @@ try {
 
 /* ---------------- controls ---------------- */
 const chipsEl = $("chips");
-for (const s of SYSTEMS) {
+for (const s of [...SYSTEMS, ...MODES]) {
   const b = document.createElement("button");
-  b.className = "chip" + (s === selected ? " sel" : "");
+  b.className = "chip" + (s.mode ? " mode" : "") + (s === selected ? " sel" : "");
   b.innerHTML = '<span class="dot" style="color:' + s.c + ";background:" + s.c + '"></span>' +
-    s.name + "<small>" + fmtLy(s.ly) + " · " + s.tag + "</small>";
+    s.name + "<small>" + (s.dist || fmtLy(s.ly)) + " · " + s.tag + "</small>";
   b.onclick = () => {
     selected = s; allChannels = false; $("bAll").classList.remove("on");
     [...chipsEl.children].forEach((c) => c.classList.remove("sel"));
@@ -1052,6 +1220,10 @@ for (const s of SYSTEMS) {
 $("bEngage").onclick = engage;
 $("bAll").onclick = () => {
   allChannels = !allChannels;
+  if (allChannels && selected.mode) {
+    selected = SYSTEMS[0];
+    [...chipsEl.children].forEach((c, i) => c.classList.toggle("sel", i === 0));
+  }
   $("bAll").classList.toggle("on", allChannels);
   log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
 };
