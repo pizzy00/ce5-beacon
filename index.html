@@ -193,6 +193,10 @@
   .setHead { display: flex; justify-content: space-between; align-items: center;
     color: var(--amber); font-size: 12px; margin-bottom: 12px; }
   #bClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  .setBtns { display: flex; gap: 8px; align-items: center; }
+  .setBtn { padding: 4px 10px; border: 1px solid var(--cyan); color: var(--cyan); border-radius: 3px; font-size: 11px; }
+  .setBtn.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
+  #saveStat { margin: -6px 0 12px; min-height: 12px; }
   .setRow { margin-bottom: 14px; }
   .setLbl { font-size: 10px; letter-spacing: 0.18em; color: var(--amber-dim); margin-bottom: 6px; }
   .setStat { font-size: 9px; color: var(--cyan); margin-top: 5px; letter-spacing: 0.08em; }
@@ -200,7 +204,9 @@
   #setCard input:not([type="range"]):not([type="checkbox"]) { flex: 1; min-width: 0;
     background: rgba(10,10,24,0.9); border: 1px solid var(--cyan); color: var(--ink);
     font: inherit; font-size: 13px; padding: 9px; border-radius: 3px; }
-  #setCard input[type="range"] { width: 100%; accent-color: var(--amber); }
+  #setCard input[type="range"] { width: calc(100% - 44px); margin: 4px 30px 4px 14px; height: 30px;
+    accent-color: var(--amber); touch-action: pan-y; display: block; }
+  #setCard { -webkit-touch-callout: none; }
   #setCard select { width: 100%; background: #0d0d20; border: 1px solid var(--amber-dim);
     color: var(--ink); font: inherit; font-size: 11px; padding: 9px; border-radius: 3px; }
   .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
@@ -236,7 +242,8 @@
 <div id="cue" class="display"><div class="stage"></div><div class="breath"></div></div>
 <div id="settings" class="hide">
   <div id="setCard">
-    <div class="setHead display">CONSOLE SETTINGS <span id="bClose">✕</span></div>
+    <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></div>
+    <div class="setStat" id="saveStat"></div>
     <div class="setRow">
       <div class="setLbl">TARGET — ADDRESS OR "LAT, LON"</div>
       <div class="setFlex">
@@ -305,6 +312,11 @@
         <option value="off">OFF — STRAIGHT TO THE DEEP</option>
       </select>
       <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">ORBIT APPROACH — <span id="vOrbit">12</span>S</div>
+      <input type="range" id="rOrbit" min="4" max="30" step="1" value="12" />
+      <div class="setStat">ENGAGE STARTS IN ORBIT AND DESCENDS ONTO THE TRIANGLE · THEN THE HOLD BELOW</div>
     </div>
     <div class="setRow">
       <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
@@ -468,7 +480,7 @@ const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
-  bNow: true, bPhotos: true, pHold: 1.6,
+  bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1207,10 +1219,11 @@ function bermudaCall() {
   bermLayer = L.layerGroup().addTo(map);
   L.polygon(TRIANGLE, { color: "#ff8e5e", weight: 1.5, dashArray: "4 6", fillColor: "#ff8e5e", fillOpacity: 0.07 })
     .addTo(bermLayer);
-  map.setView([25.6, -71.5], 5, { animate: false });
-  setPhase("triangle", "THE TRIANGLE");
-  cueStage("THE TRIANGLE"); cueSub("MIAMI · BERMUDA · SAN JUAN · " + BERMUDA.depth + " DOWN");
-  log("STAGE 1: THE TRIANGLE — MIAMI · BERMUDA · SAN JUAN", "cy");
+  const triZoom = innerWidth < 600 ? 4 : 5;                  // phones: one level further out
+  map.setView([24, -58], 1, { animate: false });               // start in orbit
+  setPhase("triangle", "FROM ORBIT");
+  cueStage("FROM ORBIT"); cueSub("DESCENDING ON THE TRIANGLE · MIAMI · BERMUDA · SAN JUAN");
+  log("STAGE 1: FROM ORBIT — DESCENDING ON THE TRIANGLE", "cy");
   log("ON FILE: " + BERMUDA.unit + " — BUILDS SMALLER CRAFT · KNOWN FOR DECADES", "cy");
   log("TAP SCREEN = NEXT STAGE");
   $("dRng").textContent = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM";
@@ -1223,7 +1236,24 @@ function bermudaCall() {
     NUKE_PHOTOS.forEach((p) => { const im = new Image(); im.src = p.src; });
   }
   flashDone = false; photosDone = false;
-  bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
+  const orbitFly = reduced ? 1.5 : S.bOrbit;
+  const settle = () => {                                        // on the Triangle: name it, hold
+    if (token !== bermToken || phase !== "triangle") return;
+    clearTimeout(bermGuard);
+    setPhase("triangle", "THE TRIANGLE");
+    cueStage("THE TRIANGLE"); cueSub("MIAMI · BERMUDA · SAN JUAN · " + BERMUDA.depth + " DOWN");
+    log("THE TRIANGLE — " + BERMUDA.depth + " OF WATER UNDER IT", "cy");
+    bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
+  };
+  bermHold = setTimeout(() => {
+    if (token !== bermToken || phase !== "triangle") return;
+    map.flyTo([25.6, -71.5], triZoom, { duration: orbitFly });
+    map.once("moveend", settle);
+    bermGuard = setTimeout(() => {                              // if the flight never lands, land it
+      if (token !== bermToken || phase !== "triangle") return;
+      map.off("moveend", settle); map.setView([25.6, -71.5], triZoom, { animate: false }); settle();
+    }, (orbitFly + 4) * 1000);
+  }, 500);
 }
 function bermNext(token) {
   if (token !== bermToken) return;
@@ -1407,7 +1437,8 @@ function precacheSites(plan) {
         if (ty >= 0 && ty < n) urls.push(TILE_BASE + z + "/" + ty + "/" + tx);
       }
   };
-  push(25.6, -71.5, 5, 3, 2);                                   // the Triangle
+  push(25.6, -71.5, 5, 3, 2); push(25.6, -71.5, 4, 2, 2);       // the Triangle
+  push(24, -58, 1, 1, 1); push(24, -58, 2, 1, 1); push(24, -58, 3, 2, 1);   // the orbit approach
   for (const s of plan) { push(s.lat, s.lon, s.z, R, R); push(s.lat, s.lon, s.z - 2, 1, 1); push(s.lat, s.lon, s.z - 4, 1, 1); }
   let done = 0; const total = urls.length;
   log("PRE-LOADING " + total + " SITE TILES...", "cy");
@@ -1605,6 +1636,7 @@ const chipsEl = $("chips");
 for (const s of [...SYSTEMS, ...MODES]) {
   const b = document.createElement("button");
   b.className = "chip" + (s.mode ? " mode" : "") + (s === selected ? " sel" : "");
+  b.dataset.id = s.id;
   b.innerHTML = '<span class="dot" style="color:' + s.c + ";background:" + s.c + '"></span>' +
     s.name + "<small>" + (s.dist || fmtLy(s.ly)) + " · " + s.tag + "</small>";
   b.onclick = () => {
@@ -1723,6 +1755,53 @@ function locate() {
 }
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
 $("bClose").onclick = () => $("settings").classList.add("hide");
+const SAVE_KEY = "ce5.console.v1";
+let savedTarget = false;
+function saveSettings() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ S, target: { lat: TARGET.lat, lon: TARGET.lon }, sel: selected.id }));
+    $("saveStat").textContent = "SAVED ON THIS DEVICE · SETTINGS + TARGET + DEPARTURE · " + new Date().toLocaleTimeString();
+    log("SETTINGS SAVED ON THIS DEVICE", "cy");
+  } catch (e) { $("saveStat").textContent = "COULD NOT SAVE — STORAGE IS BLOCKED IN THIS BROWSER"; }
+}
+function resetSettings() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  $("saveStat").textContent = "SAVED SETTINGS CLEARED — RELOAD THE PAGE FOR DEFAULTS";
+  log("SAVED SETTINGS CLEARED — RELOAD FOR DEFAULTS", "cy");
+}
+function loadSettings() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch (e) {}
+  if (!d || !d.S) return false;
+  for (const k of Object.keys(S)) if (k in d.S && typeof d.S[k] === typeof S[k]) S[k] = d.S[k];
+  if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
+    TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
+  }
+  if (d.sel) { const s = [...SYSTEMS, ...MODES].find((x) => x.id === d.sel); if (s) selected = s; }
+  return true;
+}
+function applyS() {                                             // push S into every control
+  const set = (id, v) => { const el = $(id); if (el) el.value = v; };
+  const txt = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  const chk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
+  set("rBreath", S.breath); txt("vBreath", S.breath.toFixed(1));
+  set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
+  set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
+  set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon);
+  set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
+  set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
+  set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
+  set("rHold", S.bHold); txt("vHold", S.bHold); set("rFly", S.bFly); txt("vFly", S.bFly);
+  set("selShot", S.nShot); set("rInt", Math.round(S.nInt * 100)); txt("vInt", Math.round(S.nInt * 100));
+  set("rStretch", S.nStretch); txt("vStretch", S.nStretch.toFixed(1));
+  set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
+  chk("ckPhotos", S.bPhotos); set("rPhoto", S.pHold); txt("vPhoto", S.pHold.toFixed(1));
+  [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
+}
+$("bSave").onclick = saveSettings;
+$("bReset").onclick = resetSettings;
+$("setCard").addEventListener("contextmenu", (e) => e.preventDefault());   // no long-press menu on the sliders
 $("bInfo").onclick = () => { $("settings").classList.add("hide"); $("info").classList.remove("hide"); };
 $("bInfoClose").onclick = () => $("info").classList.add("hide");
 $("info").addEventListener("pointerdown", (e) => {
@@ -1764,6 +1843,7 @@ $("selMotion").onchange = (e) => {
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
 $("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
+$("rOrbit").oninput = (e) => { S.bOrbit = +e.target.value; $("vOrbit").textContent = S.bOrbit; };
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
 $("selShot").onchange = (e) => (S.nShot = e.target.value);
@@ -1774,8 +1854,12 @@ $("rWarn").oninput = (e) => { S.nWarn = +e.target.value; $("vWarn").textContent 
 $("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
 
 /* boot log */
+const restored = loadSettings();
+if (restored) applyS();
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
-log(hashLL ? "TARGET LOADED FROM SHARED LINK" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
+log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
+if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }
+if (savedTarget) $("addrStatus").textContent = "LOCKED: " + fmtLL(TARGET.lat, TARGET.lon) + " — SAVED";
 log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
