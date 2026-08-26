@@ -118,9 +118,19 @@
   .chip.sel { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,196,107,0.35) inset,
     0 0 8px rgba(255,196,107,0.25); }
   .chip.mode { border-style: dashed; }
-  #archive { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px; padding: 78px 10px 148px; }
-  #archive.hide { display: none; }
+  #nuke { position: fixed; inset: 0; z-index: 12; background: #fff; opacity: 0; pointer-events: none; }
+  #nuke.hide { display: none; }
+  #nukeWarn { position: fixed; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px; padding: 90px 16px 150px; text-align: center; }
+  #nukeWarn.hide { display: none; }
+  .warnBig { font-size: clamp(22px, 7vw, 44px); color: var(--alert); text-shadow: 0 0 18px rgba(255,92,57,0.7);
+    animation: bl 0.9s steps(2) infinite; }
+  .warnSub { font-size: clamp(12px, 3.4vw, 18px); color: var(--amber); }
+  #nukeCount { font-size: clamp(60px, 22vw, 140px); line-height: 1; color: var(--ink);
+    text-shadow: 0 0 30px rgba(255,255,255,0.5); }
+  .warnNote { font-size: 10px; letter-spacing: 0.2em; color: var(--cyan); line-height: 1.6; }
+  .warnNote.dim { color: var(--amber-dim); }
+  @media (prefers-reduced-motion: reduce) { .warnBig { animation: none; } }
   #flash { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 10px; padding: 78px 10px 148px; }
   #flash.hide { display: none; }
@@ -132,9 +142,6 @@
   @media (prefers-reduced-motion: reduce) { #flashWhite.pop { animation: none; } }
   .beacon.now i { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
   .beacon.now s { border-color: var(--cyan); }
-  #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
-    box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
-  #archBox iframe, #archBox video { width: 100%; height: 100%; border: 0; display: block; object-fit: contain; background: #000; }
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; }
@@ -292,9 +299,9 @@
     <div class="setRow">
       <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
       <select id="selTrig">
-        <option value="full">FULL — TRIANGLE → NUCLEAR SITES → TEST FILM</option>
+        <option value="full">FULL — TRIANGLE → NUCLEAR SITES → THE FLASH</option>
         <option value="sites">TRIANGLE → NUCLEAR SITES ONLY</option>
-        <option value="film">TRIANGLE → TEST FILM ONLY</option>
+        <option value="film">TRIANGLE → THE FLASH ONLY</option>
         <option value="off">OFF — STRAIGHT TO THE DEEP</option>
       </select>
       <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
@@ -316,24 +323,35 @@
       <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">TEST FILM LENGTH — <span id="vFilm">45</span>S</div>
-      <input type="range" id="rFilm" min="10" max="180" step="5" value="45" />
-      <div class="setStat">DECLASSIFIED LLNL ATMOSPHERIC TEST FILMS · A RANDOM SHOT EACH RUN</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">TEST FILM SPEED</div>
-      <select id="selRate">
-        <option value="0.25">0.25× — FRAME BY FRAME</option>
-        <option value="0.5" selected>0.5× — SLOW</option>
-        <option value="0.75">0.75×</option>
-        <option value="1">1× — AS FILMED</option>
+      <div class="setLbl">THE FLASH — WHICH SHOT'S LIGHT</div>
+      <select id="selShot">
+        <option value="random">RANDOM EACH RUN</option>
+        <option value="nutmeg">NUTMEG · BIKINI 1958 · 25 KT — WHITEOUT, THEN A LONG GLOW</option>
+        <option value="tewa">TEWA · BIKINI 1956 · 5 MT — HOLDS BRIGHT, SLOW FADE</option>
+        <option value="fig">FIG · ENEWETAK 1958 — SHARP SPIKE, GONE IN SECONDS</option>
       </select>
-      <label class="setChk"><input type="checkbox" id="ckSound" />FILM SOUND ON — PHONES MAY STILL MUTE, TAP THE PLAYER</label>
-      <div class="setStat">SLOW-MOTION NEEDS THE YOUTUBE PLAYER API · IF IT IS BLOCKED THE FILM PLAYS AT 1×</div>
+      <div class="setStat">THE SCREEN'S BRIGHTNESS FOLLOWS THE REAL FILM FRAME BY FRAME · CLOSE YOUR EYES AND FEEL IT THROUGH THE LIDS</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">THE ARSENAL — MISSILE PHOTOS AFTER THE FILM</div>
-      <label class="setChk"><input type="checkbox" id="ckPhotos" checked />FLASH REAL MISSILE PHOTOS — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
+      <div class="setLbl">FLASH INTENSITY — <span id="vInt">100</span>%</div>
+      <input type="range" id="rInt" min="30" max="100" step="5" value="100" />
+      <div class="setStat">TURN IT DOWN IN A DARK ROOM · PHOTOSENSITIVE? TAP THE WARNING TO SKIP THE STAGE</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">FLASH TIME STRETCH — <span id="vStretch">1.0</span>×</div>
+      <input type="range" id="rStretch" min="0.5" max="3" step="0.1" value="1" />
+      <div class="setStat">1× = AS FILMED · TEST CAMERAS RAN FAST, SO THE FILM IS ALREADY SLOWER THAN LIFE</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">FLASHES — <span id="vRepeat">1</span></div>
+      <input type="range" id="rRepeat" min="1" max="3" step="1" value="1" />
+      <div class="setLbl">EYES-CLOSED COUNTDOWN — <span id="vWarn">6</span>S</div>
+      <input type="range" id="rWarn" min="2" max="15" step="1" value="6" />
+      <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">THE ARSENAL — MISSILE PHOTOS AFTER THE FLASH</div>
+      <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
       <div class="setLbl">SECONDS PER PHOTO — <span id="vPhoto">1.6</span>S</div>
       <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="1.6" />
       <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
@@ -393,17 +411,20 @@
       <div class="setLbl">HOW THIS CONSOLE MAPS TO IT</div>
       <div class="infoP">Departure system = who you are inviting · Their star → Galaxy → Sol → Luna
         → Earth → descent = the vectoring visualization · Breath cue = step 02 ·
-        TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO). BERMUDA runs the trigger sequence: the Triangle, the places we detonated, a declassified test film, then the unit rises.</div>
+        TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO). BERMUDA runs the trigger sequence: the Triangle, the places we detonated, the flash (close your eyes; the screen becomes the light of a real shot, measured from the film), the arsenal, then the unit rises.</div>
     </div>
     <div class="infoFoot">CE-5 AND CSETI ARE TERMS ASSOCIATED WITH DR. STEVEN GREER. THIS CARD IS AN
       INDEPENDENT SUMMARY, NOT AFFILIATED. USE AT YOUR OWN DISCRETION.</div>
   </div>
 </div>
-<div id="archive" class="hide">
-  <div class="archCap display">THE TRIGGER — <span id="archName">DECLASSIFIED TEST FILM</span></div>
-  <div id="archBox"></div>
-  <div class="archCap">THEY SURFACE WHEN WE DETONATE · TAP OUTSIDE THE PLAYER TO CONTINUE</div>
+<div id="nukeWarn" class="hide">
+  <div class="warnBig display">CLOSE YOUR EYES</div>
+  <div class="warnSub display">FOR THE NUKE</div>
+  <div id="nukeCount" class="display">6</div>
+  <div class="warnNote">COVER THEM · THE LIGHT COMES THROUGH THE LIDS</div>
+  <div class="warnNote dim">PHOTOSENSITIVE? TAP TO SKIP THIS STAGE</div>
 </div>
+<div id="nuke" class="hide"></div>
 <div id="flash" class="hide">
   <div class="archCap display">THE ARSENAL — <span id="flashCap">REAL MISSILES</span></div>
   <img id="flashImg" alt="" />
@@ -446,7 +467,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
-  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, bFilm: 45, bRate: 0.5, bSound: false, motion: "auto",
+  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
@@ -497,14 +518,14 @@ const NUKE_PHOTOS = [
   { src: "photos/trident-rhodeisland-2019.jpg", name: "TRIDENT II D5 · USS RHODE ISLAND · CAPE CANAVERAL · 2019 · US NAVY" },
   { src: "photos/mm3-reentry.jpg", name: "MINUTEMAN III RE-ENTRY VEHICLES · KWAJALEIN · USAF" }
 ]; // public-domain US DoD photos, self-hosted
-const NUKE_PLAYLIST = "PLvGO_dWo8VfcmG166wKRy5z-GlJ_OQND5"; // LLNL declassified atmospheric test films
-const NUKE_CLIPS = [
-  { src: "films/bighorn-1962.mp4", name: "DOMINIC · BIGHORN · CHRISTMAS ISLAND 1962 · 7.65 MT AIRDROP" },
-  { src: "films/nutmeg-1958.mp4", name: "HARDTACK-I · NUTMEG · BIKINI 1958 · 25 KT" },
-  { src: "films/tewa-1956.mp4", name: "REDWING · TEWA · BIKINI 1956 · 5 MT" },
-  { src: "films/fig-1958.mp4", name: "HARDTACK-I · FIG · ENEWETAK 1958" }
-]; // self-hosted, public-domain LLNL footage
-const NUKE_FILMS = ['a4qbyzt5wVI', 'h9mRLNjTDok', '6Zt15iOeOH0', 'NhKrhffhme4', 'KeMyUQaCVnk', 'n3JTutDtq_E', 'tbH1tunAHWA', '5omHhNleRV8', 'zOaTw7GC3pI', 'By8mQtmkmCk', 'mxWZ10zqyZs', 'coIrnuxkhnM'];
+const NUKE_CURVES = [ // screen brightness vs time, measured frame by frame from the real test films (20 samples/s)
+  { id: "nutmeg", name: "HARDTACK-I · NUTMEG · BIKINI 1958 · 25 KT", hz: 20, tint: [255, 249, 250],
+    v: [0,0,0,0,0,0.01,0.12,0.84,0.88,0.99,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.99,0.99,0.99,0.99,0.99,0.99,0.97,0.97,0.97,0.96,0.95,0.95,0.94,0.94,0.94,0.92,0.92,0.91,0.9,0.89,0.88,0.87,0.87,0.87,0.87,0.85,0.83,0.83,0.82,0.82,0.81,0.8,0.8,0.8,0.8,0.78,0.77,0.77,0.75,0.74,0.73,0.73,0.73,0.73,0.71,0.71,0.69,0.69,0.69,0.69,0.69,0.69,0.68,0.68,0.68,0.67,0.67,0.67,0.67,0.66,0.65,0.64,0.63,0.6,0.58,0.56,0.54,0.54,0.54,0.53,0.5,0.46,0.44,0.43,0.42,0.41,0.39,0.39,0.37,0.36,0.33,0.31,0.3,0.29,0.3,0.29,0.28,0.28,0.26,0.26,0.25,0.23,0.23,0.23,0.23,0.23,0.23,0.22,0.2,0.18,0.18,0.17,0.18,0.18,0.18,0.18,0.18,0.16,0.14,0.15,0.13,0.14,0.14,0.14,0.13,0.13,0.1,0.1,0.1,0.08,0.08,0.1,0.1,0.1,0.1,0.09,0.04,0.06,0.06,0.06,0.06,0.06,0.06,0.05,0.04,0.03,0.02,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id: "tewa", name: "REDWING · TEWA · BIKINI 1956 · 5 MT", hz: 20, tint: [253, 245, 255],
+    v: [0,0,0,0,0,0,0,0.3,0.77,0.92,0.97,0.99,1,0.99,0.98,0.99,0.97,0.96,0.93,0.9,0.88,0.83,0.81,0.8,0.79,0.78,0.78,0.78,0.78,0.78,0.78,0.78,0.77,0.77,0.77,0.77,0.78,0.77,0.77,0.77,0.77,0.77,0.77,0.77,0.76,0.75,0.75,0.74,0.72,0.72,0.72,0.72,0.71,0.7,0.7,0.69,0.69,0.69,0.68,0.68,0.67,0.66,0.66,0.65,0.65,0.64,0.64,0.63,0.62,0.61,0.61,0.61,0.6,0.6,0.61,0.6,0.6,0.59,0.59,0.58,0.58,0.57,0.57,0.57,0.57,0.56,0.56,0.55,0.55,0.54,0.54,0.53,0.53,0.52,0.52,0.52,0.52,0.52,0.52,0.52,0.52,0.52,0.51,0.51,0.51,0.51,0.51,0.5,0.5,0.48,0.48,0.47,0.46,0.46,0.45,0.45,0.44,0.44,0.44,0.45,0.45,0.45,0.45,0.44,0.44,0.44,0.44,0.44,0.43,0.43,0.42,0.41,0.41,0.4,0.4,0.39,0.39,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.37,0.37,0.37,0.36,0.36,0.36,0.36,0.34,0.34,0.33,0.32,0.32,0.31,0.31,0.31,0.3,0.3,0.3,0.3,0.3,0.29,0.29,0.29,0.29,0.28,0.29,0.29,0.28,0.28,0.28,0.27,0.27,0.26,0.26,0.25,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.23,0.23,0.23,0.23,0.23,0.22,0.21,0.21,0.2,0.2,0.19,0.19,0.19,0.19,0.19,0.19,0.18,0.18,0.19,0.19,0.19,0.19,0.18,0.18,0.18,0.18,0.18,0.17,0.17,0.16,0.16,0.15,0.15,0.14,0.14,0.14,0.14,0.14,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.14,0.14,0.13,0.13,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.12,0.12,0.12,0.12,0.12,0.12,0.11,0.11,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.11,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.11] },
+  { id: "fig", name: "HARDTACK-I · FIG · ENEWETAK 1958", hz: 20, tint: [255, 251, 255],
+    v: [0,0,0,0.01,0.01,0.01,0.04,0.99,0.94,0.85,0.77,0.71,0.66,0.6,0.54,0.5,0.49,0.49,0.49,0.48,0.48,0.45,0.41,0.4,0.38,0.34,0.32,0.28,0.25,0.23,0.23,0.22,0.2,0.2,0.18,0.17,0.15,0.14,0.12,0.11,0.11,0.11,0.12,0.11,0.1,0.08,0.07,0.05,0.05,0.05,0.05,0.04,0.03,0.03,0.02,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }
+];
 const USO_SITES = [
   { name: "PUERTO RICO TRENCH", lat: 19.7, lon: -66.5, depth: "8,376 M" },
   { name: "CATALINA BASIN", lat: 33.2, lon: -118.7, depth: "1,300 M" },
@@ -1201,15 +1222,15 @@ function bermudaCall() {
     log("PRE-LOADING " + NUKE_PHOTOS.length + " MISSILE PHOTOS...", "cy");
     NUKE_PHOTOS.forEach((p) => { const im = new Image(); im.src = p.src; });
   }
-  if (S.bTrig === "full" || S.bTrig === "film") { pickClip(); preloadClip(); }
+  flashDone = false; photosDone = false;
   bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
 }
 function bermNext(token) {
   if (token !== bermToken) return;
   clearTimeout(bermGuard); clearTimeout(bermHold);
   if (bermStep + 1 < tourPlan.length) return nukeTour(bermStep + 1, token);
-  if ((S.bTrig === "full" || S.bTrig === "film") && phase !== "archive" && phase !== "photos") return nukeArchive(token);
-  if (S.bPhotos && S.bTrig !== "off" && NUKE_PHOTOS.length && phase !== "photos") return photoFlash(token);
+  if ((S.bTrig === "full" || S.bTrig === "film") && !flashDone) return nukeFlash(token);
+  if (S.bPhotos && S.bTrig !== "off" && NUKE_PHOTOS.length && !photosDone) return photoFlash(token);
   bermRise();
 }
 function nukeTour(i, token) {
@@ -1242,80 +1263,75 @@ function nukeTour(i, token) {
     bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   }, (fly + S.bHold + 4) * 1000);
 }
-let ytPlayer = null, ytWait = 0;
-function loadYT(cb) {
-  if (window.YT && window.YT.Player) return cb(true);
-  if (!document.getElementById("ytapi")) {
-    const s = document.createElement("script"); s.id = "ytapi";
-    s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
-  }
-  let done = false;
-  const prev = window.onYouTubeIframeAPIReady;
-  window.onYouTubeIframeAPIReady = () => { if (prev) prev(); if (!done) { done = true; clearTimeout(ytWait); cb(true); } };
-  ytWait = setTimeout(() => { if (!done) { done = true; cb(false); } }, 4000);
+let flashShot = null, flashRaf = 0, flashT0 = 0, flashRun = 0, flashDone = false, photosDone = false;
+function pickShot() {
+  if (S.nShot !== "random") { const f = NUKE_CURVES.find((c) => c.id === S.nShot); if (f) return f; }
+  return NUKE_CURVES[Math.floor(Math.random() * NUKE_CURVES.length)];
 }
-let archVideo = null, archClip = null;
-function pickClip() { archClip = NUKE_CLIPS.length ? NUKE_CLIPS[Math.floor(Math.random() * NUKE_CLIPS.length)] : null; return archClip; }
-function preloadClip() {
-  if (!archClip || S.cache === "off" || typeof fetch !== "function") return;
-  log("PRE-LOADING FILM: " + archClip.name, "cy");
-  fetch(archClip.src, { cache: "force-cache" }).then((r) => r.ok && r.blob()).then((b) => { if (b) log("FILM READY · " + Math.round(b.size / 1024) + " KB", "cy"); }).catch(() => {});
-}
-function nukeArchive(token) {
+function nukeFlash(token) {
   if (token !== bermToken) return;
-  setPhase("archive", "THE TRIGGER");
+  setPhase("flash", "THE FLASH");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
-  $("archBox").innerHTML = "";
-  $("archive").classList.remove("hide");
-  log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE TRIGGER — DECLASSIFIED TEST FILM", "alert");
-  log("TAP OUTSIDE THE PLAYER = CONTINUE");
+  flashShot = pickShot(); flashRun = 0;
+  log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE FLASH — " + flashShot.name, "alert");
+  log("CLOSE YOUR EYES · COVER THEM · IT COMES THROUGH THE LIDS", "alert");
   $("dSig").textContent = "58%";
-  const clip = archClip || pickClip();
-  if (clip) {
-    $("archName").textContent = clip.name;
-    const v = document.createElement("video");
-    v.src = clip.src; v.loop = true; v.autoplay = true; v.preload = "auto";
-    v.muted = !S.bSound; v.defaultMuted = !S.bSound; v.playsInline = true;
-    v.setAttribute("playsinline", ""); v.setAttribute("webkit-playsinline", ""); v.setAttribute("muted", "");
-    v.playbackRate = S.bRate;
-    v.addEventListener("loadedmetadata", () => { v.playbackRate = S.bRate; });
-    v.addEventListener("play", () => { v.playbackRate = S.bRate; });
-    v.addEventListener("error", () => { if (token === bermToken && phase === "archive") ytFallback(token); });
-    $("archBox").appendChild(v);
-    archVideo = v;
-    const pr = v.play(); if (pr && pr.catch) pr.catch(() => {});
-    log("FILM: " + clip.name + " · " + S.bRate + "×", "cy");
-  } else ytFallback(token);
-  bermHold = setTimeout(() => bermNext(token), S.bFilm * 1000);
+  warnThenFlash(token);
 }
-function ytFallback(token) {
-  const id = NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)];
-  $("archName").textContent = "LLNL · VIA YOUTUBE";
-  $("archBox").innerHTML = '<div id="archPlayer"></div>';
-  loadYT((ok) => {
-    if (token !== bermToken || phase !== "archive") return;
-    if (ok) {
-      ytPlayer = new YT.Player("archPlayer", {
-        videoId: id,
-        playerVars: { autoplay: 1, mute: S.bSound ? 0 : 1, playsinline: 1, rel: 0, modestbranding: 1, loop: 1, playlist: id },
-        events: {
-          onReady: (e) => { e.target.setPlaybackRate(S.bRate); if (S.bSound) e.target.unMute(); else e.target.mute(); e.target.playVideo(); },
-          onStateChange: (e) => { if (e.data === 1 && e.target.getPlaybackRate() !== S.bRate) e.target.setPlaybackRate(S.bRate); }
-        }
-      });
-      log("FILM VIA YOUTUBE · " + S.bRate + "×", "cy");
-    } else {
-      $("archBox").innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' +
-        (S.bSound ? 0 : 1) + '&playsinline=1&rel=0&loop=1&playlist=' + id +
-        '" allow="autoplay; encrypted-media; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
-      log("PLAYER API BLOCKED — FILM AT 1×", "alert");
-    }
-  });
+function warnThenFlash(token) {
+  if (token !== bermToken || phase !== "flash") return;
+  let left = Math.max(1, Math.round(S.nWarn));
+  $("nukeCount").textContent = left;
+  $("nukeWarn").classList.remove("hide");
+  const tick = () => {
+    if (token !== bermToken || phase !== "flash") return;
+    left--;
+    if (left <= 0) { $("nukeWarn").classList.add("hide"); return runFlash(token); }
+    $("nukeCount").textContent = left;
+    bermHold = setTimeout(tick, 1000);
+  };
+  bermHold = setTimeout(tick, 1000);
+}
+function runFlash(token) {
+  const shot = flashShot, layer = $("nuke"), v = shot.v, hz = shot.hz, tint = shot.tint, dur = v.length / hz;
+  layer.style.opacity = "0"; layer.classList.remove("hide");
+  flashT0 = performance.now();
+  let quietSince = -1;
+  const frame = () => {
+    if (token !== bermToken || phase !== "flash") return;
+    const t = Math.max(0, (performance.now() - flashT0) / 1000 / S.nStretch);
+    if (t >= dur) return endFlash(token);
+    const i = t * hz, i0 = Math.min(v.length - 1, Math.floor(i)), i1 = Math.min(v.length - 1, i0 + 1), f = i - i0;
+    const y = v[i0] * (1 - f) + v[i1] * f;
+    if (y < 0.02) { if (quietSince < 0) quietSince = t; } else quietSince = -1;
+    if (t > 2 && quietSince >= 0 && t - quietSince > 0.8) return endFlash(token);   // the light is gone
+    const k = Math.pow(y, 0.6) * S.nInt, mx = Math.min(1, y * 1.6);
+    layer.style.background = "rgb(" + Math.round(tint[0] + (255 - tint[0]) * mx) + "," +
+      Math.round(tint[1] + (255 - tint[1]) * mx) + "," + Math.round(tint[2] + (255 - tint[2]) * mx) + ")";
+    layer.style.opacity = k.toFixed(3);
+    $("dSig").textContent = Math.round(58 + y * 40) + "%";
+  };
+  clearInterval(flashRaf);
+  flashRaf = setInterval(frame, 16);                             // timer-driven: opacity, not canvas, so no rAF needed
+  frame();
+}
+function endFlash(token) {
+  stopFlash();
+  if (token !== bermToken) return;
+  flashRun++;
+  if (flashRun < S.nRepeat) { bermHold = setTimeout(() => warnThenFlash(token), 2500); return; }
+  flashDone = true;
+  log("THE LIGHT IS GONE · " + flashShot.name, "cy");
+  bermHold = setTimeout(() => bermNext(token), 1500);
+}
+function stopFlash() {
+  clearInterval(flashRaf);
+  $("nuke").style.opacity = "0"; $("nuke").classList.add("hide"); $("nukeWarn").classList.add("hide");
 }
 let flashIdx = -1;
 function photoFlash(token) {
   if (token !== bermToken) return;
-  closeArchive();
+  stopFlash(); photosDone = true;
   setPhase("photos", "THE ARSENAL");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
   $("flash").classList.remove("hide");
@@ -1336,14 +1352,8 @@ function flashNext(token) {
   bermHold = setTimeout(() => flashNext(token), S.pHold * 1000);
 }
 function closeFlash() { $("flash").classList.add("hide"); $("flashImg").removeAttribute("src"); }
-function closeArchive() {
-  clearTimeout(ytWait);
-  if (archVideo) { try { archVideo.pause(); archVideo.removeAttribute("src"); archVideo.load(); } catch (e) {} archVideo = null; }
-  if (ytPlayer) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
-  $("archBox").innerHTML = ""; $("archive").classList.add("hide");
-}
 function bermRise() {
-  closeArchive(); closeFlash();
+  stopFlash(); closeFlash();
   if (bermLayer) { map.removeLayer(bermLayer); bermLayer = null; }
   usoSite = BERMUDA; wpHit.clear();
   $("space").classList.remove("gone"); $("reticle").classList.add("on");
@@ -1356,7 +1366,8 @@ function bermSkip() {
   clearTimeout(bermHold); clearTimeout(bermGuard);
   const token = ++bermToken;
   if (map) map.stop();
-  if (phase === "archive" || phase === "photos") return bermRise();
+  if (phase === "flash") { stopFlash(); flashDone = true; return bermNext(token); }
+  if (phase === "photos") return bermRise();
   bermNext(token);
 }
 
@@ -1518,7 +1529,7 @@ function arrive() {
 
 function replay() {
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
-  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); closeFlash(); bermStep = -1;
+  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
   document.body.classList.remove("run", "active");
@@ -1671,11 +1682,10 @@ cvs.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#archive,#flash")) return;
+  if (e.target.closest("#ctl,#settings,#info,#flash")) return;
   if (phase === "dive") skipStep();
-  else if (phase === "triangle" || phase === "sites") bermSkip();
+  else if (phase === "triangle" || phase === "sites" || phase === "flash") bermSkip();
 });
-$("archive").addEventListener("pointerdown", (e) => { if (!e.target.closest("#archBox")) bermSkip(); });
 $("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
 
 /* ---------------- settings panel ---------------- */
@@ -1753,13 +1763,15 @@ $("selMotion").onchange = (e) => {
 };
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
-$("rFilm").oninput = (e) => { S.bFilm = +e.target.value; $("vFilm").textContent = S.bFilm; };
-$("ckSound").onchange = (e) => { S.bSound = e.target.checked; if (archVideo) archVideo.muted = !S.bSound; };
 $("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
+$("selShot").onchange = (e) => (S.nShot = e.target.value);
+$("rInt").oninput = (e) => { S.nInt = +e.target.value / 100; $("vInt").textContent = e.target.value; };
+$("rStretch").oninput = (e) => { S.nStretch = +e.target.value; $("vStretch").textContent = S.nStretch.toFixed(1); };
+$("rRepeat").oninput = (e) => { S.nRepeat = +e.target.value; $("vRepeat").textContent = S.nRepeat; };
+$("rWarn").oninput = (e) => { S.nWarn = +e.target.value; $("vWarn").textContent = S.nWarn; };
 $("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
-$("selRate").onchange = (e) => { S.bRate = +e.target.value; if (archVideo) archVideo.playbackRate = S.bRate; if (ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(S.bRate); };
 
 /* boot log */
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
