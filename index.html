@@ -201,6 +201,9 @@
   .setLbl { font-size: 10px; letter-spacing: 0.18em; color: var(--amber-dim); margin-bottom: 6px; }
   .setStat { font-size: 9px; color: var(--cyan); margin-top: 5px; letter-spacing: 0.08em; }
   .setFlex { display: flex; gap: 8px; }
+  #msgIn { width: 100%; display: block; }
+  #morse { position: fixed; inset: 0; z-index: 12; background: #fff; opacity: 0; pointer-events: none; }
+  #morse.hide { display: none; }
   #setCard input:not([type="range"]):not([type="checkbox"]) { flex: 1; min-width: 0;
     background: rgba(10,10,24,0.9); border: 1px solid var(--cyan); color: var(--ink);
     font: inherit; font-size: 13px; padding: 9px; border-radius: 3px; }
@@ -260,6 +263,18 @@
         <button class="btn cy" id="bCopy">Copy</button>
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">MESSAGE — SENT IN MORSE WHEN THE BEACON LOCKS</div>
+      <input id="msgIn" maxlength="80" autocomplete="off" spellcheck="false" value="ONE HUMAN. ZERO FEAR. NO ORBS." />
+      <div class="setStat" id="msgMorse"></div>
+      <label class="setChk"><input type="checkbox" id="ckMorse" checked />SEND IT — THE SCREEN PULSES THE CODE</label>
+      <label class="setChk"><input type="checkbox" id="ckMorseTone" checked />KEY A 600 HZ TONE WITH THE LIGHT</label>
+      <div class="setLbl">SPEED — <span id="vWpm">12</span> WPM</div>
+      <input type="range" id="rWpm" min="5" max="25" step="1" value="12" />
+      <div class="setLbl">PULSE LIGHT — <span id="vMInt">60</span>%</div>
+      <input type="range" id="rMInt" min="10" max="100" step="5" value="60" />
+      <div class="setStat">A–Z, 0–9 AND . , ? ! / ( ) - + = @ · ANYTHING ELSE IS SKIPPED · SEND AGAIN WITH THE SEND BUTTON</div>
     </div>
     <div class="setRow">
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
@@ -437,6 +452,7 @@
   <div class="warnNote dim">PHOTOSENSITIVE? TAP TO SKIP THIS STAGE</div>
 </div>
 <div id="nuke" class="hide"></div>
+<div id="morse" class="hide"></div>
 <div id="flash" class="hide">
   <div class="archCap display">THE ARSENAL — <span id="flashCap">REAL MISSILES</span></div>
   <img id="flashImg" alt="" />
@@ -467,6 +483,7 @@
     <button class="btn rd hide" id="bStop">Abort</button>
     <button class="btn hide" id="bReplay">Replay</button>
     <button class="btn cy hide" id="bTone">Tone</button>
+    <button class="btn hide" id="bSend">Send</button>
     <button class="btn hide" id="bTarget">Retarget</button>
     <button class="btn cy" id="bGps">GPS</button>
   </div>
@@ -481,6 +498,7 @@ let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default �
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
+  msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1551,11 +1569,12 @@ function arrive() {
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
   log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN"
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
-  log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
+  log('TX: "' + S.msg + '"', "alert");
   log("AWAITING RESPONSE...");
+  if (S.mOn) morseHold = setTimeout(() => sendMorse(S.msg), 1500);
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
-  ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
+  ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
 }
 
 function replay() {
@@ -1570,7 +1589,8 @@ function replay() {
   if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
   if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
-  ["bReplay", "bTone", "bTarget"].forEach((b) => $(b).classList.add("hide"));
+  ["bReplay", "bTone", "bTarget", "bSend"].forEach((b) => $(b).classList.add("hide"));
+  stopMorse();
   $("bGps").classList.remove("hide");
   $("bEngage").classList.remove("hide"); $("bAll").classList.remove("hide");
   $("chips").classList.remove("hide");
@@ -1678,6 +1698,62 @@ $("bGps").onclick = useGps;
 $("bGps2").onclick = useGps;
 
 /* tone: 528 + 432 Hz soft beat */
+/* morse: the message the beacon sends */
+const MORSE = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---",
+  K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-",
+  V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..", "0": "-----", "1": ".----", "2": "..---", "3": "...--",
+  "4": "....-", "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.", ".": ".-.-.-", ",": "--..--",
+  "?": "..--..", "!": "-.-.--", "/": "-..-.", "(": "-.--.", ")": "-.--.-", "-": "-....-", "+": ".-.-.", "=": "-...-",
+  "@": ".--.-.", "'": ".----.", '"': ".-..-.", ":": "---...", "&": ".-..." };
+function morseWords(text) {
+  return String(text || "").toUpperCase().split(/\s+/).map((w) => [...w].map((ch) => MORSE[ch] || "").filter(Boolean)).filter((w) => w.length);
+}
+function morseString(text) { return morseWords(text).map((w) => w.join(" ")).join("  /  "); }
+let morseToken = 0, morseHold = 0, morseGain = null, morseOsc = null;
+function morseKey(on) {
+  const l = $("morse"); l.classList.remove("hide"); l.style.opacity = on ? S.mInt.toFixed(2) : "0";
+  if (!S.mTone) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (!morseOsc) {
+      morseGain = ac.createGain(); morseGain.gain.value = 0; morseGain.connect(ac.destination);
+      morseOsc = ac.createOscillator(); morseOsc.type = "sine"; morseOsc.frequency.value = 600;
+      morseOsc.connect(morseGain); morseOsc.start();
+    }
+    morseGain.gain.setTargetAtTime(on ? 0.12 : 0, ac.currentTime, 0.004);
+  } catch (e) {}
+}
+function stopMorse() {
+  ++morseToken; clearTimeout(morseHold);
+  const l = $("morse"); l.style.opacity = "0"; l.classList.add("hide");
+  if (morseGain && ac) { try { morseGain.gain.setTargetAtTime(0, ac.currentTime, 0.004); } catch (e) {} }
+}
+function sendMorse(text) {
+  stopMorse();
+  const words = morseWords(text);
+  if (!words.length) return log("NOTHING TO SEND — USE LETTERS AND NUMBERS", "alert");
+  const token = morseToken, unit = 1200 / S.mWpm;                 // PARIS standard: dot = 1200 / wpm ms
+  const plan = [];                                                  // [on?, units]
+  words.forEach((w, wi) => {
+    w.forEach((ch, ci) => {
+      [...ch].forEach((sym, si) => { plan.push([true, sym === "-" ? 3 : 1]); if (si < ch.length - 1) plan.push([false, 1]); });
+      if (ci < w.length - 1) plan.push([false, 3]);
+    });
+    if (wi < words.length - 1) plan.push([false, 7]);
+  });
+  const total = plan.reduce((n, p) => n + p[1], 0) * unit;
+  log("TX MORSE @ " + S.mWpm + " WPM · " + Math.round(total / 1000) + " S", "cy");
+  log(morseString(text).slice(0, 60) + (morseString(text).length > 60 ? "…" : ""), "cy");
+  let i = 0;
+  const step = () => {
+    if (token !== morseToken) return;
+    if (i >= plan.length) { morseKey(false); $("morse").classList.add("hide"); log("TX COMPLETE · " + words.length + " WORDS", "cy"); return; }
+    const [on, units] = plan[i++];
+    morseKey(on);
+    morseHold = setTimeout(step, units * unit);
+  };
+  step();
+}
 let ac = null, toneOn = false, oscs = [];
 $("bTone").onclick = () => {
   try {
@@ -1798,6 +1874,8 @@ function applyS() {                                             // push S into e
   set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
   chk("ckPhotos", S.bPhotos); set("rPhoto", S.pHold); txt("vPhoto", S.pHold.toFixed(1));
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
+  set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
+  set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
 }
 $("bSave").onclick = saveSettings;
 $("bReset").onclick = resetSettings;
@@ -1844,6 +1922,13 @@ $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textConte
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
 $("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
 $("rOrbit").oninput = (e) => { S.bOrbit = +e.target.value; $("vOrbit").textContent = S.bOrbit; };
+$("msgIn").oninput = (e) => { S.msg = e.target.value; $("msgMorse").textContent = morseString(S.msg) || "—"; };
+$("ckMorse").onchange = (e) => (S.mOn = e.target.checked);
+$("ckMorseTone").onchange = (e) => (S.mTone = e.target.checked);
+$("rWpm").oninput = (e) => { S.mWpm = +e.target.value; $("vWpm").textContent = S.mWpm; };
+$("rMInt").oninput = (e) => { S.mInt = +e.target.value / 100; $("vMInt").textContent = e.target.value; };
+$("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
+$("msgMorse").textContent = morseString(S.msg);
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
 $("selShot").onchange = (e) => (S.nShot = e.target.value);
