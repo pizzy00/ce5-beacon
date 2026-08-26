@@ -113,7 +113,7 @@
   #archive.hide { display: none; }
   #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
     box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
-  #archFrame { width: 100%; height: 100%; border: 0; display: block; }
+  #archBox iframe { width: 100%; height: 100%; border: 0; display: block; }
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; }
@@ -122,16 +122,21 @@
     padding: 12px 4px; border-radius: 3px; text-transform: uppercase; }
   .btn:active { background: rgba(255,196,107,0.25); }
   .btn.cy { border-color: var(--cyan); color: var(--cyan); background: rgba(107,227,255,0.06); }
+  .btn.rd { border-color: var(--alert); color: var(--alert); background: rgba(255,92,57,0.08); }
   .btn.on { background: rgba(255,196,107,0.3); color: #fff; }
   .hide { display: none !important; }
 
   #bGear { flex: 0 0 56px; }
+  #bGps { flex: 0 0 56px; }
   #bInfo { flex: 0 0 56px; padding: 9px 4px; display: flex; align-items: center;
     justify-content: center; }
   #bInfo svg { width: 22px; height: 14px; display: block; }
   @media (max-width: 430px) {
-    .btn { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 0.12em; }
-    #bGear, #bInfo { flex-basis: 44px; }
+    .btn { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 0.12em; padding-left: 2px; padding-right: 2px; }
+    #bGear, #bInfo, #bGps { flex-basis: 42px; }
+    #btns { gap: 6px; }
+    #ctl { padding-left: 6px; padding-right: 6px; }
+    .long { display: none; }
   }
   #info { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -209,6 +214,7 @@
       <div class="setFlex">
         <input id="addrIn" autocomplete="off" placeholder="123 Main St, Yourtown — or 39.76, -86.15" />
         <button class="btn" id="bLocate">Set</button>
+        <button class="btn cy" id="bGps2">GPS</button>
       </div>
       <div class="setStat" id="addrStatus">DEFAULT: MONUMENT CIRCLE, INDIANAPOLIS</div>
     </div>
@@ -265,20 +271,35 @@
       <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">NUCLEAR SITES ON THE TOUR — <span id="vSites">6</span></div>
-      <input type="range" id="rSites" min="1" max="8" step="1" value="6" />
-      <div class="setStat">TRINITY · SEDAN · BIKINI · CHAGAN · NOVAYA ZEMLYA · PUNGGYE-RI · MURUROA · LOS ALAMOS</div>
+      <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
+      <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
+      <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">6</span>S</div>
-      <input type="range" id="rHold" min="3" max="15" step="1" value="6" />
-      <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · REAL SATELLITE IMAGERY, LET IT LOAD</div>
+      <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
+      <input type="range" id="rHold" min="3" max="25" step="1" value="10" />
+      <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · LONGER = TIME TO TAKE IT IN</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">TEST FILM LENGTH — <span id="vFilm">30</span>S</div>
-      <input type="range" id="rFilm" min="10" max="120" step="5" value="30" />
-      <label class="setChk"><input type="checkbox" id="ckSound" />FILM SOUND ON — PHONES MAY STILL MUTE, TAP THE PLAYER</label>
+      <div class="setLbl">FLIGHT TIME BETWEEN SITES — <span id="vFly">7</span>S</div>
+      <input type="range" id="rFly" min="3" max="15" step="1" value="7" />
+      <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">TEST FILM LENGTH — <span id="vFilm">45</span>S</div>
+      <input type="range" id="rFilm" min="10" max="180" step="5" value="45" />
       <div class="setStat">DECLASSIFIED LLNL ATMOSPHERIC TEST FILMS · A RANDOM SHOT EACH RUN</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">TEST FILM SPEED</div>
+      <select id="selRate">
+        <option value="0.25">0.25× — FRAME BY FRAME</option>
+        <option value="0.5" selected>0.5× — SLOW</option>
+        <option value="0.75">0.75×</option>
+        <option value="1">1× — AS FILMED</option>
+      </select>
+      <label class="setChk"><input type="checkbox" id="ckSound" />FILM SOUND ON — PHONES MAY STILL MUTE, TAP THE PLAYER</label>
+      <div class="setStat">SLOW-MOTION NEEDS THE YOUTUBE PLAYER API · IF IT IS BLOCKED THE FILM PLAYS AT 1×</div>
     </div>
     <div class="setRow">
       <div class="setLbl">TILE PRECACHE</div>
@@ -343,9 +364,7 @@
 </div>
 <div id="archive" class="hide">
   <div class="archCap display">THE TRIGGER — DECLASSIFIED ATMOSPHERIC TEST FILM · LLNL</div>
-  <div id="archBox"><iframe id="archFrame" src="" title="Declassified nuclear test film"
-    allow="autoplay; encrypted-media; fullscreen" allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  <div id="archBox"></div>
   <div class="archCap">THEY SURFACE WHEN WE DETONATE · TAP OUTSIDE THE PLAYER TO CONTINUE</div>
 </div>
 <div id="crt"></div>
@@ -365,14 +384,15 @@
 <div id="ctl">
   <div id="chips"></div>
   <div id="btns">
-    <button class="btn" id="bEngage">Engage Approach</button>
+    <button class="btn" id="bEngage">Engage<span class="long"> Approach</span></button>
     <button class="btn cy" id="bAll">All Channels</button>
     <button class="btn" id="bGear">⚙</button>
     <button class="btn cy" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
+    <button class="btn rd hide" id="bStop">Abort</button>
     <button class="btn hide" id="bReplay">Replay</button>
     <button class="btn cy hide" id="bTone">Tone</button>
     <button class="btn hide" id="bTarget">Retarget</button>
-    <button class="btn cy hide" id="bGps">GPS</button>
+    <button class="btn cy" id="bGps">GPS</button>
   </div>
 </div>
 
@@ -383,7 +403,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
-  bTrig: "full", bSites: 6, bHold: 6, bFilm: 30, bSound: false,
+  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, bFilm: 45, bRate: 0.5, bSound: false,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -407,14 +427,14 @@ const MODES = [
 ];
 const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT" };
 const TRIANGLE = [[25.76, -80.19], [32.30, -64.78], [18.47, -66.10]]; // Miami · Bermuda · San Juan
-const NUKE_SITES = [
-  { name: "TRINITY SITE · NEW MEXICO", sub: "16 JUL 1945 · 21 KT · THE FIRST", lat: 33.6773, lon: -106.4754, z: 13 },
+const NUKE_SITES = [ // order = how visible the scar is from orbit
   { name: "SEDAN CRATER · NEVADA TEST SITE", sub: "1962 · 104 KT · 928 TESTS ON THIS RANGE", lat: 37.1767, lon: -116.0466, z: 13 },
-  { name: "BIKINI ATOLL · MARSHALL ISLANDS", sub: "CASTLE BRAVO 1954 · 15 MT", lat: 11.696, lon: 165.272, z: 12 },
-  { name: "LAKE CHAGAN · SEMIPALATINSK", sub: "1965 · 140 KT · 456 SOVIET TESTS", lat: 49.935, lon: 79.010, z: 13 },
+  { name: "BIKINI ATOLL · MARSHALL ISLANDS", sub: "CASTLE BRAVO 1954 · 15 MT · THE CRATER IS THE LAGOON GAP", lat: 11.696, lon: 165.272, z: 12 },
+  { name: "LAKE CHAGAN · SEMIPALATINSK", sub: "1965 · 140 KT · THE ATOMIC LAKE · 456 SOVIET TESTS", lat: 49.935, lon: 79.010, z: 13 },
+  { name: "TRINITY SITE · NEW MEXICO", sub: "16 JUL 1945 · 21 KT · THE FIRST", lat: 33.6773, lon: -106.4754, z: 13 },
   { name: "NOVAYA ZEMLYA", sub: "TSAR BOMBA 1961 · 50 MT · THE BIGGEST EVER", lat: 73.4, lon: 54.9, z: 6 },
-  { name: "PUNGGYE-RI · NORTH KOREA", sub: "6 TESTS 2006–2017", lat: 41.28, lon: 129.09, z: 11 },
   { name: "MURUROA · FRENCH POLYNESIA", sub: "193 FRENCH TESTS 1966–1996", lat: -21.83, lon: -138.90, z: 11 },
+  { name: "PUNGGYE-RI · NORTH KOREA", sub: "6 TESTS 2006–2017", lat: 41.28, lon: 129.09, z: 11 },
   { name: "LOS ALAMOS · NEW MEXICO", sub: "WHERE IT WAS BUILT · 1943", lat: 35.88, lon: -106.30, z: 12 }
 ];
 const NUKE_PLAYLIST = "PLvGO_dWo8VfcmG166wKRy5z-GlJ_OQND5"; // LLNL declassified atmospheric test films
@@ -1082,6 +1102,7 @@ function engage() {
   t0 = performance.now();
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
   $("chips").classList.add("hide"); $("reticle").classList.add("on");
+  $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
   if (mode === "bermuda") bermudaCall();
 }
 
@@ -1106,6 +1127,7 @@ function bermudaCall() {
   $("dRng").textContent = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM";
   $("dSig").textContent = "24%";
   tourPlan = S.bTrig === "full" || S.bTrig === "sites" ? NUKE_SITES.slice(0, S.bSites) : [];
+  precacheSites(tourPlan);
   bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
 }
 function bermNext(token) {
@@ -1130,7 +1152,7 @@ function nukeTour(i, token) {
   const icon = L.divIcon({ className: "", iconSize: [0, 0],
     html: '<div class="beacon"><s></s><s></s><s></s><i></i></div>' });
   L.marker([s.lat, s.lon], { icon }).addTo(bermLayer);
-  const fly = reduced ? 1.5 : 4.5;
+  const fly = reduced ? 1.5 : S.bFly;
   map.flyTo([s.lat, s.lon], s.z, { duration: fly });
   map.once("moveend", () => {
     if (token !== bermToken) return;
@@ -1144,21 +1166,54 @@ function nukeTour(i, token) {
     bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
   }, (fly + S.bHold + 4) * 1000);
 }
+let ytPlayer = null, ytWait = 0;
+function loadYT(cb) {
+  if (window.YT && window.YT.Player) return cb(true);
+  if (!document.getElementById("ytapi")) {
+    const s = document.createElement("script"); s.id = "ytapi";
+    s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
+  }
+  let done = false;
+  const prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = () => { if (prev) prev(); if (!done) { done = true; clearTimeout(ytWait); cb(true); } };
+  ytWait = setTimeout(() => { if (!done) { done = true; cb(false); } }, 4000);
+}
 function nukeArchive(token) {
   if (token !== bermToken) return;
   setPhase("archive", "THE TRIGGER");
   $("cue").classList.remove("on"); $("reticle").classList.remove("on");
-  const id = NUKE_FILMS.length ? NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)] : "";
-  const base = id ? "https://www.youtube.com/embed/" + id + "?loop=1&playlist=" + id + "&"
-    : "https://www.youtube.com/embed/videoseries?list=" + NUKE_PLAYLIST + "&";
-  $("archFrame").src = base + "autoplay=1&mute=" + (S.bSound ? 0 : 1) + "&playsinline=1&rel=0&modestbranding=1";
+  const id = NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)];
+  $("archBox").innerHTML = '<div id="archPlayer"></div>';
   $("archive").classList.remove("hide");
   log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE TRIGGER — DECLASSIFIED TEST FILM", "alert");
   log("TAP OUTSIDE THE PLAYER = CONTINUE");
   $("dSig").textContent = "58%";
+  loadYT((ok) => {
+    if (token !== bermToken || phase !== "archive") return;
+    if (ok) {
+      ytPlayer = new YT.Player("archPlayer", {
+        videoId: id,
+        playerVars: { autoplay: 1, mute: S.bSound ? 0 : 1, playsinline: 1, rel: 0, modestbranding: 1, loop: 1, playlist: id },
+        events: {
+          onReady: (e) => { e.target.setPlaybackRate(S.bRate); if (S.bSound) e.target.unMute(); else e.target.mute(); e.target.playVideo(); },
+          onStateChange: (e) => { if (e.data === 1 && e.target.getPlaybackRate() !== S.bRate) e.target.setPlaybackRate(S.bRate); }
+        }
+      });
+      log("FILM SPEED: " + S.bRate + "×", "cy");
+    } else {
+      $("archBox").innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' +
+        (S.bSound ? 0 : 1) + '&playsinline=1&rel=0&loop=1&playlist=' + id +
+        '" allow="autoplay; encrypted-media; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+      log("PLAYER API BLOCKED — FILM AT 1×", "alert");
+    }
+  });
   bermHold = setTimeout(() => bermNext(token), (reduced ? 2 : S.bFilm) * 1000);
 }
-function closeArchive() { $("archive").classList.add("hide"); $("archFrame").src = ""; }
+function closeArchive() {
+  clearTimeout(ytWait);
+  if (ytPlayer) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
+  $("archBox").innerHTML = ""; $("archive").classList.add("hide");
+}
 function bermRise() {
   closeArchive();
   if (bermLayer) { map.removeLayer(bermLayer); bermLayer = null; }
@@ -1197,6 +1252,32 @@ function tileXY(lat, lon, z) {
   return { x, y, n };
 }
 let precached = "";
+const TILE_BASE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/";
+let sitesCached = "";
+function precacheSites(plan) {
+  if (S.cache === "off" || !map) return;
+  const key = plan.map((s) => s.name).join("|") + S.cache;
+  if (sitesCached === key) return;
+  sitesCached = key;
+  const R = S.cache === "aggressive" ? 3 : 2, urls = [];
+  const push = (lat, lon, z, rx, ry) => {
+    const { x, y, n } = tileXY(lat, lon, z);
+    for (let dx = -rx; dx <= rx; dx++)
+      for (let dy = -ry; dy <= ry; dy++) {
+        const tx = (((x + dx) % n) + n) % n, ty = y + dy;
+        if (ty >= 0 && ty < n) urls.push(TILE_BASE + z + "/" + ty + "/" + tx);
+      }
+  };
+  push(25.6, -71.5, 5, 3, 2);                                   // the Triangle
+  for (const s of plan) { push(s.lat, s.lon, s.z, R, R); push(s.lat, s.lon, s.z - 2, 1, 1); push(s.lat, s.lon, s.z - 4, 1, 1); }
+  let done = 0; const total = urls.length;
+  log("PRE-LOADING " + total + " SITE TILES...", "cy");
+  urls.forEach((u) => {
+    const im = new Image();
+    im.onload = im.onerror = () => { if (++done === total) log("SITE IMAGERY READY", "cy"); };
+    im.src = u;
+  });
+}
 function activeDescent() {
   if (S.detail === "quick") return DESCENT.filter((s) => [4, 10, 15, 18].includes(s.z));
   if (S.detail === "medium") return DESCENT.filter((s) => [4, 8, 12, 15, 17, 18].includes(s.z));
@@ -1301,18 +1382,23 @@ function arrive() {
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
   log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
   log("AWAITING RESPONSE...");
+  $("bStop").classList.add("hide");
   ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
 }
 
 function replay() {
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); bermStep = -1;
+  cancelAnimationFrame(raf);                               // never run two loops
+  $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
+  if (map) lockMap(false);
   if (bermLayer && map) { map.removeLayer(bermLayer); bermLayer = null; }
   $("cue").classList.remove("on");
   if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
   if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
-  ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.add("hide"));
+  ["bReplay", "bTone", "bTarget"].forEach((b) => $(b).classList.add("hide"));
+  $("bGps").classList.remove("hide");
   $("bEngage").classList.remove("hide"); $("bAll").classList.remove("hide");
   $("chips").classList.remove("hide");
   $("space").classList.remove("gone");
@@ -1398,24 +1484,24 @@ $("bAll").onclick = () => {
   log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
 };
 $("bReplay").onclick = replay;
+$("bStop").onclick = () => { log("ABORTED — BACK TO THE CHART", "alert"); replay(); };
 $("bTarget").onclick = () => {
   retargetMode = !retargetMode;
   $("bTarget").classList.toggle("on", retargetMode);
   if (retargetMode) log("RETARGET: TAP YOUR ROOF", "cy");
 };
-$("bGps").onclick = () => {
-  if (!navigator.geolocation) return log("GPS UNAVAILABLE", "alert");
-  log("GPS: ACQUIRING...", "cy");
+function useGps() {
+  if (!navigator.geolocation) { $("addrStatus").textContent = "GPS UNAVAILABLE IN THIS BROWSER"; return log("GPS UNAVAILABLE", "alert"); }
+  log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING...";
   navigator.geolocation.getCurrentPosition(
-    (p) => {
-      TARGET = { lat: p.coords.latitude, lon: p.coords.longitude, exact: true };
-      placeBeacon(); map && map.flyTo([TARGET.lat, TARGET.lon], 17);
-      log("GPS LOCK — " + fmtLL(TARGET.lat, TARGET.lon), "cy");
-    },
-    () => log("GPS DENIED — BEACON UNCHANGED", "alert"),
-    { enableHighAccuracy: true, timeout: 8000 }
+    (p) => setTargetTo(p.coords.latitude, p.coords.longitude, "GPS LOCK ±" + Math.round(p.coords.accuracy) + " M"),
+    () => { log("GPS DENIED — TARGET UNCHANGED", "alert");
+      $("addrStatus").textContent = "GPS DENIED — ALLOW LOCATION, OR TYPE AN ADDRESS"; },
+    { enableHighAccuracy: true, timeout: 10000 }
   );
-};
+}
+$("bGps").onclick = useGps;
+$("bGps2").onclick = useGps;
 
 /* tone: 528 + 432 Hz soft beat */
 let ac = null, toneOn = false, oscs = [];
@@ -1533,6 +1619,8 @@ $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textConte
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
 $("rFilm").oninput = (e) => { S.bFilm = +e.target.value; $("vFilm").textContent = S.bFilm; };
 $("ckSound").onchange = (e) => (S.bSound = e.target.checked);
+$("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
+$("selRate").onchange = (e) => { S.bRate = +e.target.value; if (ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(S.bRate); };
 
 /* boot log */
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
