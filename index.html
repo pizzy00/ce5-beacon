@@ -108,6 +108,14 @@
   .chip.sel { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,196,107,0.35) inset,
     0 0 8px rgba(255,196,107,0.25); }
   .chip.mode { border-style: dashed; }
+  #archive { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px; padding: 165px 10px 130px; }
+  #archive.hide { display: none; }
+  #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
+    box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
+  #archFrame { width: 100%; height: 100%; border: 0; display: block; }
+  .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
+    text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; }
   .btn { flex: 1; border: 1px solid var(--amber); background: rgba(255,196,107,0.08);
     color: var(--amber); font: inherit; font-size: 11px; letter-spacing: 0.18em;
@@ -247,6 +255,32 @@
       <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
     </div>
     <div class="setRow">
+      <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
+      <select id="selTrig">
+        <option value="full">FULL — TRIANGLE → NUCLEAR SITES → TEST FILM</option>
+        <option value="sites">TRIANGLE → NUCLEAR SITES ONLY</option>
+        <option value="film">TRIANGLE → TEST FILM ONLY</option>
+        <option value="off">OFF — STRAIGHT TO THE DEEP</option>
+      </select>
+      <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">NUCLEAR SITES ON THE TOUR — <span id="vSites">6</span></div>
+      <input type="range" id="rSites" min="1" max="8" step="1" value="6" />
+      <div class="setStat">TRINITY · SEDAN · BIKINI · CHAGAN · NOVAYA ZEMLYA · PUNGGYE-RI · MURUROA · LOS ALAMOS</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">6</span>S</div>
+      <input type="range" id="rHold" min="3" max="15" step="1" value="6" />
+      <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · REAL SATELLITE IMAGERY, LET IT LOAD</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">TEST FILM LENGTH — <span id="vFilm">30</span>S</div>
+      <input type="range" id="rFilm" min="10" max="120" step="5" value="30" />
+      <label class="setChk"><input type="checkbox" id="ckSound" />FILM SOUND ON — PHONES MAY STILL MUTE, TAP THE PLAYER</label>
+      <div class="setStat">DECLASSIFIED LLNL ATMOSPHERIC TEST FILMS · A RANDOM SHOT EACH RUN</div>
+    </div>
+    <div class="setRow">
       <div class="setLbl">TILE PRECACHE</div>
       <select id="selCache">
         <option value="normal">NORMAL</option>
@@ -301,11 +335,18 @@
       <div class="setLbl">HOW THIS CONSOLE MAPS TO IT</div>
       <div class="infoP">Departure system = who you are inviting · Their star → Galaxy → Sol → Luna
         → Earth → descent = the vectoring visualization · Breath cue = step 02 ·
-        TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO).</div>
+        TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO). BERMUDA runs the trigger sequence: the Triangle, the places we detonated, a declassified test film, then the unit rises.</div>
     </div>
     <div class="infoFoot">CE-5 AND CSETI ARE TERMS ASSOCIATED WITH DR. STEVEN GREER. THIS CARD IS AN
       INDEPENDENT SUMMARY, NOT AFFILIATED. USE AT YOUR OWN DISCRETION.</div>
   </div>
+</div>
+<div id="archive" class="hide">
+  <div class="archCap display">THE TRIGGER — DECLASSIFIED ATMOSPHERIC TEST FILM · LLNL</div>
+  <div id="archBox"><iframe id="archFrame" src="" title="Declassified nuclear test film"
+    allow="autoplay; encrypted-media; fullscreen" allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  <div class="archCap">THEY SURFACE WHEN WE DETONATE · TAP OUTSIDE THE PLAYER TO CONTINUE</div>
 </div>
 <div id="crt"></div>
 <div id="vig"></div>
@@ -342,6 +383,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
+  bTrig: "full", bSites: 6, bHold: 6, bFilm: 30, bSound: false,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -360,8 +402,23 @@ const POLARIS = { x: 0.5, y: 0.09, c: "#ffe9a6" };
 const SOL = { x: 0.5, y: 0.84, c: "#ffd34d" };
 const MODES = [
   { id: "luna", name: "LUNA · FAR SIDE", tag: "UAP", dist: "384,400 KM", c: "#d8d8de", mode: "moon" },
-  { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" }
+  { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" },
+  { id: "berm", name: "BERMUDA TRIANGLE", tag: "USO · UNIT", dist: "THE TRIGGER", c: "#ff8e5e", mode: "bermuda" }
 ];
+const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT" };
+const TRIANGLE = [[25.76, -80.19], [32.30, -64.78], [18.47, -66.10]]; // Miami · Bermuda · San Juan
+const NUKE_SITES = [
+  { name: "TRINITY SITE · NEW MEXICO", sub: "16 JUL 1945 · 21 KT · THE FIRST", lat: 33.6773, lon: -106.4754, z: 13 },
+  { name: "SEDAN CRATER · NEVADA TEST SITE", sub: "1962 · 104 KT · 928 TESTS ON THIS RANGE", lat: 37.1767, lon: -116.0466, z: 13 },
+  { name: "BIKINI ATOLL · MARSHALL ISLANDS", sub: "CASTLE BRAVO 1954 · 15 MT", lat: 11.696, lon: 165.272, z: 12 },
+  { name: "LAKE CHAGAN · SEMIPALATINSK", sub: "1965 · 140 KT · 456 SOVIET TESTS", lat: 49.935, lon: 79.010, z: 13 },
+  { name: "NOVAYA ZEMLYA", sub: "TSAR BOMBA 1961 · 50 MT · THE BIGGEST EVER", lat: 73.4, lon: 54.9, z: 6 },
+  { name: "PUNGGYE-RI · NORTH KOREA", sub: "6 TESTS 2006–2017", lat: 41.28, lon: 129.09, z: 11 },
+  { name: "MURUROA · FRENCH POLYNESIA", sub: "193 FRENCH TESTS 1966–1996", lat: -21.83, lon: -138.90, z: 11 },
+  { name: "LOS ALAMOS · NEW MEXICO", sub: "WHERE IT WAS BUILT · 1943", lat: 35.88, lon: -106.30, z: 12 }
+];
+const NUKE_PLAYLIST = "PLvGO_dWo8VfcmG166wKRy5z-GlJ_OQND5"; // LLNL declassified atmospheric test films
+const NUKE_FILMS = ['a4qbyzt5wVI', 'h9mRLNjTDok', '6Zt15iOeOH0', 'NhKrhffhme4', 'KeMyUQaCVnk', 'n3JTutDtq_E', 'tbH1tunAHWA', '5omHhNleRV8', 'zOaTw7GC3pI', 'By8mQtmkmCk', 'mxWZ10zqyZs', 'coIrnuxkhnM'];
 const USO_SITES = [
   { name: "PUERTO RICO TRENCH", lat: 19.7, lon: -66.5, depth: "8,376 M" },
   { name: "CATALINA BASIN", lat: 33.2, lon: -118.7, depth: "1,300 M" },
@@ -503,7 +560,8 @@ function drawChart(t) {
     ctx.beginPath(); ctx.arc(sx, sy, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
     ctx.globalAlpha = 1;
     label(sx, sy - 46, "DEPARTURE: " + selected.name,
-      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
+      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
+        : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
       selected.c, "center");
   }
 }
@@ -691,6 +749,16 @@ function drawOceanOrigin(p, t) {
     ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R * 0.92, cy + Math.sin(a) * R * 0.27, 1.6, 0, 6.29); ctx.fill();
   }
   ctx.globalAlpha = 1;
+  if (usoSite.unit) {                                     // the smaller craft it builds
+    for (let i = 0; i < 3; i++) {
+      const a = t * 0.7 + i * 2.09, dx = Math.cos(a) * R * 1.7, dy = Math.sin(a) * R * 0.55 - R * 0.1;
+      const s2 = Math.max(4, R * 0.18);
+      glow(cx + dx, cy + dy, s2 * 1.6, "#5ee0c0", 0.3);
+      ctx.globalAlpha = 0.9; ctx.fillStyle = "#0b2a2a"; ctx.strokeStyle = "#5ee0c0"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(cx + dx, cy + dy, s2, s2 * 0.35, 0, 0, 6.29); ctx.fill(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
   for (let i = 0; i < 3; i++) {                           // sonar / hail rings
     const rr = ((t * 60 + i * 80) % 240) + 10;
     ctx.strokeStyle = "#5ee0c0"; ctx.globalAlpha = Math.max(0, 0.6 - rr / 260);
@@ -707,7 +775,7 @@ function drawOceanOrigin(p, t) {
   }
   const km = Math.round(kmBetween(usoSite, TARGET)).toLocaleString();
   label(cx, Math.max(30, cy - R * 0.9 - 22), usoSite.name,
-    "DEPTH " + usoSite.depth + " · USO · " + km + " KM FROM YOUR SPOT", "#5ee0c0", "center");
+    "DEPTH " + usoSite.depth + " · " + (usoSite.unit || "USO") + " · " + km + " KM FROM YOUR SPOT", "#5ee0c0", "center");
   if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + usoSite.name + " — " + usoSite.depth + " DOWN", "cy"); }
   if (p >= 0.3 && !wpHit.has("o2")) {
     wpHit.add("o2"); log("HAILING THE DEEP — INVITATION SENT");
@@ -936,10 +1004,10 @@ function loop(ts) {
   else if (phase === "origin") {
     const p = seg(12000 * S.originMul), mode = modeOf();
     if (mode === "moon") drawMoonOrigin(p, t);
-    else if (mode === "ocean") drawOceanOrigin(p, t);
+    else if (mode === "ocean" || mode === "bermuda") drawOceanOrigin(p, t);
     else drawOrigin(p, t);
     if (p >= 1) {
-      if (mode === "ocean") return startDive();
+      if (mode === "ocean" || mode === "bermuda") return startDive();
       if (mode === "moon") {
         setPhase("moon", "LUNAR DEPARTURE"); t0 = ts;
         log("LUNAR DEPARTURE — EARTH AHEAD", "cy");
@@ -999,6 +1067,11 @@ function engage() {
     if (map) map.setView([usoSite.lat, usoSite.lon], 6, { animate: false }); // warm tiles behind the canvas
     setPhase("origin", "DEEP ORIGIN");
     cueStage("PICTURE THEM IN THE DEEP"); cueSub("USO · " + usoSite.name);
+  } else if (mode === "bermuda") {
+    usoSite = BERMUDA;
+    log("DEPARTURE: BERMUDA TRIANGLE — " + BERMUDA.unit, "cy");
+    log("ROUTE: THE TRIANGLE → " + (S.bTrig === "off" ? "" : "THE TRIGGER → ") +
+      Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM TO YOU");
   } else {
     log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
     log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
@@ -1009,6 +1082,99 @@ function engage() {
   t0 = performance.now();
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
   $("chips").classList.add("hide"); $("reticle").classList.add("on");
+  if (mode === "bermuda") bermudaCall();
+}
+
+/* ---------------- Bermuda: the trigger sequence ---------------- */
+let bermToken = 0, bermHold = 0, bermGuard = 0, bermStep = -1, bermLayer = null, tourPlan = [];
+function bermudaCall() {
+  if (!map) { failNoMap(); return; }
+  cancelAnimationFrame(raf);
+  $("space").classList.add("gone");
+  lockMap(true);
+  const token = ++bermToken;
+  bermStep = -1;
+  bermLayer = L.layerGroup().addTo(map);
+  L.polygon(TRIANGLE, { color: "#ff8e5e", weight: 1.5, dashArray: "4 6", fillColor: "#ff8e5e", fillOpacity: 0.07 })
+    .addTo(bermLayer);
+  map.setView([25.6, -71.5], 5, { animate: false });
+  setPhase("triangle", "THE TRIANGLE");
+  cueStage("THE TRIANGLE"); cueSub("MIAMI · BERMUDA · SAN JUAN · " + BERMUDA.depth + " DOWN");
+  log("STAGE 1: THE TRIANGLE — MIAMI · BERMUDA · SAN JUAN", "cy");
+  log("ON FILE: " + BERMUDA.unit + " — BUILDS SMALLER CRAFT · KNOWN FOR DECADES", "cy");
+  log("TAP SCREEN = NEXT STAGE");
+  $("dRng").textContent = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM";
+  $("dSig").textContent = "24%";
+  tourPlan = S.bTrig === "full" || S.bTrig === "sites" ? NUKE_SITES.slice(0, S.bSites) : [];
+  bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+}
+function bermNext(token) {
+  if (token !== bermToken) return;
+  clearTimeout(bermGuard); clearTimeout(bermHold);
+  if (bermStep + 1 < tourPlan.length) return nukeTour(bermStep + 1, token);
+  if ((S.bTrig === "full" || S.bTrig === "film") && phase !== "archive") return nukeArchive(token);
+  bermRise();
+}
+function nukeTour(i, token) {
+  if (token !== bermToken) return;
+  bermStep = i;
+  const s = tourPlan[i];
+  if (i === 0) {
+    setPhase("sites", "NUCLEAR SITES");
+    log("STAGE 2: THE PLACES WE DETONATED — " + tourPlan.length + " SITES", "cy");
+  }
+  cueStage(s.name); cueSub(s.sub);
+  log("SITE " + (i + 1) + "/" + tourPlan.length + ": " + s.name);
+  $("dRng").textContent = Math.round(kmBetween(s, BERMUDA)).toLocaleString() + " KM";
+  $("dSig").textContent = Math.round(28 + i * 4) + "%";
+  const icon = L.divIcon({ className: "", iconSize: [0, 0],
+    html: '<div class="beacon"><s></s><s></s><s></s><i></i></div>' });
+  L.marker([s.lat, s.lon], { icon }).addTo(bermLayer);
+  const fly = reduced ? 1.5 : 4.5;
+  map.flyTo([s.lat, s.lon], s.z, { duration: fly });
+  map.once("moveend", () => {
+    if (token !== bermToken) return;
+    clearTimeout(bermGuard);
+    bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+  });
+  clearTimeout(bermGuard);                                // if the flight never lands, move on anyway
+  bermGuard = setTimeout(() => {
+    if (token !== bermToken || bermStep !== i || phase !== "sites") return;
+    map.off("moveend"); map.setView([s.lat, s.lon], s.z, { animate: false });
+    bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+  }, (fly + S.bHold + 4) * 1000);
+}
+function nukeArchive(token) {
+  if (token !== bermToken) return;
+  setPhase("archive", "THE TRIGGER");
+  $("cue").classList.remove("on"); $("reticle").classList.remove("on");
+  const id = NUKE_FILMS.length ? NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)] : "";
+  const base = id ? "https://www.youtube.com/embed/" + id + "?loop=1&playlist=" + id + "&"
+    : "https://www.youtube.com/embed/videoseries?list=" + NUKE_PLAYLIST + "&";
+  $("archFrame").src = base + "autoplay=1&mute=" + (S.bSound ? 0 : 1) + "&playsinline=1&rel=0&modestbranding=1";
+  $("archive").classList.remove("hide");
+  log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE TRIGGER — DECLASSIFIED TEST FILM", "alert");
+  log("TAP OUTSIDE THE PLAYER = CONTINUE");
+  $("dSig").textContent = "58%";
+  bermHold = setTimeout(() => bermNext(token), (reduced ? 2 : S.bFilm) * 1000);
+}
+function closeArchive() { $("archive").classList.add("hide"); $("archFrame").src = ""; }
+function bermRise() {
+  closeArchive();
+  if (bermLayer) { map.removeLayer(bermLayer); bermLayer = null; }
+  usoSite = BERMUDA; wpHit.clear();
+  $("space").classList.remove("gone"); $("reticle").classList.add("on");
+  setPhase("origin", "THE DEEP"); t0 = performance.now();
+  cueStage("PICTURE THEM IN THE DEEP"); cueSub("USO · " + BERMUDA.unit);
+  log("THE UNIT ANSWERS — RISING FROM THE TRIANGLE", "cy");
+  raf = requestAnimationFrame(loop);
+}
+function bermSkip() {
+  clearTimeout(bermHold); clearTimeout(bermGuard);
+  const token = ++bermToken;
+  if (map) map.stop();
+  if (phase === "archive") return bermRise();
+  bermNext(token);
 }
 
 const DESCENT = [
@@ -1089,9 +1255,10 @@ function startDive() {
   if (!map) { failNoMap(); return; }
   lockMap(true);
   divePlan = activeDescent();
-  if (modeOf() === "ocean") map.setView([usoSite.lat, usoSite.lon], 6, { animate: false });
+  const wet = modeOf() === "ocean" || modeOf() === "bermuda";
+  if (wet) map.setView([usoSite.lat, usoSite.lon], 6, { animate: false });
   else map.setView([55, -95], 3, { animate: false });
-  log(modeOf() === "ocean" ? "ENTRY: SURFACE BREACH — " + usoSite.name
+  log(wet ? "ENTRY: SURFACE BREACH — " + usoSite.name
     : modeOf() === "moon" ? "ENTRY: CISLUNAR VECTOR — SLOW DESCENT"
     : "ENTRY: POLAR VECTOR — SLOW DESCENT", "cy");
   log("HOLDS AT EACH ALTITUDE — LET IT LOAD", "cy");
@@ -1130,7 +1297,8 @@ function arrive() {
   placeBeacon();
   log("BEACON ACTIVE — " + fmtLL(TARGET.lat, TARGET.lon), "alert");
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
-  log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN" : "RELAY: POLARIS GATE OPEN");
+  log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN"
+    : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
   log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
   log("AWAITING RESPONSE...");
   ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
@@ -1138,6 +1306,8 @@ function arrive() {
 
 function replay() {
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
+  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); bermStep = -1;
+  if (bermLayer && map) { map.removeLayer(bermLayer); bermLayer = null; }
   $("cue").classList.remove("on");
   if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
   if (beacon) { map.removeLayer(beacon); beacon = null; }
@@ -1284,8 +1454,11 @@ cvs.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointerdown", (e) => {
-  if (phase === "dive" && !e.target.closest("#ctl,#settings,#info")) skipStep();
+  if (e.target.closest("#ctl,#settings,#info,#archive")) return;
+  if (phase === "dive") skipStep();
+  else if (phase === "triangle" || phase === "sites") bermSkip();
 });
+$("archive").addEventListener("pointerdown", (e) => { if (!e.target.closest("#archBox")) bermSkip(); });
 
 /* ---------------- settings panel ---------------- */
 function updateShareLink() {
@@ -1355,6 +1528,11 @@ $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
+$("selTrig").onchange = (e) => (S.bTrig = e.target.value);
+$("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
+$("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
+$("rFilm").oninput = (e) => { S.bFilm = +e.target.value; $("vFilm").textContent = S.bFilm; };
+$("ckSound").onchange = (e) => (S.bSound = e.target.checked);
 
 /* boot log */
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
