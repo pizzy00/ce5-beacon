@@ -119,8 +119,19 @@
     0 0 8px rgba(255,196,107,0.25); }
   .chip.mode { border-style: dashed; }
   #archive { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px; padding: 78px 10px 118px; }
+    align-items: center; justify-content: center; gap: 12px; padding: 78px 10px 148px; }
   #archive.hide { display: none; }
+  #flash { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px; padding: 78px 10px 148px; }
+  #flash.hide { display: none; }
+  #flashImg { max-width: 100%; max-height: 100%; min-height: 0; flex: 0 1 auto; object-fit: contain;
+    border: 1px solid var(--alert); box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
+  #flashWhite { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #flashWhite.pop { animation: pop 0.45s ease-out both; }
+  @keyframes pop { from { opacity: 0.9; } to { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #flashWhite.pop { animation: none; } }
+  .beacon.now i { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  .beacon.now s { border-color: var(--cyan); }
   #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
     box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
   #archBox iframe, #archBox video { width: 100%; height: 100%; border: 0; display: block; object-fit: contain; background: #000; }
@@ -292,6 +303,7 @@
       <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
       <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
       <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
+      <label class="setChk"><input type="checkbox" id="ckNow" checked />THEN 2 ACTIVE MISSILE BASES — MALMSTROM · F.E. WARREN (MINUTEMAN III)</label>
     </div>
     <div class="setRow">
       <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
@@ -318,6 +330,13 @@
       </select>
       <label class="setChk"><input type="checkbox" id="ckSound" />FILM SOUND ON — PHONES MAY STILL MUTE, TAP THE PLAYER</label>
       <div class="setStat">SLOW-MOTION NEEDS THE YOUTUBE PLAYER API · IF IT IS BLOCKED THE FILM PLAYS AT 1×</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">THE ARSENAL — MISSILE PHOTOS AFTER THE FILM</div>
+      <label class="setChk"><input type="checkbox" id="ckPhotos" checked />FLASH REAL MISSILE PHOTOS — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
+      <div class="setLbl">SECONDS PER PHOTO — <span id="vPhoto">1.6</span>S</div>
+      <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="1.6" />
+      <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
     </div>
     <div class="setRow">
       <div class="setLbl">TILE PRECACHE</div>
@@ -385,6 +404,12 @@
   <div id="archBox"></div>
   <div class="archCap">THEY SURFACE WHEN WE DETONATE · TAP OUTSIDE THE PLAYER TO CONTINUE</div>
 </div>
+<div id="flash" class="hide">
+  <div class="archCap display">THE ARSENAL — <span id="flashCap">REAL MISSILES</span></div>
+  <img id="flashImg" alt="" />
+  <div class="archCap">THIS IS WHAT THEY WATCH · TAP = NEXT</div>
+  <div id="flashWhite"></div>
+</div>
 <div id="crt"></div>
 <div id="vig"></div>
 
@@ -422,6 +447,7 @@ const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, bFilm: 45, bRate: 0.5, bSound: false, motion: "auto",
+  bNow: true, bPhotos: true, pHold: 1.6,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -455,12 +481,28 @@ const NUKE_SITES = [ // order = how visible the scar is from orbit
   { name: "PUNGGYE-RI · NORTH KOREA", sub: "6 TESTS 2006–2017", lat: 41.28, lon: 129.09, z: 11 },
   { name: "LOS ALAMOS · NEW MEXICO", sub: "WHERE IT WAS BUILT · 1943", lat: 35.88, lon: -106.30, z: 12 }
 ];
+const NOW_SITES = [ // active today, ride along at the end of the tour
+  { name: "MALMSTROM AFB · MONTANA", sub: "ACTIVE TODAY · MINUTEMAN III · 150 SILOS IN THE FIELDS AROUND IT", lat: 47.5047, lon: -111.1873, z: 12, now: true },
+  { name: "F.E. WARREN AFB · WYOMING", sub: "ACTIVE TODAY · MINUTEMAN III · 150 SILOS ACROSS WY · NE · CO", lat: 41.1330, lon: -104.8667, z: 12, now: true }
+];
+const NUKE_PHOTOS = [
+  { src: "photos/mm3-silo-1989.jpg", name: "LGM-30G MINUTEMAN III · IN ITS SILO · 1989 · USAF" },
+  { src: "photos/titan-silo.jpg", name: "TITAN II · IN THE SILO · ARIZONA" },
+  { src: "photos/mm3-silo-2012.jpg", name: "MINUTEMAN III LAUNCH FACILITY · CREW AT THE HATCH · 2012 · DOD" },
+  { src: "photos/peacekeeper-cold.jpg", name: "LGM-118 PEACEKEEPER · COLD LAUNCH · VANDENBERG · USAF" },
+  { src: "photos/peacekeeper-launch.jpg", name: "PEACEKEEPER · CLEARING THE SILO · USAF" },
+  { src: "photos/mm3-launch-2019.jpg", name: "MINUTEMAN III · TEST LAUNCH · VANDENBERG · 2 OCT 2019 · USAF" },
+  { src: "photos/mm3-launch-2025.jpg", name: "MINUTEMAN III · OPERATIONAL TEST · VANDENBERG · 21 MAY 2025 · USSF" },
+  { src: "photos/trident-nebraska-2008.jpg", name: "TRIDENT II D5 · USS NEBRASKA · 2008 · US NAVY" },
+  { src: "photos/trident-rhodeisland-2019.jpg", name: "TRIDENT II D5 · USS RHODE ISLAND · CAPE CANAVERAL · 2019 · US NAVY" },
+  { src: "photos/mm3-reentry.jpg", name: "MINUTEMAN III RE-ENTRY VEHICLES · KWAJALEIN · USAF" }
+]; // public-domain US DoD photos, self-hosted
 const NUKE_PLAYLIST = "PLvGO_dWo8VfcmG166wKRy5z-GlJ_OQND5"; // LLNL declassified atmospheric test films
 const NUKE_CLIPS = [
-  { src: "films/wrangell-60550.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60550" },
-  { src: "films/wrangell-60549.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60549" },
-  { src: "films/wrangell-60546.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60546" },
-  { src: "films/yukon-103013.mp4", name: "DOMINIC · YUKON · CHRISTMAS ISLAND 1962 · 100 KT AIRDROP" }
+  { src: "films/bighorn-1962.mp4", name: "DOMINIC · BIGHORN · CHRISTMAS ISLAND 1962 · 7.65 MT AIRDROP" },
+  { src: "films/nutmeg-1958.mp4", name: "HARDTACK-I · NUTMEG · BIKINI 1958 · 25 KT" },
+  { src: "films/tewa-1956.mp4", name: "REDWING · TEWA · BIKINI 1956 · 5 MT" },
+  { src: "films/fig-1958.mp4", name: "HARDTACK-I · FIG · ENEWETAK 1958" }
 ]; // self-hosted, public-domain LLNL footage
 const NUKE_FILMS = ['a4qbyzt5wVI', 'h9mRLNjTDok', '6Zt15iOeOH0', 'NhKrhffhme4', 'KeMyUQaCVnk', 'n3JTutDtq_E', 'tbH1tunAHWA', '5omHhNleRV8', 'zOaTw7GC3pI', 'By8mQtmkmCk', 'mxWZ10zqyZs', 'coIrnuxkhnM'];
 const USO_SITES = [
@@ -1152,8 +1194,13 @@ function bermudaCall() {
   log("TAP SCREEN = NEXT STAGE");
   $("dRng").textContent = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM";
   $("dSig").textContent = "24%";
-  tourPlan = S.bTrig === "full" || S.bTrig === "sites" ? NUKE_SITES.slice(0, S.bSites) : [];
+  tourPlan = S.bTrig === "full" || S.bTrig === "sites"
+    ? NUKE_SITES.slice(0, S.bSites).concat(S.bNow ? NOW_SITES : []) : [];
   precacheSites(tourPlan);
+  if (S.bPhotos && S.bTrig !== "off" && NUKE_PHOTOS.length) {
+    log("PRE-LOADING " + NUKE_PHOTOS.length + " MISSILE PHOTOS...", "cy");
+    NUKE_PHOTOS.forEach((p) => { const im = new Image(); im.src = p.src; });
+  }
   if (S.bTrig === "full" || S.bTrig === "film") { pickClip(); preloadClip(); }
   bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
 }
@@ -1161,7 +1208,8 @@ function bermNext(token) {
   if (token !== bermToken) return;
   clearTimeout(bermGuard); clearTimeout(bermHold);
   if (bermStep + 1 < tourPlan.length) return nukeTour(bermStep + 1, token);
-  if ((S.bTrig === "full" || S.bTrig === "film") && phase !== "archive") return nukeArchive(token);
+  if ((S.bTrig === "full" || S.bTrig === "film") && phase !== "archive" && phase !== "photos") return nukeArchive(token);
+  if (S.bPhotos && S.bTrig !== "off" && NUKE_PHOTOS.length && phase !== "photos") return photoFlash(token);
   bermRise();
 }
 function nukeTour(i, token) {
@@ -1170,14 +1218,15 @@ function nukeTour(i, token) {
   const s = tourPlan[i];
   if (i === 0) {
     setPhase("sites", "NUCLEAR SITES");
-    log("STAGE 2: THE PLACES WE DETONATED — " + tourPlan.length + " SITES", "cy");
+    log("STAGE 2: THE PLACES WE DETONATED — " + tourPlan.length + " SITES" + (S.bNow ? " · 2 ACTIVE" : ""), "cy");
   }
   cueStage(s.name); cueSub(s.sub);
   log("SITE " + (i + 1) + "/" + tourPlan.length + ": " + s.name);
   $("dRng").textContent = Math.round(kmBetween(s, BERMUDA)).toLocaleString() + " KM";
   $("dSig").textContent = Math.round(28 + i * 4) + "%";
+  if (s.now) log("ACTIVE TODAY — " + s.name, "alert");
   const icon = L.divIcon({ className: "", iconSize: [0, 0],
-    html: '<div class="beacon"><s></s><s></s><s></s><i></i></div>' });
+    html: '<div class="beacon' + (s.now ? " now" : "") + '"><s></s><s></s><s></s><i></i></div>' });
   L.marker([s.lat, s.lon], { icon }).addTo(bermLayer);
   const fly = reduced ? 1.5 : S.bFly;
   map.flyTo([s.lat, s.lon], s.z, { duration: fly });
@@ -1263,6 +1312,30 @@ function ytFallback(token) {
     }
   });
 }
+let flashIdx = -1;
+function photoFlash(token) {
+  if (token !== bermToken) return;
+  closeArchive();
+  setPhase("photos", "THE ARSENAL");
+  $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
+  $("flash").classList.remove("hide");
+  log("STAGE " + (tourPlan.length ? 4 : 3) + ": THE ARSENAL — " + NUKE_PHOTOS.length + " REAL MISSILES", "alert");
+  log("TAP A PHOTO = NEXT");
+  flashIdx = -1;
+  flashNext(token);
+}
+function flashNext(token) {
+  if (token !== bermToken || phase !== "photos") return;
+  clearTimeout(bermHold);
+  flashIdx++;
+  if (flashIdx >= NUKE_PHOTOS.length) return bermRise();
+  const ph = NUKE_PHOTOS[flashIdx];
+  $("flashImg").src = ph.src; $("flashCap").textContent = ph.name;
+  const w = $("flashWhite"); w.classList.remove("pop"); void w.offsetWidth; w.classList.add("pop");
+  $("dSig").textContent = Math.round(60 + (flashIdx / NUKE_PHOTOS.length) * 10) + "%";
+  bermHold = setTimeout(() => flashNext(token), S.pHold * 1000);
+}
+function closeFlash() { $("flash").classList.add("hide"); $("flashImg").removeAttribute("src"); }
 function closeArchive() {
   clearTimeout(ytWait);
   if (archVideo) { try { archVideo.pause(); archVideo.removeAttribute("src"); archVideo.load(); } catch (e) {} archVideo = null; }
@@ -1270,7 +1343,7 @@ function closeArchive() {
   $("archBox").innerHTML = ""; $("archive").classList.add("hide");
 }
 function bermRise() {
-  closeArchive();
+  closeArchive(); closeFlash();
   if (bermLayer) { map.removeLayer(bermLayer); bermLayer = null; }
   usoSite = BERMUDA; wpHit.clear();
   $("space").classList.remove("gone"); $("reticle").classList.add("on");
@@ -1283,7 +1356,7 @@ function bermSkip() {
   clearTimeout(bermHold); clearTimeout(bermGuard);
   const token = ++bermToken;
   if (map) map.stop();
-  if (phase === "archive") return bermRise();
+  if (phase === "archive" || phase === "photos") return bermRise();
   bermNext(token);
 }
 
@@ -1445,7 +1518,7 @@ function arrive() {
 
 function replay() {
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
-  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); bermStep = -1;
+  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); closeFlash(); bermStep = -1;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
   document.body.classList.remove("run", "active");
@@ -1598,11 +1671,12 @@ cvs.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#archive")) return;
+  if (e.target.closest("#ctl,#settings,#info,#archive,#flash")) return;
   if (phase === "dive") skipStep();
   else if (phase === "triangle" || phase === "sites") bermSkip();
 });
 $("archive").addEventListener("pointerdown", (e) => { if (!e.target.closest("#archBox")) bermSkip(); });
+$("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
 
 /* ---------------- settings panel ---------------- */
 function updateShareLink() {
@@ -1682,6 +1756,9 @@ $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent 
 $("rFilm").oninput = (e) => { S.bFilm = +e.target.value; $("vFilm").textContent = S.bFilm; };
 $("ckSound").onchange = (e) => { S.bSound = e.target.checked; if (archVideo) archVideo.muted = !S.bSound; };
 $("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
+$("ckNow").onchange = (e) => (S.bNow = e.target.checked);
+$("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
+$("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
 $("selRate").onchange = (e) => { S.bRate = +e.target.value; if (archVideo) archVideo.playbackRate = S.bRate; if (ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(S.bRate); };
 
 /* boot log */
