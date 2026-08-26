@@ -87,10 +87,20 @@
   #cue { position: fixed; left: 50%; top: 63%; transform: translateX(-50%); z-index: 5;
     text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
   #cue.on { opacity: 1; }
+  #cue.off { display: none; }
   #cue .stage { font-size: 13px; letter-spacing: 0.28em; color: var(--amber);
     text-shadow: 0 0 8px rgba(255,196,107,0.6); white-space: nowrap; }
   #cue .breath { font-size: 10px; letter-spacing: 0.34em; color: var(--cyan); margin-top: 6px;
     text-shadow: 0 0 6px rgba(107,227,255,0.5); }
+  /* during a run: get the chrome out of the way of the scene */
+  body.run #log, body.active #log { font-size: 10px; line-height: 1.35; opacity: 0.85; max-width: 58vw; }
+  body.run #log div:not(:nth-last-child(-n+2)) { display: none; }
+  body.active #log div:not(:nth-last-child(-n+4)) { display: none; }
+  body.run #data, body.active #data { display: flex; flex-wrap: wrap; justify-content: flex-end;
+    column-gap: 5px; row-gap: 0; max-width: 40vw; font-size: 9px; line-height: 1.4; }
+  body.run #data .lbl, body.active #data .lbl { font-size: 8px; }
+  body.run #cue, body.active #cue { top: auto; bottom: calc(150px + env(safe-area-inset-bottom)); width: 94vw; }
+  body.run #cue .stage, body.active #cue .stage { white-space: normal; font-size: 12px; }
 
   /* controls */
   #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
@@ -109,7 +119,7 @@
     0 0 8px rgba(255,196,107,0.25); }
   .chip.mode { border-style: dashed; }
   #archive { position: fixed; inset: 0; z-index: 4; background: #000; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px; padding: 165px 10px 130px; }
+    align-items: center; justify-content: center; gap: 12px; padding: 78px 10px 118px; }
   #archive.hide { display: none; }
   #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
     box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
@@ -629,7 +639,7 @@ function drawWarp(p, t) {
   ctx.globalAlpha = 1;
 
   // range countdown
-  label(W / 2, H - 160, allChannels ? "ALL CHANNELS \u2014 7 SYSTEMS" : "FROM " + selected.name,
+  label(W / 2, H * 0.17, allChannels ? "ALL CHANNELS \u2014 7 SYSTEMS" : "FROM " + selected.name,
     "\u2192 POLARIS GATE \u2192 SOL", selected.c, "center");
   const rem = selected.ly * Math.pow(1 - p, 3.2);
   let txt;
@@ -912,7 +922,7 @@ function drawGalaxy(p, t) {
   label(mx + 14, my - 6, "SOL", "ORION ARM — 26,000 LY FROM CORE", "#ffd34d");
   if (p < 0.45) {
     ctx.globalAlpha = 1 - p / 0.45;
-    label(cx, 44, "MILKY WAY", "100,000 LY ACROSS", "#cfe0ff", "center");
+    label(cx, H * 0.17, "MILKY WAY", "100,000 LY ACROSS", "#cfe0ff", "center");
     ctx.globalAlpha = 1;
   }
   $("dRng").textContent = Math.max(50, Math.round(26000 * (1 - e))) + " LY";
@@ -957,7 +967,7 @@ function drawSun(p, t) {
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
   g.addColorStop(0, "#fff7d0"); g.addColorStop(0.75, "#ffcf6b"); g.addColorStop(1, "#ff9b2f");
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
-  if (drift < 0.5) label(W / 2, Math.min(H - 30, cy + R + 26), "SOL — HOME STAR",
+  if (drift < 0.5) label(W / 2, H * 0.17, "SOL — HOME STAR",
     "G2V — 8.3 LIGHT-MINUTES OUT", "#ffcf6b", "center");
   $("dRng").textContent = "1.0 AU";
   $("dSig").textContent = "66%";
@@ -1118,6 +1128,7 @@ function engage() {
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
   $("chips").classList.add("hide"); $("reticle").classList.add("on");
   $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
+  document.body.classList.add("run"); document.body.classList.remove("active");
   if (mode === "bermuda") bermudaCall();
 }
 
@@ -1204,7 +1215,7 @@ function preloadClip() {
 function nukeArchive(token) {
   if (token !== bermToken) return;
   setPhase("archive", "THE TRIGGER");
-  $("cue").classList.remove("on"); $("reticle").classList.remove("on");
+  $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
   $("archBox").innerHTML = "";
   $("archive").classList.remove("hide");
   log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE TRIGGER — DECLASSIFIED TEST FILM", "alert");
@@ -1362,6 +1373,7 @@ function precacheTiles() {
 let diveToken = 0, diveStep = -1, holdTimer = 0, breathTimer = 0;
 let divePlan = DESCENT;
 function cueStage(txt) {
+  $("cue").classList.remove("off");
   $("cue").classList.add("on");
   $("cue").querySelector(".stage").textContent = txt || "";
 }
@@ -1427,6 +1439,7 @@ function arrive() {
   log('TX: "ONE (1) HUMAN. ZERO FEAR. NO ORBS."', "alert");
   log("AWAITING RESPONSE...");
   $("bStop").classList.add("hide");
+  document.body.classList.remove("run"); document.body.classList.add("active");
   ["bReplay", "bTone", "bTarget", "bGps"].forEach((b) => $(b).classList.remove("hide"));
 }
 
@@ -1435,6 +1448,7 @@ function replay() {
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); closeArchive(); bermStep = -1;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
+  document.body.classList.remove("run", "active");
   if (map) lockMap(false);
   if (bermLayer && map) { map.removeLayer(bermLayer); bermLayer = null; }
   $("cue").classList.remove("on");
