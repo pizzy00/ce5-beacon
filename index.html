@@ -113,7 +113,7 @@
   #archive.hide { display: none; }
   #archBox { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 100%; border: 1px solid var(--alert);
     box-shadow: 0 0 30px rgba(255,92,57,0.25); background: #000; }
-  #archBox iframe { width: 100%; height: 100%; border: 0; display: block; }
+  #archBox iframe, #archBox video { width: 100%; height: 100%; border: 0; display: block; object-fit: contain; background: #000; }
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; }
@@ -235,6 +235,14 @@
       <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
       <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
       <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">MOTION</div>
+      <select id="selMotion">
+        <option value="auto">FOLLOW THE PHONE — REDUCE MOTION SHORTENS THE RUN</option>
+        <option value="full">FULL — IGNORE THE PHONE'S REDUCE MOTION</option>
+      </select>
+      <div class="setStat" id="motionStat">IF EVERY STAGE FLASHES BY IN A SECOND, PICK FULL</div>
     </div>
     <div class="setRow">
       <div class="setLbl">ORIGIN LEG PACE — <span id="vOrigin">1.0</span>×</div>
@@ -363,7 +371,7 @@
   </div>
 </div>
 <div id="archive" class="hide">
-  <div class="archCap display">THE TRIGGER — DECLASSIFIED ATMOSPHERIC TEST FILM · LLNL</div>
+  <div class="archCap display">THE TRIGGER — <span id="archName">DECLASSIFIED TEST FILM</span></div>
   <div id="archBox"></div>
   <div class="archCap">THEY SURFACE WHEN WE DETONATE · TAP OUTSIDE THE PLAYER TO CONTINUE</div>
 </div>
@@ -403,7 +411,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
-  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, bFilm: 45, bRate: 0.5, bSound: false,
+  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, bFilm: 45, bRate: 0.5, bSound: false, motion: "auto",
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -438,6 +446,12 @@ const NUKE_SITES = [ // order = how visible the scar is from orbit
   { name: "LOS ALAMOS · NEW MEXICO", sub: "WHERE IT WAS BUILT · 1943", lat: 35.88, lon: -106.30, z: 12 }
 ];
 const NUKE_PLAYLIST = "PLvGO_dWo8VfcmG166wKRy5z-GlJ_OQND5"; // LLNL declassified atmospheric test films
+const NUKE_CLIPS = [
+  { src: "films/wrangell-60550.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60550" },
+  { src: "films/wrangell-60549.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60549" },
+  { src: "films/wrangell-60546.mp4", name: "HARDTACK-II · WRANGELL · NEVADA 1958 · FILM 60546" },
+  { src: "films/yukon-103013.mp4", name: "DOMINIC · YUKON · CHRISTMAS ISLAND 1962 · 100 KT AIRDROP" }
+]; // self-hosted, public-domain LLNL footage
 const NUKE_FILMS = ['a4qbyzt5wVI', 'h9mRLNjTDok', '6Zt15iOeOH0', 'NhKrhffhme4', 'KeMyUQaCVnk', 'n3JTutDtq_E', 'tbH1tunAHWA', '5omHhNleRV8', 'zOaTw7GC3pI', 'By8mQtmkmCk', 'mxWZ10zqyZs', 'coIrnuxkhnM'];
 const USO_SITES = [
   { name: "PUERTO RICO TRENCH", lat: 19.7, lon: -66.5, depth: "8,376 M" },
@@ -463,7 +477,8 @@ let allChannels = false;
 const $ = (id) => document.getElementById(id);
 const cvs = $("space"), ctx = cvs.getContext("2d");
 const logEl = $("log");
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reducedPref = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let reduced = reducedPref; // MOTION: FULL in the gear panel clears this
 let phase = "chart"; // chart | warp | earth | dive | active
 let map = null, beacon = null, retargetMode = false;
 
@@ -1128,7 +1143,8 @@ function bermudaCall() {
   $("dSig").textContent = "24%";
   tourPlan = S.bTrig === "full" || S.bTrig === "sites" ? NUKE_SITES.slice(0, S.bSites) : [];
   precacheSites(tourPlan);
-  bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+  if (S.bTrig === "full" || S.bTrig === "film") { pickClip(); preloadClip(); }
+  bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
 }
 function bermNext(token) {
   if (token !== bermToken) return;
@@ -1157,13 +1173,13 @@ function nukeTour(i, token) {
   map.once("moveend", () => {
     if (token !== bermToken) return;
     clearTimeout(bermGuard);
-    bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+    bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   });
   clearTimeout(bermGuard);                                // if the flight never lands, move on anyway
   bermGuard = setTimeout(() => {
     if (token !== bermToken || bermStep !== i || phase !== "sites") return;
     map.off("moveend"); map.setView([s.lat, s.lon], s.z, { animate: false });
-    bermHold = setTimeout(() => bermNext(token), (reduced ? 1 : S.bHold) * 1000);
+    bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   }, (fly + S.bHold + 4) * 1000);
 }
 let ytPlayer = null, ytWait = 0;
@@ -1178,16 +1194,44 @@ function loadYT(cb) {
   window.onYouTubeIframeAPIReady = () => { if (prev) prev(); if (!done) { done = true; clearTimeout(ytWait); cb(true); } };
   ytWait = setTimeout(() => { if (!done) { done = true; cb(false); } }, 4000);
 }
+let archVideo = null, archClip = null;
+function pickClip() { archClip = NUKE_CLIPS.length ? NUKE_CLIPS[Math.floor(Math.random() * NUKE_CLIPS.length)] : null; return archClip; }
+function preloadClip() {
+  if (!archClip || S.cache === "off" || typeof fetch !== "function") return;
+  log("PRE-LOADING FILM: " + archClip.name, "cy");
+  fetch(archClip.src, { cache: "force-cache" }).then((r) => r.ok && r.blob()).then((b) => { if (b) log("FILM READY · " + Math.round(b.size / 1024) + " KB", "cy"); }).catch(() => {});
+}
 function nukeArchive(token) {
   if (token !== bermToken) return;
   setPhase("archive", "THE TRIGGER");
   $("cue").classList.remove("on"); $("reticle").classList.remove("on");
-  const id = NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)];
-  $("archBox").innerHTML = '<div id="archPlayer"></div>';
+  $("archBox").innerHTML = "";
   $("archive").classList.remove("hide");
   log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE TRIGGER — DECLASSIFIED TEST FILM", "alert");
   log("TAP OUTSIDE THE PLAYER = CONTINUE");
   $("dSig").textContent = "58%";
+  const clip = archClip || pickClip();
+  if (clip) {
+    $("archName").textContent = clip.name;
+    const v = document.createElement("video");
+    v.src = clip.src; v.loop = true; v.autoplay = true; v.preload = "auto";
+    v.muted = !S.bSound; v.defaultMuted = !S.bSound; v.playsInline = true;
+    v.setAttribute("playsinline", ""); v.setAttribute("webkit-playsinline", ""); v.setAttribute("muted", "");
+    v.playbackRate = S.bRate;
+    v.addEventListener("loadedmetadata", () => { v.playbackRate = S.bRate; });
+    v.addEventListener("play", () => { v.playbackRate = S.bRate; });
+    v.addEventListener("error", () => { if (token === bermToken && phase === "archive") ytFallback(token); });
+    $("archBox").appendChild(v);
+    archVideo = v;
+    const pr = v.play(); if (pr && pr.catch) pr.catch(() => {});
+    log("FILM: " + clip.name + " · " + S.bRate + "×", "cy");
+  } else ytFallback(token);
+  bermHold = setTimeout(() => bermNext(token), S.bFilm * 1000);
+}
+function ytFallback(token) {
+  const id = NUKE_FILMS[Math.floor(Math.random() * NUKE_FILMS.length)];
+  $("archName").textContent = "LLNL · VIA YOUTUBE";
+  $("archBox").innerHTML = '<div id="archPlayer"></div>';
   loadYT((ok) => {
     if (token !== bermToken || phase !== "archive") return;
     if (ok) {
@@ -1199,7 +1243,7 @@ function nukeArchive(token) {
           onStateChange: (e) => { if (e.data === 1 && e.target.getPlaybackRate() !== S.bRate) e.target.setPlaybackRate(S.bRate); }
         }
       });
-      log("FILM SPEED: " + S.bRate + "×", "cy");
+      log("FILM VIA YOUTUBE · " + S.bRate + "×", "cy");
     } else {
       $("archBox").innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' +
         (S.bSound ? 0 : 1) + '&playsinline=1&rel=0&loop=1&playlist=' + id +
@@ -1207,10 +1251,10 @@ function nukeArchive(token) {
       log("PLAYER API BLOCKED — FILM AT 1×", "alert");
     }
   });
-  bermHold = setTimeout(() => bermNext(token), (reduced ? 2 : S.bFilm) * 1000);
 }
 function closeArchive() {
   clearTimeout(ytWait);
+  if (archVideo) { try { archVideo.pause(); archVideo.removeAttribute("src"); archVideo.load(); } catch (e) {} archVideo = null; }
   if (ytPlayer) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
   $("archBox").innerHTML = ""; $("archive").classList.add("hide");
 }
@@ -1615,12 +1659,16 @@ $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
+$("selMotion").onchange = (e) => {
+  S.motion = e.target.value; reduced = S.motion === "full" ? false : reducedPref;
+  log("MOTION: " + (reduced ? "REDUCED — SHORT STAGES" : "FULL"), "cy");
+};
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
 $("rFilm").oninput = (e) => { S.bFilm = +e.target.value; $("vFilm").textContent = S.bFilm; };
-$("ckSound").onchange = (e) => (S.bSound = e.target.checked);
+$("ckSound").onchange = (e) => { S.bSound = e.target.checked; if (archVideo) archVideo.muted = !S.bSound; };
 $("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
-$("selRate").onchange = (e) => { S.bRate = +e.target.value; if (ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(S.bRate); };
+$("selRate").onchange = (e) => { S.bRate = +e.target.value; if (archVideo) archVideo.playbackRate = S.bRate; if (ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(S.bRate); };
 
 /* boot log */
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
@@ -1628,6 +1676,8 @@ log(hashLL ? "TARGET LOADED FROM SHARED LINK" : "TARGET: " + ADDRESS.toUpperCase
 log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
+if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
+  $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
 </script>
 </body>
