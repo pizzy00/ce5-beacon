@@ -136,7 +136,7 @@
   #info { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #info.hide { display: none; }
-  #infoCard { width: 100%; max-width: 460px; max-height: 84dvh; overflow-y: auto;
+  #infoCard { width: 100%; max-width: 460px; max-height: 84vh; max-height: 84dvh; overflow-y: auto;
     background: #0a0a18; border: 1px solid var(--cyan); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(107,227,255,0.15); -webkit-user-select: text; user-select: text; }
   #infoCard .setHead { color: var(--cyan); }
@@ -154,7 +154,7 @@
   #settings { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #settings.hide { display: none; }
-  #setCard { width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
+  #setCard { width: 100%; max-width: 420px; max-height: 82vh; max-height: 82dvh; overflow-y: auto;
     background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(255,196,107,0.15); }
   .setHead { display: flex; justify-content: space-between; align-items: center;
@@ -1462,7 +1462,7 @@ $("archive").addEventListener("pointerdown", (e) => { if (!e.target.closest("#ar
 
 /* ---------------- settings panel ---------------- */
 function updateShareLink() {
-  $("shareIn").value = location.href.split("#")[0] + "#ll=" +
+  $("shareIn").value = location.origin + location.pathname + "#ll=" +
     TARGET.lat.toFixed(6) + "," + TARGET.lon.toFixed(6);
 }
 function setTargetTo(lat, lon, name) {
