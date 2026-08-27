@@ -283,7 +283,9 @@
     background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
     border-top: 1px solid rgba(210,198,168,0.22);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 -10px 24px rgba(0,0,0,0.45); }
-  #chips { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 8px; }   /* every destination visible, nothing hidden off to the right */
+  #chips { display: flex; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px;   /* one lane, swipes forever */
+    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
   #chips::-webkit-scrollbar { display: none; }
   .chip, .btn {                                                    /* moulded keycaps, aged beige */
     background: radial-gradient(125% 100% at 50% -10%, #efe6cf 0%, #ded2b5 46%, #cabd9c 100%);
@@ -296,8 +298,8 @@
     transform: translateY(4px);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 2px 6px rgba(90,78,55,0.45),
       0 1px 0 #93886a, 0 2px 6px rgba(0,0,0,0.5); }
-  .chip { flex: 1 1 auto; padding: 7px 10px; font: inherit; font-size: 10px;
-    line-height: 1.4; text-align: left; margin-bottom: 6px; }
+  .chip { flex: 0 0 auto; width: 152px; padding: 7px 10px; font: inherit; font-size: 10px;
+    line-height: 1.4; text-align: left; margin-bottom: 6px; scroll-snap-align: center; }
   .chip small { display: block; color: #6a5f45; font-size: 9px; }
   .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
     margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
@@ -331,7 +333,11 @@
   .beacon.now s { border-color: var(--cyan); }
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
-  #btns { display: flex; gap: 8px; }
+  #btns { display: flex; gap: 8px; align-items: stretch; }
+  #keys { display: flex; gap: 8px; flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; padding-bottom: 6px; }
+  #keys::-webkit-scrollbar, #chips::-webkit-scrollbar { display: none; }
+  #keys .btn { flex: 0 0 auto; min-width: 66px; }
   .btn { flex: 1;
     color: #241d12; font: inherit; font-size: 11px; letter-spacing: 0.18em; font-weight: 700;
     padding: 12px 4px; border-radius: 5px; text-transform: uppercase; }
@@ -408,7 +414,9 @@
     #btns { gap: 6px; }
     #ctl { padding-left: 6px; padding-right: 6px; }
     #chips { gap: 5px; }
-    .chip { padding: 5px 7px; font-size: 9.5px; }
+    .chip { width: 140px; padding: 5px 7px; font-size: 9.5px; }
+    #keys .btn { min-width: 58px; }
+    #bEngage { width: 100px; height: 88px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
   }
@@ -780,6 +788,7 @@
   <div id="chips"></div>
   <div id="btns">
     <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span></button>
+    <div id="keys">
     <button class="btn cy" id="bAll">All Channels</button>
     <button class="btn" id="bGear">⚙</button>
     <button class="btn cy" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
@@ -789,6 +798,7 @@
     <button class="btn hide" id="bSend">Send</button>
     <button class="btn hide" id="bTarget">Retarget</button>
     <button class="btn cy" id="bGps">GPS</button>
+    </div>
   </div>
 </div>
 
@@ -2508,7 +2518,7 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 }
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
-let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0;
+let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = 1;
 function buildEarthAssets() {                                   // built in stages so nothing locks up
   if (earthAssets) return;
   earthAssets = 1;
@@ -2540,7 +2550,7 @@ function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun) {
 }
 const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
 function drawEarthHub(t) {
-  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R;
+  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R, RZ = R * earthZoom;   // zoom magnifies, the disc stays put
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
   if (!reduced && !dragEarth) {                                 // a flick carries, then it settles back
     if (Math.abs(earthVel) > 0.6) {
@@ -2591,8 +2601,10 @@ function drawEarthHub(t) {
   }
   if (!behind || Math.hypot(mx - sx, my - sy) > R + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
-    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, R, earthRot, G.tilt, sunV);
-    ctx.drawImage(gc, sx - R, sy - R, R * 2, R * 2);
+    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, G.tilt, sunV);
+    ctx.save(); ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.clip();
+    ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);
+    ctx.restore();
   } else {
     const og = ctx.createRadialGradient(sx - R * 0.35, sy - R * 0.4, R * 0.1, sx, sy, R);
     og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
@@ -2628,7 +2640,8 @@ function drawEarthHub(t) {
   ];
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const pin of pins) {
-    const p = orthPt(pin.lon, pin.lat, sx, sy, R, G.tilt); if (!p.v) continue;
+    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, G.tilt);
+    if (!p.v || Math.hypot(p.x - sx, p.y - sy) > R - 5) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
     const on = selected.id === pin.id;
     glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
@@ -2642,8 +2655,8 @@ function drawEarthHub(t) {
     ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
-  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, R, G.tilt);   // and where you are standing
-  if (you.v) {
+  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, G.tilt);  // and where you are standing
+  if (you.v && Math.hypot(you.x - sx, you.y - sy) < R - 5) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
     ctx.moveTo(you.x, you.y - 4); ctx.lineTo(you.x, you.y + 4); ctx.stroke();
@@ -4084,7 +4097,8 @@ try {
 
 /* ---------------- controls ---------------- */
 const chipsEl = $("chips");
-for (const s of [...SYSTEMS, ...MODES]) {
+const CHIP_SRC = [...SYSTEMS, ...MODES];
+function makeChip(s) {
   const b = document.createElement("button");
   b.className = "chip" + (s.mode ? " mode" : "") + (s === selected ? " sel" : "");
   b.dataset.id = s.id;
@@ -4092,13 +4106,27 @@ for (const s of [...SYSTEMS, ...MODES]) {
     s.name + "<small>" + (s.dist || fmtLy(s.ly)) + " · " + s.tag + "</small>";
   b.onclick = () => {
     selected = s; allChannels = false; $("bAll").classList.remove("on");
-    [...chipsEl.children].forEach((c) => c.classList.remove("sel"));
-    b.classList.add("sel");
+    [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
     focusChart(s);
     log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
   };
-  chipsEl.appendChild(b);
+  return b;
 }
+for (let rep = 0; rep < 3; rep++) for (const s of CHIP_SRC) chipsEl.appendChild(makeChip(s));
+let chipLoopW = 0;
+function chipLoopInit() {                                       // start in the middle copy so it runs both ways
+  chipLoopW = chipsEl.scrollWidth / 3;
+  if (chipLoopW > 0) chipsEl.scrollLeft = chipLoopW;
+  measureCtl();
+}
+chipsEl.addEventListener("scroll", () => {                      // hop a whole copy: the seam never shows
+  if (!chipLoopW) return;
+  const sl = chipsEl.scrollLeft;
+  if (sl < chipLoopW * 0.45) chipsEl.scrollLeft = sl + chipLoopW;
+  else if (sl > chipLoopW * 1.55) chipsEl.scrollLeft = sl - chipLoopW;
+}, { passive: true });
+setTimeout(chipLoopInit, 80);
+addEventListener("resize", () => setTimeout(chipLoopInit, 120));
 measureCtl();
 setTimeout(buildEarthAssets, 220);                              // after the first frame is up
 addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
@@ -4111,7 +4139,7 @@ $("bAll").onclick = () => {
   allChannels = !allChannels;
   if (allChannels && selected.mode) {
     selected = SYSTEMS[0];
-    [...chipsEl.children].forEach((c, i) => c.classList.toggle("sel", i === 0));
+    [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
   }
   $("bAll").classList.toggle("on", allChannels);
   log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
@@ -4247,7 +4275,7 @@ const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false, dragEar
 function focusChart(s) {                                        // a pick before ENGAGE: bring that sky to the front, lean in
   if (!S.chart3d || phase !== "chart") return;
   chartAuto = false; clearTimeout(chartResume);
-  chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.5 };   // modes depart from Earth itself
+  chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.25 };  // modes depart from Earth itself
   chartResume = setTimeout(() => (chartAuto = true), 8000);
 }
 function pickDeparture(o) {
@@ -4290,7 +4318,10 @@ cvs.addEventListener("pointermove", (e) => {
   const p = ptrs.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-    if (pinchD) chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * d / pinchD));
+    if (pinchD) {
+      if (dragEarth) earthZoom = Math.min(1.9, Math.max(1, earthZoom * d / pinchD));   // into the world
+      else chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));         // the sky barely needs it
+    }
     pinchD = d;
   } else if (dragEarth) {                                       // his finger on the world
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (lastMoveT || now - 16)));
@@ -4322,9 +4353,16 @@ const endPtr = (e) => {
 cvs.addEventListener("pointerup", endPtr);
 cvs.addEventListener("pointercancel", endPtr);
 cvs.addEventListener("wheel", (e) => {
-  if (phase !== "chart" || dragEarth) return;
+  if (phase !== "chart") return;
+  e.preventDefault();
+  const G = earthGeom(), r = cvs.getBoundingClientRect();
+  if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * 1.04) {   // over the world
+    earthZoom = Math.min(1.9, Math.max(1, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
+    earthRef.dirty = true;
+    return;
+  }
   chartTgt = null;
-  e.preventDefault(); chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
+  chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
 }, { passive: false });
 
 document.addEventListener("pointerdown", (e) => {
