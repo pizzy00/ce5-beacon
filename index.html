@@ -50,7 +50,12 @@
     var(--bg);
   }
   #space { position: fixed; inset: 0; z-index: 3; background: var(--bg);
-    transition: opacity 0.9s ease; touch-action: manipulation; }
+    transition: opacity 1.3s ease; touch-action: none; }
+  #fade { position: fixed; inset: 0; z-index: 4; background: #050510; opacity: 0; pointer-events: none; }
+  .beacon { transition: opacity 0.35s ease, transform 0.35s ease; transform: scale(1); }
+  .beacon.gone { opacity: 0; transform: scale(2.6); }
+  #reticle { transition: opacity 0.35s ease, transform 0.35s ease; transform: translate(-50%, -50%) scale(2); }
+  #reticle.on { transform: translate(-50%, -50%) scale(1); }
   #space.gone { opacity: 0; pointer-events: none; }
 
   /* scanlines + vignette */
@@ -291,6 +296,22 @@
         <option value="off">OFF</option>
       </select>
       <div class="setStat">THE CORNER ICON GOES FULL SCREEN WHERE THE BROWSER ALLOWS IT · ON IPHONE USE SHARE → ADD TO HOME SCREEN</div>
+      <div class="setLbl">STAR CHART</div>
+      <select id="selChart">
+        <option value="3d" selected>3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM</option>
+        <option value="flat">FLAT CHART</option>
+      </select>
+      <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+      <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
+      <input type="range" id="rBcn" min="0" max="10" step="0.25" value="0.25" />
+      <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
+      <div class="setLbl">FINAL ZOOM</div>
+      <select id="selFinal">
+        <option value="19">19 — SHARPEST THE IMAGERY GOES</option>
+        <option value="20" selected>20 — ALL THE WAY IN, ONE STEP ENLARGED</option>
+        <option value="21">21 — CLOSEST, ENLARGED AND SOFTER</option>
+      </select>
+      <div class="setStat">AFTER TOUCHDOWN YOU CAN STILL PINCH FURTHER · THE IMAGERY ITSELF STOPS AT 19</div>
     </div>
     <div class="setRow">
       <div class="setLbl">MESSAGE — SENT IN MORSE WHEN THE BEACON LOCKS</div>
@@ -493,6 +514,7 @@
   <svg class="comp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
     <path d="M6 2v4H2M10 6V2h4M14 10h-4v4M2 10h4v4"/></svg>
 </button>
+<div id="fade"></div>
 <div id="crt"></div>
 <div id="vig"></div>
 
@@ -533,20 +555,20 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
-  crt: false, vig: true, ret: "flight",
+  crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
 /* ---------------- lore chart ---------------- */
 const SYSTEMS = [
-  { id: "zeta", name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.60, c: "#9be8ff" },
-  { id: "plei", name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.20, c: "#bfd9ff", cluster: true },
-  { id: "siri", name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.42, c: "#eaf6ff" },
-  { id: "arct", name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.47, c: "#ffb36b" },
-  { id: "vega", name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.13, c: "#cff3ff" },
-  { id: "orio", name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.66, c: "#ff8e5e" },
-  { id: "andr", name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.15, c: "#d9c9ff", galaxy: true }
+  { id: "zeta", az: 0.4, name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.60, c: "#9be8ff" },
+  { id: "plei", az: 1.298, name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.20, c: "#bfd9ff", cluster: true },
+  { id: "siri", az: 2.195, name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.42, c: "#eaf6ff" },
+  { id: "arct", az: 3.093, name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.47, c: "#ffb36b" },
+  { id: "vega", az: 3.99, name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.13, c: "#cff3ff" },
+  { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.66, c: "#ff8e5e" },
+  { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.15, c: "#d9c9ff", galaxy: true }
 ];
 const POLARIS = { x: 0.5, y: 0.09, c: "#ffe9a6" };
 const SOL = { x: 0.5, y: 0.84, c: "#ffd34d" };
@@ -628,7 +650,14 @@ function log(txt, cls) {
   [...logEl.children].slice(0, -6).forEach((n) => n.classList.add("old"));
   while (logEl.children.length > 9) logEl.removeChild(logEl.firstChild);
 }
+let fadeTimer = 0;
+function stageFade() {                                          // a soft dip to black between stages
+  const f = $("fade"); clearTimeout(fadeTimer);
+  f.style.transition = "none"; f.style.opacity = "0.9";
+  fadeTimer = setTimeout(() => { f.style.transition = "opacity 0.8s ease"; f.style.opacity = "0"; }, 40);
+}
 function setPhase(p, label) {
+  if (p !== phase && S.fades && !reduced && p !== "chart" && p !== "active") stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
 }
@@ -680,7 +709,19 @@ function dashLine(x1, y1, x2, y2, color, t) {
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 }
 
+let chartRot = 0, chartZoom = 1, chartAuto = true, chartLastT = 0, chartResume = 0;
+function chartProject(s) {                                      // the sky as a turntable around Earth at the bottom
+  const a = s.az + chartRot;
+  const R = Math.min(W, H) * 0.40 * chartZoom;
+  const X = Math.sin(a) * R, Z = Math.cos(a) * R;               // Z > 0 = toward the viewer
+  const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
+  const sx = SOL.x * W, sy = SOL.y * H;
+  const el = (SOL.y - s.y) / (SOL.y - POLARIS.y);               // height above Earth, Polaris = 1
+  const span = (SOL.y - POLARIS.y) * H * Math.min(1.15, chartZoom);
+  return { x: sx + X * k, y: sy - el * span * k, k, z: Z };
+}
 function drawChart(t) {
+  if (S.chart3d) return drawChart3D(t);
   ctx.clearRect(0, 0, W, H);
   for (const s of bgStars) {
     ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
@@ -726,6 +767,64 @@ function drawChart(t) {
   }
 
   // Sol
+  star(sx, sy, 2.6, SOL.c);
+  label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
+  if (modeOf()) {
+    ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.arc(sx, sy, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+    ctx.globalAlpha = 1;
+    label(sx, sy - 46, "DEPARTURE: " + selected.name,
+      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
+        : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
+      selected.c, "center");
+  }
+}
+
+function drawChart3D(t) {
+  const dt = Math.min(0.1, Math.max(0, t - chartLastT)); chartLastT = t;
+  if (chartAuto && !reduced) chartRot += dt * 0.05;             // one turn in about two minutes
+  ctx.clearRect(0, 0, W, H);
+  for (const s of bgStars) {
+    ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
+    ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect((s.x + chartRot * 40) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
+  }
+  ctx.globalAlpha = 1;
+  const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = SOL.y * H;
+  const R = Math.min(W, H) * 0.40 * chartZoom;
+  ctx.strokeStyle = "rgba(255,196,107,0.22)"; ctx.setLineDash([2, 7]);   // the turntable ring
+  ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
+  const P = SYSTEMS.map((s) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; return { s, q }; })
+    .sort((a, b) => a.q.z - b.q.z);                            // far ones first
+  const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
+  for (const o of origins) dashLine(o.px, o.py, px, py, o.c, t);
+  dashLine(px, py, sx, sy, "#ffe9a6", t);
+  star(px, py, 3.2, POLARIS.c);
+  glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
+  label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+  for (const { s, q } of P) {
+    const x = q.x, y = q.y, k = q.k, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9));
+    ctx.globalAlpha = depth;
+    if (s.cluster) {
+      for (let i = 0; i < 7; i++)
+        star(x + Math.cos(i * 2.4) * (6 + i * 2.4) * k, y + Math.sin(i * 1.9) * (5 + i * 2) * k, 1.1 * k, s.c);
+    } else if (s.galaxy) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(-0.5 + chartRot * 0.3);
+      glow(0, 0, 22 * k, s.c, 0.5);
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.6 * depth;
+      ctx.beginPath(); ctx.ellipse(0, 0, 16 * k, 5 * k, 0, 0, 6.29); ctx.stroke();
+      ctx.restore();
+    } else star(x, y, 2.4 * k, s.c);
+    ctx.globalAlpha = depth;
+    if (s === selected || allChannels) {
+      ctx.strokeStyle = s.c; ctx.globalAlpha = 0.9 * depth;
+      ctx.beginPath(); ctx.arc(x, y, (15 + 3 * Math.sin(t * 3)) * k, 0, 6.29); ctx.stroke();
+    }
+    ctx.globalAlpha = Math.max(0.45, depth);
+    const right = x > sx;
+    label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
+    ctx.globalAlpha = 1;
+  }
   star(sx, sy, 2.6, SOL.c);
   label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
   if (modeOf()) {
@@ -1514,8 +1613,8 @@ function precacheTiles() {
   if (precached === key) return;
   precached = key;
   const zooms = S.cache === "aggressive"
-    ? Array.from({ length: 15 }, (_, i) => i + 4)
-    : activeDescent().map((s) => s.z);
+    ? Array.from({ length: 16 }, (_, i) => i + 4)
+    : activeDescent().map((s) => s.z).concat([19]);
   const RX = S.cache === "aggressive" ? 2 : 1;
   const RY = S.cache === "aggressive" ? 3 : 2;
   const urls = [];
@@ -1581,7 +1680,8 @@ function runStep(i, token) {
   const s = divePlan[i];
   cueStage(s.msg);
   retShow(true);
-  map.flyTo([TARGET.lat, TARGET.lon], s.z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
+  const z = i === divePlan.length - 1 ? Math.max(s.z, S.finalZ) : s.z;   // the last hold goes all the way in
+  map.flyTo([TARGET.lat, TARGET.lon], z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
   map.once("moveend", () => {
     if (token !== diveToken || phase !== "dive") return;
     retShow(false);
@@ -1626,7 +1726,7 @@ function replay() {
   if (bermLayer && map) { map.removeLayer(bermLayer); bermLayer = null; }
   $("cue").classList.remove("on");
   if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
-  if (beacon) { map.removeLayer(beacon); beacon = null; }
+  clearTimeout(beaconTimer); if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
   ["bReplay", "bTone", "bTarget", "bSend"].forEach((b) => $(b).classList.add("hide"));
   stopMorse();
@@ -1647,11 +1747,22 @@ function lockMap(l) {
   const m = ["dragging", "touchZoom", "doubleClickZoom", "scrollWheelZoom", "boxZoom", "keyboard"];
   m.forEach((k) => map[k] && map[k][l ? "disable" : "enable"]());
 }
+let beaconTimer = 0;
 function placeBeacon() {
   const icon = L.divIcon({ className: "", iconSize: [0, 0],
     html: '<div class="beacon"><s></s><s></s><s></s><i></i></div>' });
   if (beacon) map.removeLayer(beacon);
   beacon = L.marker([TARGET.lat, TARGET.lon], { icon }).addTo(map);
+  clearTimeout(beaconTimer);
+  if (!S.bcnStay) beaconTimer = setTimeout(fadeBeacon, Math.max(0, S.bcnHold) * 1000);
+}
+function fadeBeacon() {                                         // terrain only: the pulse has done its job
+  if (!beacon) return;
+  const b = beacon, el = b.getElement && b.getElement();
+  const inner = el && el.querySelector(".beacon");
+  if (inner) inner.classList.add("gone");
+  setTimeout(() => { if (beacon === b && map) { map.removeLayer(b); beacon = null; } }, 400);
+  log("MARKER CLEARED — TERRAIN ONLY · RETARGET TO SHOW IT AGAIN", "cy");
 }
 function failNoMap() {
   log("MAP CORE OFFLINE — CDN UNREACHABLE", "alert");
@@ -1660,11 +1771,11 @@ function failNoMap() {
 try {
   if (typeof L === "undefined") throw 0;
   map = L.map("map", { zoomControl: false, attributionControl: true,
-    center: [55, -95], zoom: 3, maxZoom: 19 });
+    center: [55, -95], zoom: 3, maxZoom: 21 });
   let tileFail = false;
   const tiles = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 19, keepBuffer: 8, updateWhenIdle: false,
+    { maxZoom: 21, maxNativeZoom: 19, keepBuffer: 8, updateWhenIdle: false,
       attribution: "Esri World Imagery" }).addTo(map);
   tiles.on("tileerror", () => {
     if (tileFail) return; tileFail = true;
@@ -1843,20 +1954,50 @@ $("bTone").onclick = () => {
 };
 
 /* chart tap: select system / skip warp */
+const ptrs = new Map(); let pinchD = 0, dragMoved = 0;
+function chartTap(cx, cy) {
+  for (const s of SYSTEMS) {
+    const hx = S.chart3d ? s.px : s.x * W, hy = S.chart3d ? s.py : s.y * H;
+    if (hx === undefined || Math.hypot(cx - hx, cy - hy) >= 34) continue;
+    selected = s; allChannels = false; $("bAll").classList.remove("on");
+    [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
+    log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
+    return;
+  }
+}
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
-  if (phase !== "chart") return;
-  const r = cvs.getBoundingClientRect();
-  const x = e.clientX - r.left, y = e.clientY - r.top;
-  for (const s of SYSTEMS) {
-    if (Math.hypot(x - s.x * W, y - s.y * H) < 34) {
-      selected = s; allChannels = false; $("bAll").classList.remove("on");
-      [...chipsEl.children].forEach((c, i) => c.classList.toggle("sel", SYSTEMS[i] === s));
-      log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
-      return;
-    }
-  }
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  dragMoved = 0;
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
+  chartAuto = false; clearTimeout(chartResume);
+  try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
 });
+cvs.addEventListener("pointermove", (e) => {
+  if (phase !== "chart" || !ptrs.has(e.pointerId)) return;
+  const p = ptrs.get(e.pointerId), dx = e.clientX - p.x; p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size === 2) {
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinchD) chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * d / pinchD));
+    pinchD = d;
+  } else if (S.chart3d) chartRot += dx * 0.006;
+  dragMoved += Math.abs(dx);
+});
+const endPtr = (e) => {
+  if (!ptrs.has(e.pointerId)) return;
+  const wasSingle = ptrs.size === 1;
+  ptrs.delete(e.pointerId); if (ptrs.size < 2) pinchD = 0;
+  if (phase === "chart" && wasSingle && dragMoved < 8) {
+    const r = cvs.getBoundingClientRect(); chartTap(e.clientX - r.left, e.clientY - r.top);
+  }
+  if (ptrs.size === 0) chartResume = setTimeout(() => (chartAuto = true), 4000);
+};
+cvs.addEventListener("pointerup", endPtr);
+cvs.addEventListener("pointercancel", endPtr);
+cvs.addEventListener("wheel", (e) => {
+  if (phase !== "chart") return;
+  e.preventDefault(); chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
+}, { passive: false });
 
 document.addEventListener("pointerdown", (e) => {
   if (e.target.closest("#ctl,#settings,#info,#flash")) return;
@@ -1946,6 +2087,8 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); set("rBcn", S.bcnHold); txt("vBcn", S.bcnHold.toFixed(1));
+  chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = saveSettings;
 $("bReset").onclick = resetSettings;
@@ -2002,6 +2145,11 @@ $("msgMorse").textContent = morseString(S.msg);
 $("ckCrt").onchange = (e) => { S.crt = e.target.checked; applyScreen(); };
 $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
+$("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
+$("ckFades").onchange = (e) => (S.fades = e.target.checked);
+$("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = S.bcnHold.toFixed(1); };
+$("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
+$("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
 applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
@@ -2022,6 +2170,7 @@ if (savedTarget) $("addrStatus").textContent = "LOCKED: " + fmtLL(TARGET.lat, TA
 log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
+if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH OR SCROLL TO ZOOM", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
