@@ -1723,6 +1723,8 @@ var GLOBE_MAXBUF_HI = 1024;    // the cap may grow to this on a device that rend
 var GLOBE_MINBUF    = 448;     // and shrink to this on one that does not
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
 var GLOBE_GEOCACHE  = 4;       // how many (size,tilt) geometries to keep
+var GL_DBG = /[?&]dbg=1/.test(location.search);              // ?dbg=1: one readout line above the globe
+var glFrameMs = 0, glGeoBuilds = 0;
 
 /* ---- shading LUTs (built once) ----------------------------------- */
 var GL_N = 1024;
@@ -1799,9 +1801,10 @@ var glGeo = null;
 var glGeoMs = 0;
 
 var glCap = GLOBE_MAXBUF;      // adaptive cap: the last big render's time moves it a step up or down
-function globeGeoSize(R, dpr, quality) {
+function globeGeoSize(R, dpr, quality, fast) {
   var want = 2 * R * (dpr || 1) * (quality || 1);
-  if (want > glCap) want = glCap;
+  var cap = globeCapFor(R, dpr, fast);
+  if (want > cap) want = cap;
   if (want < GLOBE_STEP) want = GLOBE_STEP;
   return Math.round(want / GLOBE_STEP) * GLOBE_STEP;
 }
@@ -1871,7 +1874,7 @@ function globeBuildGeo(size, tiltDeg) {
               rowStart: rowStart, rowX0: rowX0, rowHalf: rowHalf, off: {},
               buf: buf, ctx: bctx, img: bctx.createImageData(size, size) };
   geo.px = geo.img.data;
-  glGeoMs = globeNow() - t0;
+  glGeoMs = globeNow() - t0; glGeoBuilds++;
   return geo;
 }
 
@@ -1898,9 +1901,13 @@ function globeNow() {
 var glLast = null, glLastMs = 0;
 
 function globeLinear(opt, size) {                             // magnified on screen: sample the maps smoothly
-  if (opt.fast) return false;                                  // (a drag wants frames, not polish)
   var ow = Math.round(2 * opt.R * (opt.dpr || 1));
+  if (opt.fast) return ow / size > 2.0;                        // a drag wants frames, but a 2x-plus nearest upscale is the tiling he sees
   return ow / size > 1.35;
+}
+function globeCapFor(R, dpr, fast) {                          // dragging on a tablet: two ladder steps smaller, still smooth
+  var ow = Math.round(2 * R * (dpr || 1));
+  return (fast && ow / glCap > 2.0) ? Math.max(GLOBE_MINBUF, glCap - 2 * GLOBE_STEP) : glCap;
 }
 function globeDirty(opt, out) {                                 // each sphere remembers its own last render
   var last = (out && out._gl) || null;
@@ -1909,7 +1916,7 @@ function globeDirty(opt, out) {                                 // each sphere r
   if (last.ow !== ow) return true;
   // compare the buffer the options resolve to, not raw quality: a tiny quality
   // nudge that lands on the same ladder step is not a reason to redraw
-  var buf = globeGeoSize(opt.R, opt.dpr, opt.quality);
+  var buf = globeGeoSize(opt.R, opt.dpr, opt.quality, opt.fast);
   if (last.buf !== buf) return true;
   if (last.lin !== globeLinear(opt, buf)) return true;
   if (last.tex !== opt.tex || last.night !== (opt.night || null) || last.clouds !== (opt.clouds || null)) return true;
@@ -1953,13 +1960,13 @@ function renderGlobe(out, opt) {
   var night = opt.night ? globeTex(opt.night) : null;
   var cloud = opt.clouds ? globeTex(opt.clouds) : null;
 
-  var size = globeGeoSize(R, dpr, quality);
+  var size = globeGeoSize(R, dpr, quality, opt.fast);
   var g = globeGetGeo(size, tilt);
   glGeo = g;
 
   var td = tex.d, tw = tex.w, th = tex.h, toff = globeRowOff(g, tex);
-  var nd = null, nw = 0, noff = null;
-  if (night) { nd = night.d; nw = night.w; noff = globeRowOff(g, night); }
+  var nd = null, nw = 0, nh = 0, noff = null;
+  if (night) { nd = night.d; nw = night.w; nh = night.h; noff = globeRowOff(g, night); }
   var cd = null, cw = 0, ch = 0, coff = null;
   if (cloud) { cd = cloud.d; cw = cloud.w; ch = cloud.h; coff = globeRowOff(g, cloud); }
   var ow = Math.round(2 * R * dpr);
@@ -2039,9 +2046,20 @@ function renderGlobe(out, opt) {
         var nf = glNight[li] * nightAmt;
         if (nf > 0.004) {
           var nu = gu[k] + rotU; if (nu >= 1) nu -= 1;
-          var ntx = (nu * nw) | 0; if (ntx >= nw) ntx = nw - 1;
-          var ni = (noff[k] + ntx) << 2;
-          r += nd[ni] * nf; gg += nd[ni + 1] * nf; b += nd[ni + 2] * nf;
+          if (lin) {                                            // the lights are on the visible half: smooth them too
+            fx = nu * nw - 0.5; tx0 = Math.floor(fx); fx -= tx0; if (tx0 < 0) tx0 += nw; tx1 = tx0 + 1; if (tx1 >= nw) tx1 -= nw;
+            vv = gvv[k] * nh - 0.5; ty0 = Math.floor(vv); fy = vv - ty0; if (ty0 < 0) { ty0 = 0; fy = 0; }
+            ty1 = ty0 + 1; if (ty1 >= nh) ty1 = nh - 1;
+            i00 = (ty0 * nw + tx0) << 2; i01 = (ty0 * nw + tx1) << 2; i10 = (ty1 * nw + tx0) << 2; i11 = (ty1 * nw + tx1) << 2;
+            w00 = (1 - fx) * (1 - fy); w01 = fx * (1 - fy); w10 = (1 - fx) * fy; w11 = fx * fy;
+            r  += (nd[i00] * w00 + nd[i01] * w01 + nd[i10] * w10 + nd[i11] * w11) * nf;
+            gg += (nd[i00 + 1] * w00 + nd[i01 + 1] * w01 + nd[i10 + 1] * w10 + nd[i11 + 1] * w11) * nf;
+            b  += (nd[i00 + 2] * w00 + nd[i01 + 2] * w01 + nd[i10 + 2] * w10 + nd[i11 + 2] * w11) * nf;
+          } else {
+            var ntx = (nu * nw) | 0; if (ntx >= nw) ntx = nw - 1;
+            var ni = (noff[k] + ntx) << 2;
+            r += nd[ni] * nf; gg += nd[ni + 1] * nf; b += nd[ni + 2] * nf;
+          }
         }
       }
 
@@ -2636,7 +2654,7 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
 let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = 1;
-let earthTilt = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
+let earthTilt = 0, earthTiltDraw = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
 let procTex = null, procNight = null, procClouds = null;        // the drawn Earth (always built: the fallback)
 let photoTex = null, photoNight = null, photoClouds = null, photoState = 0;   // NASA's pictures: 0 idle 1 loading 2 in 3 failed
 function buildEarthAssets() {                                   // built in stages so nothing locks up
@@ -2705,12 +2723,12 @@ function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun, x) {
     sun: sun, cloudRot: rot + (x.cloudRot || 0), cloudAmt: x.cloudAmt === undefined ? 1 : x.cloudAmt,
     fast: !!x.fast, quality: 1 };
   const now = globeNow();                                     // a slow device is not asked for more than it can give
-  if (cvRef.dirty || (globeDirty(opt, cv) && (opt.fast || now - (cvRef.t || 0) >= Math.min(400, glLastMs * 3)))) {
-    renderGlobe(cv, opt); cvRef.dirty = false; cvRef.t = globeNow();
+  if (cvRef.dirty || (globeDirty(opt, cv) && (opt.fast || now - (cvRef.t || 0) >= Math.min(400, (cvRef.ms || 0) * 3)))) {
+    renderGlobe(cv, opt); cvRef.dirty = false; cvRef.t = globeNow(); cvRef.ms = glLastMs; cvRef.n = (cvRef.n | 0) + 1;
   }
   return cv;
 }
-const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
+const earthRef = { cv: null, dirty: true, ms: 0, n: 0 }, moonRef = { cv: null, dirty: true, ms: 0, n: 0 };
 const UNIT_KM = 1.2;                                            // 2-3x the biggest offshore platform (Prelude FLNG is 488 m long)
 const UNIT_KN = 450;                                            // the reported cruise, underwater
 const UNIT_PATH = [[26.6, -75.6], [29.4, -70.2], [27.2, -66.6], [23.2, -67.8], [21.6, -72.4], [24.4, -77.0]];   // a loop inside the Triangle
@@ -2736,7 +2754,7 @@ function unitPos(t) {                                           // along the loo
   return { lat: p.lat, lon: p.lon, plat: q.lat, plon: q.lon };
 }
 function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the water, the unit, the drones it lets go
-  const P3 = TRIANGLE.map((c) => orthPt(c[1], c[0], sx, sy, RZ, earthTilt));
+  const P3 = TRIANGLE.map((c) => orthPt(c[1], c[0], sx, sy, RZ, earthTiltDraw));
   if (!P3.every((p) => p.v)) return;
   ctx.save();
   ctx.globalAlpha = zt * 0.85;
@@ -2753,8 +2771,8 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
   });
   ctx.textAlign = "left";
   const up = unitPos(t);                                        // where it is right now, at its real speed, time-lapsed
-  const u = orthPt(up.lon, up.lat, sx, sy, RZ, earthTilt);
-  const uPrev = orthPt(up.plon, up.plat, sx, sy, RZ, earthTilt);
+  const u = orthPt(up.lon, up.lat, sx, sy, RZ, earthTiltDraw);
+  const uPrev = orthPt(up.plon, up.plat, sx, sy, RZ, earthTiltDraw);
   if (u.v) {
     const hd = Math.atan2(u.y - uPrev.y, u.x - uPrev.x);
     const kmPx = RZ / 6371;                                      // screen px per kilometre at this zoom
@@ -2805,6 +2823,8 @@ function drawEarthHub(t) {
     earthRot += d * Math.min(1, dt * 2.6 * zt);
     earthTilt += (BERMUDA.lat * 0.8 - earthTilt) * Math.min(1, dt * 2.6 * zt);
   } else if (Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);
+  const tiltTgt = zt > 0 ? BERMUDA.lat * 0.8 : 0;               // while the tilt is still easing, draw it in quarter-degree steps
+  earthTiltDraw = Math.abs(tiltTgt - earthTilt) > 0.3 ? Math.round(earthTilt / 0.25) * 0.25 : earthTilt;   // fewer geometry builds, overlays stay registered
   if (earthZoom > 1.02 && t - zoomT > 14) {                      // after a long look it pulls back by itself
     earthZoom += (1 - earthZoom) * Math.min(1, dt * 0.8);
     if (earthZoom < 1.02) { earthZoom = 1; earthAuto = true; }
@@ -2832,6 +2852,7 @@ function drawEarthHub(t) {
       ctx.strokeStyle = "rgba(255,196,107,0.11)"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
       const job = () => {
+        if (Math.hypot(x - sx, y - sy) < RZ * 1.01) return;     // the world is in front of anything on its disc
         glow(x, y, p.r * 3.6, p.c, 0.5);
         ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
         if (p.ring) {
@@ -2849,30 +2870,31 @@ function drawEarthHub(t) {
   drawSunDisc(sunX, sunY, R * 0.085, t);
   label(sunX + R * 0.12, sunY - R * 0.12, "SOL", "", "#ffd34d");
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
-  const mA = RZ * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.52;  // the lane rides high: the console eats the rest
+  const mA = Math.min(RZ * 1.6, W / 2 - RZ * 0.10 - 3), mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.62;   // well out (real: 60 radii) but never off a phone screen; the lane rides high, the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
-  const mr = RZ * 0.115, behind = mSin < 0;                     // far side of the orbit: it goes behind the world
+  const mr = RZ * 0.10, behind = mSin < 0;                      // far side of the orbit: it goes behind the world
   ctx.strokeStyle = "rgba(200,214,255,0.055)"; ctx.lineWidth = 1;   // his note: fainter, and no dashes
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke();
   const drawMoon = () => {
     glow(mx, my, mr * 2.4, "#d8d8de", 0.16);
     if (moonTex) {
       const mc = paintSphere(moonRef, moonTex, null, null, mr, moonRot, 0, sunV);
-      ctx.drawImage(mc, mx - mr, my - mr, mr * 2, mr * 2);
+      ctx.drawImage(mc, Math.round((mx - mr) * DPR) / DPR, Math.round((my - mr) * DPR) / DPR, mr * 2, mr * 2);
     } else { ctx.fillStyle = "#c9c9d2"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.29); ctx.fill(); }
   };
   if (behind) {                                                 // clip the world out of it while it passes behind
     ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx, sy, RZ, 0, 6.29);
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx, sy, RZ + 0.5 / DPR, 0, 6.29);
     ctx.clip("evenodd");
     drawMoon();
     ctx.restore();
   }
   if (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
-    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTilt, sunV,
+    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTiltDraw, sunV,
       { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
-    ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);         // no crop: closer means bigger
+    const gx = Math.round((sx - RZ) * DPR) / DPR, gy = Math.round((sy - RZ) * DPR) / DPR;   // whole device pixels: no second resample
+    ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2);                   // no crop: closer means bigger
   } else {
     const og = ctx.createRadialGradient(sx - RZ * 0.35, sy - RZ * 0.4, RZ * 0.1, sx, sy, RZ);
     og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
@@ -2881,19 +2903,29 @@ function drawEarthHub(t) {
     ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.beginPath(); ctx.arc(sx, sy, RZ, 0, 6.29); ctx.stroke();
   }
   glow(sx, sy, RZ * 1.16, "#6bb7ff", 0.10);
+  glFrameMs = glFrameMs ? glFrameMs * 0.9 + dt * 100 : dt * 1000;
+  if (GL_DBG) {                                                 // ?dbg=1: the numbers his screenshots need
+    const g2 = earthRef.cv && earthRef.cv._gl;
+    ctx.font = "9px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#8fd"; ctx.textAlign = "left"; ctx.globalAlpha = 0.9;
+    ctx.fillText("buf " + (g2 ? g2.buf : "-") + " lin " + (g2 ? (g2.lin ? 1 : 0) : "-") + " ow " + (g2 ? g2.ow : "-")
+      + " z" + earthZoom.toFixed(2) + " earth " + Math.round(earthRef.ms || 0) + "ms x" + (earthRef.n | 0)
+      + " moon " + Math.round(moonRef.ms || 0) + "ms cap " + glCap + " geo " + glGeoBuilds
+      + " fps " + (glFrameMs ? Math.round(1000 / glFrameMs) : "-") + " dpr " + DPR, Math.max(4, sx - RZ), Math.max(12, sy - RZ - 8));
+    ctx.globalAlpha = 1;
+  }
   if (PLANET_NEAR) for (const job of PLANET_NEAR) job();        // the near half of the rings passes in front of the world
   ctx.strokeStyle = "rgba(200,214,255,0.07)"; ctx.lineWidth = 1;   // the near half of Luna's lane: faint, solid, under the Moon
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke();
   if (!behind) drawMoon();                                      // in front of the world, so it lands on top
   if (S.starlink) {                                             // his option: the shell of little ones
-    const inc = [0.34, 0.52, 0.22], scy = sy - RZ * 0.34;        // lifted for the same reason as Luna's lane
+    const inc = [0.34, 0.52, 0.22], scy = sy - RZ * 0.28;        // lifted for the same reason as Luna's lane
     ctx.strokeStyle = "rgba(190,210,255,0.10)"; ctx.lineWidth = 1;
     for (let r2 = 0; r2 < 3; r2++) {
-      const rad2 = RZ * (1.06 + r2 * 0.04);
+      const rad2 = RZ * (1.035 + r2 * 0.02);
       ctx.beginPath(); ctx.ellipse(sx, scy, rad2, rad2 * inc[r2], 0, 0, 6.29); ctx.stroke();
     }
     for (let i = 0; i < 66; i++) {
-      const r2 = i % 3, rad2 = RZ * (1.06 + r2 * 0.04);
+      const r2 = i % 3, rad2 = RZ * (1.035 + r2 * 0.02);
       const ph = (i / 22) * 6.283 + t * (0.20 + r2 * 0.035) * (r2 === 1 ? -1 : 1);
       const sn = Math.sin(ph), x2 = sx + Math.cos(ph) * rad2, y2 = scy + sn * rad2 * inc[r2];
       if (sn < 0 && Math.hypot(x2 - sx, y2 - sy) < RZ) continue; // behind the world
@@ -2910,7 +2942,7 @@ function drawEarthHub(t) {
   ];
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const pin of pins) {
-    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, earthTilt); if (!p.v) continue;
+    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
     const on = selected.id === pin.id;
     glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
@@ -2924,7 +2956,7 @@ function drawEarthHub(t) {
     ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
-  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, earthTilt);   // and where you are standing
+  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, earthTiltDraw);   // and where you are standing
   if (you.v) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
@@ -3080,8 +3112,8 @@ function drawChart3D(t) {
       for (let i = 1; i <= 13; i++) {
         const q = chartProject(s, chartDrift * i * 0.052 * breathe);
         const pulse = 0.62 + 0.38 * Math.sin(t * 2.6 - i * 0.55 + s.az * 3);   // and a glint runs down it
-        ctx.globalAlpha = 0.40 * (1 - i / 13) * depth * pulse;
-        ctx.lineWidth = Math.max(0.7, 3.4 * s.pk * (1 - i / 13) * (0.85 + 0.3 * pulse));
+        ctx.globalAlpha = 0.55 * (1 - i / 13) * depth * pulse;
+        ctx.lineWidth = Math.max(0.45, 1.0 * s.pk * (1 - i / 13) * (0.85 + 0.3 * pulse));   // a hair, not a ribbon (1-3 device px)
         ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(q.x, q.y); ctx.stroke();
         lx = q.x; ly = q.y;
       }
@@ -4937,6 +4969,7 @@ log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
 if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE TO LEAN IN", "cy");
   log("EARTH IS LIVE AT THE HUB — TAP THE TRIANGLE, THE DEEP OR THE MOON", "cy");
+  log("LUNA PUSHED OUT · STARLINK HUGS THE WORLD — CLOSER TO TRUE", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
