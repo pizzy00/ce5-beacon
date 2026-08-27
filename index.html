@@ -244,7 +244,10 @@
   
 
   /* controls */
-  #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+  body.intro #ctl { transform: translateY(118%); }                /* the opening: the console arrives after the world */
+  body.intro #bFull, body.introHud #hud { opacity: 0 !important; }
+  #bFull, #hud { transition: opacity 0.9s ease; }
+  #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
     padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
     background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
     border-top: 1px solid rgba(210,198,168,0.22);
@@ -541,7 +544,7 @@
   .leaflet-control-attribution a { color: #999 !important; }
 </style>
 </head>
-<body>
+<body class="intro introHud">
 
 <div id="map"></div>
 <canvas id="space"></canvas>
@@ -578,6 +581,7 @@
       <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+      <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
     </div>
     <div class="setRow">
       <div class="setLbl">CROSSHAIR RETICLE</div>
@@ -941,7 +945,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true };
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -1289,8 +1293,8 @@ let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
 function measureCtl() {
   const el = $("ctl"); if (!el) { ctlTop = H * 0.72; return; }
-  const r = el.getBoundingClientRect(); ctlTop = r.top;
-  document.documentElement.style.setProperty("--ctlH", Math.round(r.height) + "px");   // #phase and the cue sit on the console
+  const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
+  document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
 function earthGeom() {                                          // the globe is half-sunk behind the console
   const R = Math.min(W, H) * 0.42;
@@ -2915,7 +2919,7 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
   ctx.restore();
 }
 function drawEarthHub(t) {
-  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R, RZ = R * earthZoom;   // zoom moves the camera in
+  const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
   const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // 0 = the whole world, 1 = down on the Triangle
   if (zt > 0) {                                                 // going in means going to one place only
@@ -2938,13 +2942,14 @@ function drawEarthHub(t) {
     } else if (earthAuto) earthRot += dt * 1.2;                 // its own slow turn
   }
   modeHit = [];
+  const IK = introK();                                          // the opening: 0 = not yet, 1 = there
   const sunX = Math.max(R * 0.13, W * 0.09), sunY = sy - R * 0.62;   // Sol out on the left, where it used to live
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
   let PLANET_NEAR = null;
-  if (S.planets && zt < 0.15) {                                 // the real order round the Sun; Earth's own ring runs through the hub (not in the close-up)
+  if (S.planets && zt < 0.15 && IK.planets > 0) {              // the real order round the Sun; Earth's own ring runs through the hub (not in the close-up)
     const dx = sx - sunX, q = 0.26, front = [];
-    ctx.strokeStyle = "rgba(255,196,107,0.16)"; ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255,196,107," + (0.16 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
     const phiE = Math.atan2(-(sy - sunY) / q, sx - sunX);       // where Earth sits on its ring (counterclockwise, seen from the north)
     PLANETS.forEach((p, i) => {
@@ -2953,34 +2958,40 @@ function drawEarthHub(t) {
       const th = phiE + (p.L - EARTH_L) * DEG + t * 0.055 / Math.pow(p.au, 1.5);   // where it really is today, then Kepler at a quarter of the old pace
       const x = sunX + Math.cos(th) * a, y = sunY - Math.sin(th) * a * q;
       if (!p.car) {                                               // (the car shares Mars's lane near enough: no ring of its own)
-        ctx.strokeStyle = "rgba(255,196,107,0.11)"; ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255,196,107," + (0.11 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
       }
       const job = () => {
         if (Math.hypot(x - sx, y - sy) < RZ * 1.01) return;     // the world is in front of anything on its disc
-        glow(x, y, p.r * 3.6, p.c, 0.5);
-        ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
+        const pr = p.r * IK.planets;                            // the opening: they grow in
+        glow(x, y, pr * 3.6, p.c, 0.5);
+        ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, pr, 0, 6.29); ctx.fill();
         if (p.ring) {
-          ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.ellipse(x, y, p.r * 2.2, p.r * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
+          ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75 * IK.planets; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.ellipse(x, y, pr * 2.2, pr * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
         }
-        ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
-        ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
+        if (IK.planets > 0.7) {
+          ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+          ctx.fillText(p.n, x, y + pr + 9); ctx.textAlign = "left";
+        }
       };
       if (Math.sin(th) <= 0) front.push(job); else job();        // the far half now, the near half after the world
     });
     PLANET_NEAR = front;
   }
   PLANET_FRONT = null;
-  drawSunDisc(sunX, sunY, R * 0.085, t);
-  label(sunX + R * 0.12, sunY - R * 0.12, "SOL", "", "#ffd34d");
+  if (IK.sun > 0) {                                             // the opening: Sol blooms
+    drawSunDisc(sunX, sunY, R * 0.085 * (0.12 + 0.88 * IK.sun), t);
+    if (IK.sun > 0.7) label(sunX + R * 0.12, sunY - R * 0.12, "SOL", "", "#ffd34d");
+  }
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
   const mA = Math.min(RZ * 1.6, W / 2 - RZ * 0.10 - 3), mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.62;   // well out (real: 60 radii) but never off a phone screen; the lane rides high, the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
-  const mr = RZ * 0.10, behind = mSin < 0;                      // far side of the orbit: it goes behind the world
-  ctx.strokeStyle = "rgba(200,214,255,0.055)"; ctx.lineWidth = 1;   // his note: fainter, and no dashes
+  const mr = RZ * 0.10 * IK.moon, behind = mSin < 0;            // far side of the orbit: it goes behind the world; the opening grows it in
+  ctx.strokeStyle = "rgba(200,214,255," + (0.055 * IK.moon).toFixed(3) + ")"; ctx.lineWidth = 1;   // his note: fainter, and no dashes
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke();
   const drawMoon = () => {
+    if (IK.moon <= 0) return;
     glow(mx, my, mr * 2.4, "#d8d8de", 0.16);
     if (moonTex) {
       const mc = paintSphere(moonRef, moonTex, null, null, mr, moonRot, 0, sunV);
@@ -2994,7 +3005,7 @@ function drawEarthHub(t) {
     drawMoon();
     ctx.restore();
   }
-  if (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
+  if (IK.moon > 0.5 && (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4)) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
     const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTiltDraw, sunV,
       { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
@@ -3019,10 +3030,10 @@ function drawEarthHub(t) {
     ctx.globalAlpha = 1;
   }
   if (PLANET_NEAR) for (const job of PLANET_NEAR) job();        // the near half of the rings passes in front of the world
-  ctx.strokeStyle = "rgba(200,214,255,0.07)"; ctx.lineWidth = 1;   // the near half of Luna's lane: faint, solid, under the Moon
+  ctx.strokeStyle = "rgba(200,214,255," + (0.07 * IK.moon).toFixed(3) + ")"; ctx.lineWidth = 1;   // the near half of Luna's lane: faint, solid, under the Moon
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke();
   if (!behind) drawMoon();                                      // in front of the world, so it lands on top
-  if (S.starlink) {                                             // his option: the shell of little ones
+  if (S.starlink && IK.sky > 0.5) {                             // his option: the shell of little ones
     const inc = [0.34, 0.52, 0.22], scy = sy - RZ * 0.28;        // lifted for the same reason as Luna's lane
     ctx.strokeStyle = "rgba(190,210,255,0.10)"; ctx.lineWidth = 1;
     for (let r2 = 0; r2 < 3; r2++) {
@@ -3255,6 +3266,32 @@ function drawChart(t) {
   }
 }
 
+/* ---------------- the opening ---------------- */
+let intro = null;                                               // { t0: when it started (0 = still preloading), w0: when the wait began }
+const INTRO = { earth: [0, 2.4], ctl: 2.0, moon: [3.2, 4.0], sun: [4.2, 5.2], planets: [5.0, 6.0], sky: [5.6, 7.4], hud: 6.2, end: 7.6 };
+const easeOut3 = (p) => 1 - Math.pow(1 - p, 3);
+function introK() {                                             // how far each piece is in: 0 = not yet, 1 = there
+  if (!intro) return { earth: 1, moon: 1, sun: 1, planets: 1, sky: 1 };
+  if (!intro.t0) return { earth: 0, moon: 0, sun: 0, planets: 0, sky: 0 };
+  const e = performance.now() / 1000 - intro.t0, f = (r) => Math.max(0, Math.min(1, (e - r[0]) / (r[1] - r[0])));
+  const k = { earth: easeOut3(f(INTRO.earth)), moon: easeIO(f(INTRO.moon)), sun: easeIO(f(INTRO.sun)), planets: easeIO(f(INTRO.planets)), sky: easeIO(f(INTRO.sky)) };
+  if (e >= INTRO.ctl) document.body.classList.remove("intro");
+  if (e >= INTRO.hud) document.body.classList.remove("introHud");
+  if (e >= INTRO.end) { intro = null; document.body.classList.remove("intro", "introHud"); setTimeout(introAfter, 1500); }
+  return k;
+}
+function introLift() { return (1 - introK().earth) * earthGeom().R * 2.3; }   // the world rises from below the screen
+function introSkip() { if (intro) { intro.t0 = performance.now() / 1000 - INTRO.end - 1; introK(); } }
+function introStatus(t) {                                       // the only thing on the black screen while it preloads
+  const e = performance.now() / 1000 - (intro.w0 || 0), dots = ".".repeat(1 + (Math.floor(t * 2) % 3));
+  ctx.font = "9px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#8a6a3a"; ctx.textAlign = "center"; ctx.globalAlpha = 0.7;
+  ctx.fillText("PRELOADING \u00b7 THE EARTH \u00b7 LUNA \u00b7 THE SKY" + dots, W / 2, H * 0.62);
+  ctx.globalAlpha = 1; ctx.textAlign = "left";
+}
+function introAfter() {                                         // everything else preloads once the opening is done
+  try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
+  try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}
+}
 function drawChart3D(t) {
   const dt = Math.min(0.1, Math.max(0, t - chartLastT)); chartLastT = t;
   if (!reduced && ptrs.size === 0 && Math.abs(chartVel) > 0.012) {   // the flick runs down, then it settles back
@@ -3336,7 +3373,10 @@ function drawChart3D(t) {
     ctx.globalAlpha = 1;
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
+  const IKs = introK();
+  if (IKs.sky < 1) { ctx.fillStyle = "rgba(0,0,0," + (1 - IKs.sky).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }   // the opening: the sky comes last
   drawEarthHub(t);
+  if (intro && !intro.t0) introStatus(t);
   drawSystemView(t);
   if (modeOf() && !sysView) {                                   // the pick sits on the spot itself: the Moon, the Triangle, the trench
     const m = modeHit.find((q) => q.id === selected.id);
@@ -4966,6 +5006,7 @@ function chartTap(cx, cy) {
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") return;                                // a tap mid-run is skipCurrent()'s job (document handler)
+  if (intro) introSkip();                                       // the opening: a tap skips to the end
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   lastUserPick = performance.now();                             // his hand is on the sky: attract mode waits
   if (ptrs.size === 1) {
@@ -5190,6 +5231,18 @@ $("bBoardClose").onclick = () => $("board").classList.add("hide");
 $("bdRoll").onclick = () => setName(rollName());
 $("bdKeep").onclick = () => setName($("bdName").value);
 $("bdName").addEventListener("keydown", (e) => { if (e.key === "Enter") setName(e.target.value); });
+/* the opening runs unless he turned it off, the phone asks for less motion, or the link says ?noopen */
+if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "chart") {
+  intro = { t0: 0, w0: performance.now() / 1000 };
+  let fontsOk = false;
+  try { document.fonts.ready.then(() => (fontsOk = true)); } catch (e) { fontsOk = true; }
+  const gate = setInterval(() => {
+    if (!intro) return clearInterval(gate);
+    const waited = performance.now() / 1000 - intro.w0;
+    const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3)) || waited > 9;   // the maps, the Moon, the fonts; or it has been long enough
+    if (ready && !intro.t0) { intro.t0 = performance.now() / 1000; clearInterval(gate); }
+  }, 100);
+} else document.body.classList.remove("intro", "introHud");
 let savedTarget = false;
 function saveSettings() {
   try {
@@ -5241,7 +5294,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5316,6 +5369,7 @@ $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
 $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
+$("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
