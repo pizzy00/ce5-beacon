@@ -345,45 +345,68 @@
   .btn.rd { background: radial-gradient(125% 100% at 50% -10%, #e59480 0%, #cd6b56 46%, #ad4f3c 100%);
     border-color: #7d3527; color: #2a0e08; text-shadow: 0 1px 0 rgba(255,255,255,0.30); }
   .btn.on { color: #4a3a10; }
-  #bEngage {                                                     /* a cabinet button bolted into the plate */
-    flex: 0 0 auto; width: 116px; height: 98px; padding: 0; position: relative;
+  #bEngage {                                                     /* a real cabinet button: collar + domed plunger */
+    --cs: 94px;                                                  /* collar diameter */
+    flex: 0 0 auto; width: 122px; height: 106px; padding: 0; position: relative;
     display: flex; align-items: center; justify-content: center; }
-  #bEngage .cap { position: absolute; left: 50%; top: 50%; width: 78px; height: 78px; margin: -39px 0 0 -39px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 34%, #86ffa6 0%, #35d95f 40%, #128f39 74%, #0a5b26 100%);
+  #bEngage .cap {                                                /* THE COLLAR — the wide flat ring on the panel */
+    position: absolute; left: 50%; top: 50%; width: var(--cs); height: var(--cs);
+    margin: calc(var(--cs) / -2) 0 0 calc(var(--cs) / -2); border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255,255,255,0.42), rgba(255,255,255,0) 46%),
+      linear-gradient(168deg, #7bf59b 0%, #2fbe55 38%, #128b37 72%, #0a5f26 100%);
     box-shadow:
-      0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,                      /* the mounting collar in the plate */
-      inset 0 4px 7px rgba(255,255,255,0.55),                    /* inner bevel, lit from above */
-      inset 0 -7px 12px rgba(0,0,0,0.45),
-      0 6px 0 #0a4a1f,                                           /* the plunger's side wall */
-      0 9px 12px rgba(0,0,0,0.6);
-    transition: transform 0.06s linear, box-shadow 0.06s linear, background 0.12s linear; }
-  #bEngage .cap::after { content: ""; position: absolute; inset: 14%; border-radius: 50%;
-    background: radial-gradient(circle at 50% 55%, rgba(255,244,190,0.35), rgba(255,244,190,0) 68%);
-    opacity: 0.5; transition: opacity 0.08s linear; }             /* the bulb behind the plastic */
-  #bEngage .lbl { position: relative; z-index: 2; font-size: 13px; letter-spacing: 0.22em;
-    font-weight: 700; color: #06340f; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
+      inset 0 3px 4px rgba(255,255,255,0.45),                    /* rounded top edge of the ring */
+      inset 0 -5px 9px rgba(0,0,0,0.38),                         /* the ring rolls away underneath */
+      0 2px 0 rgba(255,255,255,0.18),
+      0 7px 11px rgba(0,0,0,0.55),                               /* sits on the panel */
+      0 14px 18px rgba(0,0,0,0.35);
+    transition: transform 0.06s linear, filter 0.08s linear; }
+  #bEngage .cap::before {                                        /* THE PLUNGER — domed, proud of the collar */
+    content: ""; position: absolute; inset: 13%; border-radius: 50%;
+    background:
+      radial-gradient(ellipse 48% 30% at 34% 20%, rgba(255,255,255,0.80), rgba(255,255,255,0) 72%),
+      radial-gradient(circle at 40% 32%, #8dffab 0%, #38d763 40%, #14a03e 74%, #0b6b2a 100%);
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,0.55),
+      inset 0 -7px 13px rgba(0,0,0,0.34),
+      0 3px 5px rgba(0,0,0,0.42),                                /* the step down onto the collar */
+      0 5px 9px rgba(0,0,0,0.30);
+    transition: transform 0.06s linear, box-shadow 0.06s linear, filter 0.1s linear; }
+  #bEngage .cap::after {                                         /* the bulb under the plastic */
+    content: ""; position: absolute; inset: 20%; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle at 50% 58%, rgba(255,248,205,0.42), rgba(255,248,205,0) 70%);
+    opacity: 0.45; transition: opacity 0.08s linear; }
+  #bEngage .lbl { position: relative; z-index: 2; font-size: 13px; letter-spacing: 0.2em;
+    font-weight: 700; color: #06340f; text-shadow: 0 1px 0 rgba(255,255,255,0.55); }
   #bEngage .lbl.stop { display: none; }
-  #bEngage:active .cap {                                          /* pressed: it drops and the lamp comes up */
-    transform: translateY(6px);
-    background: radial-gradient(circle at 50% 42%, #e8ffee 0%, #86ffa6 28%, #37e263 62%, #14a13f 100%);
-    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
-      inset 0 3px 9px rgba(0,0,0,0.5), 0 1px 0 #0a4a1f, 0 3px 7px rgba(0,0,0,0.5),
-      0 0 26px 7px rgba(120,255,150,0.55); }
+  #bEngage:active .cap::before {                                 /* pressed: the plunger sinks into the collar */
+    transform: translateY(6px) scale(0.985);
+    background:
+      radial-gradient(ellipse 40% 24% at 36% 24%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%),
+      radial-gradient(circle at 42% 38%, #d6ffe1 0%, #6bf58e 26%, #2ecb59 60%, #10913a 100%);
+    box-shadow:
+      inset 0 5px 11px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(255,255,255,0.25),
+      0 1px 2px rgba(0,0,0,0.35), 0 0 26px 8px rgba(120,255,150,0.55); }
   #bEngage:active .cap::after { opacity: 1; }
-  body.run #bEngage, body.active #bEngage { width: 86px; height: 76px; }   /* it shrinks into the stop */
-  body.run #bEngage .cap, body.active #bEngage .cap {
-    width: 56px; height: 56px; margin: -28px 0 0 -28px;
-    background: radial-gradient(circle at 50% 34%, #ffa593 0%, #e2503a 40%, #a32a18 74%, #6b190d 100%);
-    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
-      inset 0 3px 6px rgba(255,255,255,0.45), inset 0 -6px 10px rgba(0,0,0,0.45),
-      0 5px 0 #59150a, 0 8px 11px rgba(0,0,0,0.6); }
-  body.run #bEngage:active .cap, body.active #bEngage:active .cap {
-    transform: translateY(5px);
-    background: radial-gradient(circle at 50% 42%, #ffe6df 0%, #ff9b86 28%, #e2503a 62%, #a32a18 100%);
-    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
-      inset 0 3px 9px rgba(0,0,0,0.5), 0 1px 0 #59150a, 0 3px 7px rgba(0,0,0,0.5),
-      0 0 24px 7px rgba(255,120,90,0.55); }
+  #bEngage:active .cap { filter: brightness(1.08); }
+  body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; height: 78px; }
+  body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255,255,255,0.42), rgba(255,255,255,0) 46%),
+      linear-gradient(168deg, #ff8a72 0%, #e14b33 38%, #a72d1a 72%, #6f1a0d 100%); }
+  body.run #bEngage .cap::before, body.active #bEngage .cap::before {
+    background:
+      radial-gradient(ellipse 48% 30% at 34% 20%, rgba(255,255,255,0.80), rgba(255,255,255,0) 72%),
+      radial-gradient(circle at 40% 32%, #ffb0a0 0%, #ec5a41 40%, #b8341f 74%, #6f1a0d 100%); }
+  body.run #bEngage:active .cap::before, body.active #bEngage:active .cap::before {
+    transform: translateY(5px) scale(0.985);
+    background:
+      radial-gradient(ellipse 40% 24% at 36% 24%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%),
+      radial-gradient(circle at 42% 38%, #ffe2da 0%, #ff9c86 26%, #e2503a 60%, #a72d1a 100%);
+    box-shadow:
+      inset 0 5px 11px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(255,255,255,0.25),
+      0 1px 2px rgba(0,0,0,0.35), 0 0 24px 8px rgba(255,120,90,0.55); }
   body.run #bEngage .lbl.go, body.active #bEngage .lbl.go { display: none; }
   body.run #bEngage .lbl.stop, body.active #bEngage .lbl.stop { display: inline; color: #2c0a04; font-size: 11px; }
   #bStop { display: none !important; }                            /* the arcade button is the stop now */
@@ -416,7 +439,7 @@
     #chips { gap: 5px; }
     .chip { width: 140px; padding: 5px 7px; font-size: 9.5px; }
     #keys .btn { min-width: 58px; }
-    #bEngage { width: 100px; height: 88px; }
+    #bEngage { --cs: 82px; width: 108px; height: 96px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
   }
@@ -1115,7 +1138,7 @@ function earthGeom() {                                          // the globe is 
   const R = Math.min(W, H) * 0.42;
   return { cx: W * 0.5, cy: (ctlTop || H * 0.72) + R * 0.02, R: R, tilt: 0 };   // equator-on: the Triangle and the trench stay clear of the keys
 }
-function skyBase() { const g = earthGeom(); return Math.max(H * 0.34, g.cy - g.R * 0.66); }
+function skyBase() { const g = earthGeom(); return Math.max(H * 0.30, g.cy - g.R - 30); }   // clear of the world
 function buildSunTex() {                                        // granulation cells, baked once
   const N = 128, c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d"), im = g.createImageData(N, N);
@@ -2580,9 +2603,9 @@ function drawEarthHub(t) {
   drawSunDisc(sunX, sunY, R * 0.085, t);
   label(sunX + R * 0.15, sunY + 4, "SOL", "", "#ffd34d");
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; }   // one lap in about 37 seconds
-  const mA = R * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - R * 0.52;   // the lane rides high: the console eats the rest
+  const mA = RZ * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.52;  // the lane rides high: the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
-  const mr = R * 0.115, behind = mSin < 0;                      // far side of the orbit: it goes behind the world
+  const mr = RZ * 0.115, behind = mSin < 0;                     // far side of the orbit: it goes behind the world
   ctx.strokeStyle = "rgba(200,214,255,0.13)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
   const drawMoon = () => {
@@ -2594,40 +2617,38 @@ function drawEarthHub(t) {
   };
   if (behind) {                                                 // clip the world out of it while it passes behind
     ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx, sy, R, 0, 6.29);
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx, sy, RZ, 0, 6.29);
     ctx.clip("evenodd");
     drawMoon();
     ctx.restore();
   }
-  if (!behind || Math.hypot(mx - sx, my - sy) > R + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
+  if (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
     const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, G.tilt, sunV);
-    ctx.save(); ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.clip();
-    ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);
-    ctx.restore();
+    ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);         // no crop: closer means bigger
   } else {
-    const og = ctx.createRadialGradient(sx - R * 0.35, sy - R * 0.4, R * 0.1, sx, sy, R);
+    const og = ctx.createRadialGradient(sx - RZ * 0.35, sy - RZ * 0.4, RZ * 0.1, sx, sy, RZ);
     og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
-    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.fill();
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(sx, sy, RZ, 0, 6.29); ctx.fill();
     if (!earthAssets) buildEarthAssets();
-    ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.stroke();
+    ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.beginPath(); ctx.arc(sx, sy, RZ, 0, 6.29); ctx.stroke();
   }
-  glow(sx, sy, R * 1.18, "#6bb7ff", 0.10);
+  glow(sx, sy, RZ * 1.16, "#6bb7ff", 0.10);
   if (!behind) drawMoon();                                      // in front of the world, so it lands on top
   ctx.strokeStyle = "rgba(200,214,255,0.16)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke(); ctx.setLineDash([]);
   if (S.starlink) {                                             // his option: the shell of little ones
-    const inc = [0.34, 0.52, 0.22], scy = sy - R * 0.34;         // lifted for the same reason as Luna's lane
+    const inc = [0.34, 0.52, 0.22], scy = sy - RZ * 0.34;        // lifted for the same reason as Luna's lane
     ctx.strokeStyle = "rgba(190,210,255,0.10)"; ctx.lineWidth = 1;
     for (let r2 = 0; r2 < 3; r2++) {
-      const rad2 = R * (1.06 + r2 * 0.04);
+      const rad2 = RZ * (1.06 + r2 * 0.04);
       ctx.beginPath(); ctx.ellipse(sx, scy, rad2, rad2 * inc[r2], 0, 0, 6.29); ctx.stroke();
     }
     for (let i = 0; i < 66; i++) {
-      const r2 = i % 3, rad2 = R * (1.06 + r2 * 0.04);
+      const r2 = i % 3, rad2 = RZ * (1.06 + r2 * 0.04);
       const ph = (i / 22) * 6.283 + t * (0.20 + r2 * 0.035) * (r2 === 1 ? -1 : 1);
       const sn = Math.sin(ph), x2 = sx + Math.cos(ph) * rad2, y2 = scy + sn * rad2 * inc[r2];
-      if (sn < 0 && Math.hypot(x2 - sx, y2 - sy) < R) continue;  // behind the world
+      if (sn < 0 && Math.hypot(x2 - sx, y2 - sy) < RZ) continue; // behind the world
       ctx.globalAlpha = sn < 0 ? 0.30 : 0.85; ctx.fillStyle = "#e4ecff";
       ctx.fillRect(x2 - 0.9, y2 - 0.9, 1.8, 1.8);
     }
@@ -2640,8 +2661,7 @@ function drawEarthHub(t) {
   ];
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const pin of pins) {
-    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, G.tilt);
-    if (!p.v || Math.hypot(p.x - sx, p.y - sy) > R - 5) continue;
+    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, G.tilt); if (!p.v) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
     const on = selected.id === pin.id;
     glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
@@ -2656,14 +2676,14 @@ function drawEarthHub(t) {
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
   const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, G.tilt);  // and where you are standing
-  if (you.v && Math.hypot(you.x - sx, you.y - sy) < R - 5) {
+  if (you.v) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
     ctx.moveTo(you.x, you.y - 4); ctx.lineTo(you.x, you.y + 4); ctx.stroke();
     ctx.globalAlpha = 0.75; ctx.fillStyle = "#ffc46b"; ctx.textAlign = "center";
     ctx.fillText("YOU", you.x, you.y - 7); ctx.textAlign = "left"; ctx.globalAlpha = 1;
   }
-  label(sx, sy - R * 0.80, "EARTH", "", "#8fd0ff", "center");   // on the world itself, clear of the sky
+  label(sx, sy - RZ * 0.80, "EARTH", "", "#8fd0ff", "center");  // on the world itself, clear of the sky
 }
 function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels running the routes, both ways
   if (!S.traffic) return;
@@ -2693,7 +2713,7 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
   const sx = SOL.x * W, sy = skyBase();
   const el = (SOL.y - s.y) / (SOL.y - POLARIS.y);               // height above Earth, Polaris = 1
-  const span = (sy - POLARIS.y * H - 26) * Math.min(1, chartZoom) - R * 0.16;
+  const span = (sy - POLARIS.y * H - 20) * Math.min(1, chartZoom) - R * 0.16;
   return { x: sx + X * k, y: sy + Z * 0.16 - el * span, k, z: Z };   // feet on the ring: the near rim sits lower
 }
 function drawChart(t) {
@@ -4305,7 +4325,7 @@ cvs.addEventListener("pointerdown", (e) => {
   if (ptrs.size === 1) {
     dragMoved = 0; wasPinch = false; chartTgt = null;
     const G = earthGeom(), r = cvs.getBoundingClientRect();     // inside the world = turn the world
-    dragEarth = Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * 1.04;
+    dragEarth = Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04;
     if (!dragEarth) { chartVel = 0; skyMoveT = 0; }
     if (dragEarth) { earthAuto = false; earthVel = 0; lastMoveT = 0; clearTimeout(earthResume); }
   }        // a gesture starts with the first finger only
@@ -4319,7 +4339,7 @@ cvs.addEventListener("pointermove", (e) => {
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
-      if (dragEarth) earthZoom = Math.min(1.9, Math.max(1, earthZoom * d / pinchD));   // into the world
+      if (dragEarth) earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * d / pinchD));  // the camera moves in
       else chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));         // the sky barely needs it
     }
     pinchD = d;
@@ -4356,8 +4376,8 @@ cvs.addEventListener("wheel", (e) => {
   if (phase !== "chart") return;
   e.preventDefault();
   const G = earthGeom(), r = cvs.getBoundingClientRect();
-  if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * 1.04) {   // over the world
-    earthZoom = Math.min(1.9, Math.max(1, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
+  if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04) {   // over the world
+    earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
     earthRef.dirty = true;
     return;
   }
