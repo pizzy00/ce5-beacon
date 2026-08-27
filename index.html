@@ -67,21 +67,14 @@
   /* HUD */
   #hud { position: fixed; inset: 0; z-index: 7; pointer-events: none;
     padding: max(10px, env(safe-area-inset-top)) 12px 12px; }
-  #head { position: fixed; top: 0; left: 0; right: 0; z-index: 7; pointer-events: none;
-    height: clamp(84px, 15vh, 138px); overflow: hidden;
-    padding: calc(6px + env(safe-area-inset-top)) 46px 8px 12px;
-    display: flex; flex-direction: column; gap: 5px;
-    background: linear-gradient(180deg, rgba(4,17,10,0.94), rgba(3,12,8,0.88) 72%, rgba(3,12,8,0));
-    border-bottom: 1px solid rgba(125,251,168,0.30);
-    box-shadow: inset 0 0 22px rgba(125,251,168,0.09), 0 6px 20px rgba(0,0,0,0.45);
-    transition: opacity 0.5s ease, transform 0.5s ease; }
-  #head::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* the tube's scan lines */
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.26) 0 1px, transparent 1px 3px); }
-  body.run #head, body.active #head { opacity: 0; transform: translateY(-14px); }
-  #log { flex: 1; min-height: 0; font-size: 10.5px; line-height: 1.45; color: var(--amber);
-    text-shadow: 0 0 6px rgba(255,196,107,0.5); }
-  #log div:not(:nth-last-child(-n+4)) { display: none; }
-  @media (max-height: 700px) { #log div:not(:nth-last-child(-n+3)) { display: none; } }
+  /* the CRT: a small monitor set into the console beside START (the bezel block further down dresses it);
+     it stays lit during a run now, so there is no fade-out rule any more */
+  #head { position: relative; flex: 0 0 auto; height: 70px; min-width: 0; overflow: hidden;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; }
+  #log { flex: none; height: 2.8em; min-height: 0; font-size: 9.5px; line-height: 1.4; color: var(--amber);
+    text-shadow: 0 0 6px rgba(255,196,107,0.5);
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }   /* two lines showing, the history scrolls under a finger */
+  #log::-webkit-scrollbar { display: none; }
   #log .old { opacity: 0.45; }
   #log .alert { color: var(--alert); text-shadow: 0 0 6px rgba(255,92,57,0.6); }
   #log .cy { color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
@@ -89,14 +82,28 @@
   #log div { animation: typein 0.35s steps(24) both; white-space: nowrap; overflow: hidden;
     text-overflow: ellipsis; }
 
-  #data { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 10px; letter-spacing: 0.04em;
+  #data { display: flex; flex: none; flex-wrap: nowrap; gap: 0 9px; font-size: 9px; line-height: 1.2; letter-spacing: 0.02em;
+    overflow: hidden; white-space: nowrap;
     color: var(--phos); text-shadow: 0 0 7px rgba(125,251,168,0.45); }
-  #data span { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-  #data i { font-style: normal; font-size: 8px; letter-spacing: 0.2em; opacity: 0.7; }
+  #data span { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+  #data i { font-style: normal; font-size: 8px; letter-spacing: 0.1em; opacity: 0.7; }
   #data b { font-weight: 400; color: #dcffe8; }
-  @media (max-width: 430px) { #data { font-size: 9px; gap: 3px 9px; } #log { font-size: 9.5px; } }
+  @media (max-width: 380px) { #data { font-size: 8px; gap: 0 6px; } #data i { font-size: 7px; } #keys { gap: 4px; } }
+  /* the departures: one line of phosphor text drifting left across the screen; drag it, tap a name */
+  #loc { flex: none; margin-top: auto; height: 13px; line-height: 13px; overflow: hidden; white-space: nowrap;
+    font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--phos);
+    text-shadow: 0 0 6px rgba(125,251,168,0.45); touch-action: none; cursor: grab;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8px, #000 calc(100% - 8px), transparent); }
+  #locIn { display: inline-block; white-space: nowrap; will-change: transform; }
+  #loc .lc { display: inline-block; font-weight: 400; padding: 0 3px; border-radius: 1px; }
+  #loc .lc i { font-style: normal; font-size: 8px; vertical-align: 1px; margin-right: 4px; }
+  #loc .lc.on { background: var(--phos); color: #04140a; text-shadow: none; }   /* the picked one: a block cursor */
+  #loc .lc.on i { color: #04140a; }
+  #loc u { text-decoration: none; opacity: 0.55; }
+  body.run #loc, body.active #loc { opacity: 0.45; }
 
-  #phase { position: absolute; left: 50%; bottom: 118px; transform: translateX(-50%);
+  #phase { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 4px); transform: translateX(-50%);   /* just above the console, whatever its height */
     font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); }
   #blink { animation: bl 1.1s steps(2) infinite; }
   @keyframes bl { 50% { opacity: 0; } }
@@ -118,46 +125,24 @@
   #cue .breath { font-size: 10px; letter-spacing: 0.34em; color: var(--cyan); margin-top: 6px;
     text-shadow: 0 0 6px rgba(107,227,255,0.5); }
   /* during a run: get the chrome out of the way of the scene */
-  body.run #dataX, body.active #dataX { display: flex; flex-wrap: wrap; justify-content: flex-end;
-    column-gap: 5px; row-gap: 0; max-width: 40vw; font-size: 9px; line-height: 1.4; }
-  body.run #data .lbl, body.active #data .lbl { font-size: 8px; }
-  body.run #cue, body.active #cue { top: auto; bottom: calc(150px + env(safe-area-inset-bottom)); width: 94vw; }
+  body.run #cue, body.active #cue { top: auto; bottom: calc(var(--ctlH, 128px) + 22px); width: 94vw; }   /* --ctlH already holds the safe-area inset; clears the phase label */
   body.run #cue .stage, body.active #cue .stage { white-space: normal; font-size: 12px; }
 
 /* ============================================================
-     CRT MONITOR HEADER  —  drop-in override for #head
-     Paste AFTER the existing #head rules. Replaces the old
-     #head background / border-bottom / box-shadow / ::after.
-     Pure CSS, no images, no extra elements, pointer-events safe.
+     CRT MONITOR  -  the small monitor set into the console, beside START
+     thin bezel, recessed phosphor screen, glass glare; pure CSS
      ============================================================ */
-  
+
   #head {
-    /* --- bezel geometry (fatten the plastic here) --- */
-    --bzT: calc(11px + env(safe-area-inset-top, 0px)); /* top plastic  */
-    --bzS: 14px;                                      /* side plastic */
-    --bzB: 20px;                                      /* chin, thicker like a real monitor */
-    --scr-r: 10px;                                     /* screen corner radius */
-  
-    /* the header IS the moulded shell now, so the phosphor screen sits
-       inside it: content padding = bezel + the old text padding */
-    height: clamp(108px, 16vh, 148px);
-    padding: calc(var(--bzT) + 9px) 48px calc(var(--bzB) + 6px) calc(var(--bzS) + 12px);
-    border-bottom: 0;
-    border-radius: 0 0 20px 20px;
+    --bzT: 5px;                                        /* top plastic   */
+    --bzS: 6px;                                        /* side plastic  */
+    --bzB: 5px;                                        /* chin          */
+    --scr-r: 5px;                                      /* screen corner radius */
+    border-radius: 7px;
     background:
-      /* screw dimples, one per bezel corner */
-      radial-gradient(circle 3.4px at 7px calc(var(--bzT) / 2 + 2px), rgba(0,0,0,0.8) 38%, rgba(255,255,255,0.13) 60%, transparent 76%),
-      radial-gradient(circle 3.4px at calc(100% - 7px) calc(var(--bzT) / 2 + 2px), rgba(0,0,0,0.8) 38%, rgba(255,255,255,0.13) 60%, transparent 76%),
-      radial-gradient(circle 3.8px at 7px calc(100% - 10px), rgba(0,0,0,0.82) 38%, rgba(255,255,255,0.14) 60%, transparent 76%),
-      radial-gradient(circle 3.8px at calc(100% - 7px) calc(100% - 10px), rgba(0,0,0,0.82) 38%, rgba(255,255,255,0.14) 60%, transparent 76%),
-      /* power LED in the chin */
-      radial-gradient(circle 6px at calc(100% - 30px) calc(100% - 10px), rgba(125,251,168,0.28), transparent 72%),
-      radial-gradient(circle 2px at calc(100% - 30px) calc(100% - 10px), #c8ffdd 30%, rgba(125,251,168,0.6) 70%, transparent 100%),
-      /* speaker/vent slots left of the LED */
-      repeating-linear-gradient(90deg, rgba(0,0,0,0.5) 0 2px, rgba(255,255,255,0.05) 2px 3px, transparent 3px 6px),
-      /* moulded brand plate: engraved groove + its lit lower lip */
-      linear-gradient(90deg, transparent, rgba(0,0,0,0.6) 14%, rgba(0,0,0,0.6) 86%, transparent),
-      linear-gradient(90deg, transparent, rgba(255,255,255,0.10) 14%, rgba(255,255,255,0.10) 86%, transparent),
+      /* power LED in the chin, bottom-right */
+      radial-gradient(circle 3px at calc(100% - 9px) calc(100% - 2.5px), rgba(125,251,168,0.35), transparent 72%),
+      radial-gradient(circle 1px at calc(100% - 9px) calc(100% - 2.5px), #c8ffdd 40%, rgba(125,251,168,0.6) 80%, transparent 100%),
       /* crisp lit top edge of the plastic */
       linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.06) 50%, transparent),
       /* fine moulding texture */
@@ -165,32 +150,16 @@
       /* the plastic itself: warm dark grey-green */
       linear-gradient(180deg, #43453a 0, #383a2f 10%, #2c2e24 42%, #1e2016 76%, #121308 100%);
     background-repeat: no-repeat;
-    background-size:
-      auto, auto, auto, auto,
-      auto, auto,
-      36px 4px,
-      56px 1px, 56px 1px,
-      100% 4px,
-      auto,
-      auto;
-    background-position:
-      0 0, 0 0, 0 0, 0 0,
-      0 0, 0 0,
-      calc(100% - 48px) calc(100% - 12px),
-      16px calc(100% - 9px), 16px calc(100% - 8px),
-      0 0,
-      0 0,
-      0 0;
+    background-size: auto, auto, 100% 3px, auto, auto;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.22),      /* lit top lip         */
       inset 2px 0 0 rgba(255,255,255,0.045),     /* left cheek catches  */
       inset -2px 0 0 rgba(0,0,0,0.4),            /* right cheek falls   */
-      inset 0 -3px 0 rgba(0,0,0,0.55),           /* under-chin shadow   */
-      0 3px 0 rgba(0,0,0,0.6),                   /* case thickness      */
-      0 12px 28px rgba(0,0,0,0.66),              /* drop onto the sky   */
-      0 18px 48px rgba(0,0,0,0.4);
+      inset 0 -2px 0 rgba(0,0,0,0.55),           /* under-chin shadow   */
+      0 2px 0 rgba(0,0,0,0.6),                   /* case thickness      */
+      0 4px 10px rgba(0,0,0,0.55);               /* sits on the case    */
   }
-  
+
   /* ---- the recessed phosphor screen (sits under the readouts) ---- */
   #head::before {
     content: "";
@@ -206,14 +175,13 @@
       radial-gradient(ellipse 78% 50% at 50% 54%, rgba(125,251,168,0.13), rgba(125,251,168,0.035) 60%, transparent 78%),
       linear-gradient(180deg, #0a1b12 0, #06120c 62%, #030b06 100%);
     box-shadow:
-      inset 0 3px 8px rgba(0,0,0,0.9),           /* glass sunk into plastic  */
-      inset 0 -2px 7px rgba(0,0,0,0.65),
-      inset 0 0 28px rgba(125,251,168,0.10),     /* tube bloom               */
+      inset 0 2px 6px rgba(0,0,0,0.9),           /* glass sunk into plastic  */
+      inset 0 -2px 5px rgba(0,0,0,0.65),
+      inset 0 0 18px rgba(125,251,168,0.10),     /* tube bloom               */
       0 0 0 1px rgba(0,0,0,0.8),                 /* aperture edge            */
-      0 2px 0 rgba(255,255,255,0.09),            /* lit lip below the screen */
-      0 0 16px 3px rgba(0,0,0,0.5);              /* moulded well around it   */
+      0 1px 0 rgba(255,255,255,0.09);            /* lit lip below the screen */
   }
-  
+
   /* ---- glass: scan lines, curvature, specular streak, counter-glare ---- */
   #head::after {
     content: "";
@@ -223,8 +191,7 @@
     pointer-events: none;
     z-index: 3;
     background:
-      /* broad diagonal specular streak, pinned to the upper-left corner
-         (sized, so it stays a diagonal instead of stretching on tablets) */
+      /* broad diagonal specular streak, pinned to the upper-left corner */
       linear-gradient(122deg,
         transparent 4%,
         rgba(255,255,255,0.045) 16%,
@@ -238,18 +205,18 @@
       /* scan lines */
       repeating-linear-gradient(0deg, rgba(0,0,0,0.26) 0 1px, transparent 1px 3px);
     background-repeat: no-repeat, no-repeat, no-repeat, repeat;
-    background-size: 300px 100%, 150px 58px, auto, auto;
+    background-size: 220px 100%, 120px 40px, auto, auto;
     background-position: left top, right bottom, 0 0, 0 0;
     /* pincushion hint: 1px dark rim + a hair of inner shading */
     box-shadow:
       inset 0 0 0 1px rgba(0,0,0,0.6),
-      inset 0 0 12px rgba(0,0,0,0.45);
+      inset 0 0 10px rgba(0,0,0,0.45);
     animation: crtFlick 7.3s ease-in-out infinite alternate;
   }
-  
+
   /* keep the readouts between the phosphor and the glass */
-  #head > #data, #head > #log { position: relative; z-index: 2; }
-  
+  #head > #data, #head > #log, #head > #loc { position: relative; z-index: 2; }
+
   /* very subtle tube flicker */
   @keyframes crtFlick {
     0%   { opacity: 1; }
@@ -260,14 +227,8 @@
   @media (prefers-reduced-motion: reduce) {
     #head::after { animation: none; opacity: 1; }
   }
-  
-  /* narrow phones: trim the plastic so four log lines still fit */
-  @media (max-width: 430px) {
-    #head { --bzS: 11px; --bzB: 17px;
-      padding: calc(var(--bzT) + 8px) 46px calc(var(--bzB) + 5px) calc(var(--bzS) + 10px); }
-  }
-  
-  /* the full-screen button reads as a hard key sunk into the monitor face */
+
+  /* the full-screen key stays top-right, over the open sky now that the monitor moved down */
   #bFull {
     top: calc(11px + env(safe-area-inset-top, 0px));
     right: 16px;
@@ -275,6 +236,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65),
                 inset 0 1px 0 rgba(255,255,255,0.07);
   }
+  #bFull text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   
 
   /* controls */
@@ -283,7 +245,7 @@
     background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
     border-top: 1px solid rgba(210,198,168,0.22);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 -10px 24px rgba(0,0,0,0.45); }
-  #chips { display: flex; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px;   /* one lane, drifts forever */
+  #chips { display: none; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px;   /* the old lane: kept in the DOM (the .sel walks read it), the CRT marquee took its place */
     overflow-x: auto; overflow-y: hidden;
     -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
   #chips::-webkit-scrollbar { display: none; }
@@ -339,10 +301,36 @@
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; align-items: stretch; }
-  #keys { display: flex; gap: 8px; flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; padding-bottom: 6px; }
+  #deck { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }   /* the CRT over the key row; a fixed height, so START does not move when it turns into STOP */
+  #keys { display: flex; gap: 6px; flex: 0 0 auto; height: 33px; align-items: flex-start; min-width: 0;
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }   /* 28px keys + room for their shadow */
   #keys::-webkit-scrollbar, #chips::-webkit-scrollbar { display: none; }
-  #keys .btn { flex: 0 0 auto; min-width: 66px; }
+  #keys .btn { flex: 0 0 auto; min-width: 44px; }
+  /* the keys: Apple IIe keycaps, chocolate plastic, cream legend, all the same short height */
+  #keys .key { background: linear-gradient(180deg, #5b4838 0%, #4a3a2c 45%, #392c21 100%); color: #efe4c8;
+    border: 1px solid #241a13; border-radius: 4px; text-shadow: 0 1px 0 rgba(0,0,0,0.45);
+    box-shadow: inset 0 1px 0 rgba(255,235,200,0.25), inset 0 -2px 0 rgba(0,0,0,0.35), 0 3px 0 #1e1610, 0 4px 6px rgba(0,0,0,0.6);
+    font-weight: 700; font-size: 11px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase;
+    height: 28px; min-width: 44px; padding: 0 10px; position: relative;
+    display: inline-flex; align-items: center; justify-content: center; }
+  #keys .key::before { content: ""; position: absolute; inset: 2px 3px 55% 3px; border-radius: 3px;
+    background: radial-gradient(70% 60% at 50% 30%, rgba(255,240,210,0.12), transparent); pointer-events: none; }
+  #keys .key:active, #keys .key.on { transform: translateY(2px);
+    box-shadow: inset 0 1px 0 rgba(255,235,200,0.15), 0 1px 0 #1e1610, 0 2px 4px rgba(0,0,0,0.6); }
+  #keys .key.on { color: #fff3d6; background: linear-gradient(180deg, #4a3a2c 0%, #3d2f23 45%, #2f241b 100%); }
+  #keys .key.cy, #keys .key.rd { color: #efe4c8; }
+  #keys .key svg { display: block; }
+  #bGear { font-size: 15px; letter-spacing: 0; }
+  @media (min-width: 600px) {                                    /* tablets: a bigger tube, the same short keys */
+    #head { height: 82px; padding: 10px 14px; gap: 2px; }
+    #data { font-size: 10px; gap: 0 12px; }
+    #log { font-size: 10.5px; }
+    #loc { font-size: 12px; height: 15px; line-height: 15px; }
+    #keys .key { min-width: 54px; }
+  }
+  #bLocL svg, #bLocR svg { width: 9px; height: 11px; }
+  body.run #bLocL, body.run #bLocR, body.active #bLocL, body.active #bLocR { display: none; }   /* nothing to step through mid-run */
   .btn { flex: 1;
     color: #241d12; font: inherit; font-size: 11px; letter-spacing: 0.18em; font-weight: 700;
     padding: 12px 4px; border-radius: 5px; text-transform: uppercase; }
@@ -352,7 +340,7 @@
   .btn.on { color: #4a3a10; }
   #bEngage {                                                     /* a real cabinet button: collar + domed plunger */
     --cs: 94px;                                                  /* collar diameter */
-    flex: 0 0 auto; width: 122px; height: 106px; padding: 0; position: relative;
+    flex: 0 0 auto; width: 118px; height: auto; align-self: stretch; padding: 0; position: relative;   /* the plate spans the right column, the collar sits centred in it */
     display: flex; align-items: center; justify-content: center; }
   #bEngage .cap {                                                /* THE COLLAR — the wide flat ring on the panel */
     position: absolute; left: 50%; top: 50%; width: var(--cs); height: var(--cs);
@@ -395,7 +383,7 @@
       0 1px 2px rgba(0,0,0,0.35), 0 0 26px 8px rgba(120,255,150,0.55); }
   #bEngage:active .cap::after { opacity: 1; }
   #bEngage:active .cap { filter: brightness(1.08); }
-  body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; height: 78px; }
+  body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
     background:
       radial-gradient(circle at 50% 34%, rgba(255,255,255,0.42), rgba(255,255,255,0) 46%),
@@ -420,8 +408,6 @@
   #bAll { display: none !important; }                             /* he asked for it off the console */
   .hide { display: none !important; }
 
-  #bGear { flex: 0 0 56px; }
-  #bGps { flex: 0 0 56px; }
   #bFull { position: fixed; top: calc(6px + env(safe-area-inset-top)); right: 10px; z-index: 9; width: 30px; height: 30px;
     border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; background: rgba(4,17,10,0.85); color: var(--phos);
     transition: opacity 0.5s ease;
@@ -433,18 +419,18 @@
   #bFull.on .comp { display: block; }
   #bFull.hide { display: none; }
   body.run #bFull, body.active #bFull { opacity: 0.3; }
-  #bInfo { flex: 0 0 56px; padding: 9px 4px; display: flex; align-items: center;
-    justify-content: center; }
-  #bInfo svg { width: 22px; height: 14px; display: block; }
+  #bInfo svg { width: 20px; height: 13px; }
   @media (max-width: 430px) {
     .btn { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 0.12em; padding-left: 2px; padding-right: 2px; }
-    #bGear, #bInfo, #bGps { flex-basis: 42px; }
+    #keys { gap: 5px; }
     #btns { gap: 6px; }
     #ctl { padding-left: 6px; padding-right: 6px; }
     #chips { gap: 5px; }
     .chip { width: 140px; padding: 5px 7px; font-size: 9.5px; }
-    #keys .btn { min-width: 58px; }
-    #bEngage { --cs: 82px; width: 108px; height: 96px; }
+    #keys .btn { min-width: 44px; }
+    #keys .key { padding: 0 8px; }
+    #keys #bLocL, #keys #bLocR { min-width: 40px; padding: 0 6px; }
+    #bEngage { --cs: 82px; width: 108px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
   }
@@ -816,23 +802,13 @@
 </div>
 <button id="bFull" aria-label="Full screen" title="Full screen">
   <svg class="exp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-    <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+    <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/><text x="8.5" y="10.6" text-anchor="middle" font-size="7" font-weight="700" letter-spacing="1" fill="currentColor" stroke="none">FS</text></svg>
   <svg class="comp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-    <path d="M6 2v4H2M10 6V2h4M14 10h-4v4M2 10h4v4"/></svg>
+    <path d="M6 2v4H2M10 6V2h4M14 10h-4v4M2 10h4v4"/><text x="8.5" y="10.6" text-anchor="middle" font-size="7" font-weight="700" letter-spacing="1" fill="currentColor" stroke="none">FS</text></svg>
 </button>
 <div id="fade"></div>
 <div id="crt"></div>
 <div id="vig"></div>
-
-<div id="head">
-  <div id="data">
-    <span><i>LAT</i><b id="dLat">--</b></span>
-    <span><i>LON</i><b id="dLon">--</b></span>
-    <span><i>RNG</i><b id="dRng">--</b></span>
-    <span><i>SIG</i><b id="dSig">0%</b></span>
-  </div>
-  <div id="log"></div>
-</div>
 
 <div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">STAR CHART</span> <span id="blink">▌</span></div>
@@ -842,16 +818,30 @@
   <div id="chips"></div>
   <div id="btns">
     <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span></button>
+    <div id="deck">
+    <div id="head">
+      <div id="data">
+        <span><i>LAT</i><b id="dLat">--</b></span>
+        <span><i>LON</i><b id="dLon">--</b></span>
+        <span><i>RNG</i><b id="dRng">--</b></span>
+        <span><i>SIG</i><b id="dSig">0%</b></span>
+      </div>
+      <div id="log"></div>
+      <div id="loc" aria-label="Departures"><span id="locIn"></span></div>
+    </div>
     <div id="keys">
-    <button class="btn cy" id="bAll">All Channels</button>
-    <button class="btn" id="bGear">⚙</button>
-    <button class="btn cy" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
-    <button class="btn rd hide" id="bStop">Abort</button>
-    <button class="btn hide" id="bReplay">Replay</button>
-    <button class="btn cy hide" id="bTone">Tone</button>
-    <button class="btn hide" id="bSend">Send</button>
-    <button class="btn hide" id="bTarget">Retarget</button>
-    <button class="btn cy" id="bGps">GPS</button>
+    <button class="btn key" id="bLocL" aria-label="Previous departure" title="Previous departure"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M8.5 0.5v10L0.5 5.5z" fill="currentColor"/></svg></button>
+    <button class="btn cy key" id="bAll">All Channels</button>
+    <button class="btn key" id="bGear">⚙</button>
+    <button class="btn cy key" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
+    <button class="btn rd hide key" id="bStop">Abort</button>
+    <button class="btn hide key" id="bReplay">Replay</button>
+    <button class="btn cy hide key" id="bTone">Tone</button>
+    <button class="btn hide key" id="bSend">Send</button>
+    <button class="btn hide key" id="bTarget">Retarget</button>
+    <button class="btn cy key" id="bGps">GPS</button>
+    <button class="btn key" id="bLocR" aria-label="Next departure" title="Next departure"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M0.5 0.5v10L8.5 5.5z" fill="currentColor"/></svg></button>
+    </div>
     </div>
   </div>
 </div>
@@ -884,7 +874,7 @@ const SYSTEMS = [
   { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.504, c: "#ff8e5e" },
   { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.232, c: "#d9c9ff", galaxy: true }
 ];
-const POLARIS = { x: 0.5, y: 0.20, c: "#ffe9a6" };               /* the sky sits clear of the CRT header */
+const POLARIS = { x: 0.5, y: 0.12, c: "#ffe9a6" };               /* the CRT lives in the console now: the sky has the top */
 const SOL = { x: 0.5, y: 0.60, c: "#ffd34d" };                   /* the hub, high enough to stay off the console */
 const MODES = [
   { id: "luna", name: "LUNA · FAR SIDE", tag: "UAP", dist: "384,400 KM", c: "#d8d8de", mode: "moon" },
@@ -992,7 +982,8 @@ function log(txt, cls) {
   if (cls) d.className = cls;
   logEl.appendChild(d);
   [...logEl.children].slice(0, -6).forEach((n) => n.classList.add("old"));
-  while (logEl.children.length > 9) logEl.removeChild(logEl.firstChild);
+  while (logEl.children.length > 40) logEl.removeChild(logEl.firstChild);   // the CRT scrolls now: keep some history
+  logEl.scrollTop = logEl.scrollHeight;                                       // newest line at the bottom
 }
 let fadeTimer = 0;
 function stageFade() {                                          // a soft dip to black between stages
@@ -1195,7 +1186,11 @@ const PLANETS = [                                               // real order ou
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
 let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
-function measureCtl() { ctlTop = $("ctl") ? $("ctl").getBoundingClientRect().top : H * 0.72; }
+function measureCtl() {
+  const el = $("ctl"); if (!el) { ctlTop = H * 0.72; return; }
+  const r = el.getBoundingClientRect(); ctlTop = r.top;
+  document.documentElement.style.setProperty("--ctlH", Math.round(r.height) + "px");   // #phase and the cue sit on the console
+}
 function earthGeom() {                                          // the globe is half-sunk behind the console
   const R = Math.min(W, H) * 0.42;
   return { cx: W * 0.5, cy: (ctlTop || H * 0.72) + R * 0.02, R: R, tilt: 0 };   // equator-on: the Triangle and the trench stay clear of the keys
@@ -4395,6 +4390,7 @@ function makeChip(s) {
     [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
     focusChart(s);
     log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
+    locSync();
   };
   return b;
 }
@@ -4430,7 +4426,75 @@ setInterval(() => {                                             // a slow drift,
   if (chipsEl.classList.contains("hide") || reduced) return;
   chipPos += 0.42; chipSelf = true; chipsEl.scrollLeft = chipPos;   // whole-number reads would eat a 0.42 step
 }, 33);
+
+/* ---------------- the CRT marquee: the departures, drifting across the phosphor ---------------- */
+const locEl = $("loc"), locIn = $("locIn");
+let locW = 0, locX = 0, locAuto = true, locResume = 0, locDrag = null;
+function locBuild() {                                           // three copies: the seam is never on screen
+  let h = "";
+  for (const s of CHIP_SRC) h += '<b class="lc" data-id="' + s.id + '"><i style="color:' + s.c + '">\u25cf</i>' +
+    s.name + " " + (s.dist || fmtLy(s.ly)) + "</b><u> \u00b7 </u>";
+  locIn.innerHTML = h + h + h;
+  locSync(); locMeasure(); locDraw();
+}
+function locMeasure() {                                         // one copy's width = the loop period
+  const it = locIn.querySelectorAll(".lc");
+  locW = it.length > CHIP_SRC.length ? it[CHIP_SRC.length].offsetLeft - it[0].offsetLeft : 0;
+}
+function locWrap(x) { return locW > 0 ? ((x % locW) + locW) % locW : 0; }
+function locDraw() { locIn.style.transform = "translateX(" + (-locX).toFixed(2) + "px)"; }   // transform, never scrollLeft
+function locSync() {                                            // the picked one reads as a block cursor
+  locIn.querySelectorAll(".lc").forEach((b) => b.classList.toggle("on", b.dataset.id === selected.id));
+}
+function locPause() {                                           // his hand always wins, for five seconds
+  locAuto = false; clearTimeout(locResume);
+  locResume = setTimeout(() => (locAuto = true), 5000);
+}
+function locCenter() {                                          // bring the picked entry to the middle of the screen
+  if (!locW) locMeasure();
+  const b = locIn.querySelector('.lc[data-id="' + selected.id + '"]');
+  if (!b || !locW) return;
+  locX = locWrap(b.offsetLeft + b.offsetWidth / 2 - locEl.clientWidth / 2); locDraw();
+}
+function locStep(d) {                                           // the arrow keys walk the list
+  if (chipsEl.classList.contains("hide")) return;
+  const n = CHIP_SRC.length, i = CHIP_SRC.indexOf(selected);
+  pickDeparture(CHIP_SRC[(i + d + n) % n]); locPause(); locCenter();
+}
+locEl.addEventListener("pointerdown", (e) => {
+  locPause(); locDrag = { id: e.pointerId, x0: e.clientX, from: locX, moved: 0 };
+  try { locEl.setPointerCapture(e.pointerId); } catch (err) {}
+});
+locEl.addEventListener("pointermove", (e) => {
+  if (!locDrag || e.pointerId !== locDrag.id) return;
+  const dx = e.clientX - locDrag.x0; locDrag.moved = Math.max(locDrag.moved, Math.abs(dx));
+  locX = locWrap(locDrag.from - dx); locDraw();
+});
+const locUp = (e) => {
+  if (!locDrag || e.pointerId !== locDrag.id) return;
+  const d = locDrag; locDrag = null;
+  if (e.type !== "pointerup" || d.moved >= 8 || chipsEl.classList.contains("hide")) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);     // a tap picks the name under the finger
+  const b = el && el.closest ? el.closest(".lc") : null;
+  const s = b && CHIP_SRC.find((q) => q.id === b.dataset.id);
+  if (s) pickDeparture(s);
+};
+locEl.addEventListener("pointerup", locUp);
+locEl.addEventListener("pointercancel", locUp);
+setInterval(() => {                                             // the slow drift: 12 px a second, leftward
+  if (!locAuto || !locW || locDrag || phase !== "chart" || document.hidden) return;
+  if (chipsEl.classList.contains("hide") || reduced) return;
+  locX = locWrap(locX + 0.4); locDraw();
+}, 33);
+locBuild();
+setTimeout(() => { locMeasure(); locCenter(); }, 120);           // once the font is in, start on the picked one
+addEventListener("resize", () => setTimeout(locMeasure, 120));
+$("bLocL").onclick = () => locStep(-1);
+$("bLocR").onclick = () => locStep(1);
+
 measureCtl();
+setTimeout(measureCtl, 300);                                    // again once the console has settled
+addEventListener("load", measureCtl);
 setTimeout(buildEarthAssets, 220);                              // after the first frame is up
 addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
 $("bEngage").onclick = () => {                                  // one button: start, then stop
@@ -4443,6 +4507,7 @@ $("bAll").onclick = () => {
   if (allChannels && selected.mode) {
     selected = SYSTEMS[0];
     [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
+    locSync();
   }
   $("bAll").classList.toggle("on", allChannels);
   log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
@@ -4586,6 +4651,7 @@ function pickDeparture(o) {
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === o.id));
   focusChart(o);
   log("DEPARTURE SET: " + o.name + " (" + o.tag + ")");
+  locSync();
 }
 function chartTap(cx, cy) {
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
@@ -4759,6 +4825,7 @@ function applyS() {                                             // push S into e
   set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
   chk("ckPhotos", S.bPhotos); set("rPhoto", S.pHold); txt("vPhoto", S.pHold.toFixed(1));
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
+  locSync();
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
