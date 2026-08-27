@@ -126,19 +126,32 @@
 
   /* controls */
   #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
-    padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
-    background: linear-gradient(transparent, rgba(5,5,16,0.92) 40%); }
+    padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
+    border-top: 1px solid rgba(210,198,168,0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 -10px 24px rgba(0,0,0,0.45); }
   #chips { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 8px; }   /* every destination visible, nothing hidden off to the right */
   #chips::-webkit-scrollbar { display: none; }
-  .chip { flex: 1 1 auto; border: 1px solid var(--amber-dim); background: rgba(10,10,24,0.8);
-    color: var(--ink); border-radius: 3px; padding: 7px 10px; font: inherit; font-size: 10px;
-    line-height: 1.4; text-align: left; }
-  .chip small { display: block; color: var(--amber-dim); font-size: 9px; }
+  .chip, .btn {                                                    /* moulded keycaps, aged beige */
+    background: radial-gradient(125% 100% at 50% -10%, #efe6cf 0%, #ded2b5 46%, #cabd9c 100%);
+    color: #241d12; border: 1px solid #8d8266; border-radius: 5px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -3px 4px rgba(120,105,74,0.35),
+      0 3px 0 #93886a, 0 5px 0 #6d6450, 0 7px 10px rgba(0,0,0,0.55);
+    transition: transform 0.05s linear, box-shadow 0.05s linear; }
+  .chip:active, .btn:active, .chip.sel, .btn.on {                  /* pressed: the cap goes down onto the case */
+    transform: translateY(4px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 2px 6px rgba(90,78,55,0.45),
+      0 1px 0 #93886a, 0 2px 6px rgba(0,0,0,0.5); }
+  .chip { flex: 1 1 auto; padding: 7px 10px; font: inherit; font-size: 10px;
+    line-height: 1.4; text-align: left; margin-bottom: 6px; }
+  .chip small { display: block; color: #6a5f45; font-size: 9px; }
   .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
     margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
-  .chip.sel { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,196,107,0.35) inset,
-    0 0 8px rgba(255,196,107,0.25); }
-  .chip.mode { border-style: dashed; }
+  .chip.sel { background: radial-gradient(125% 100% at 50% -10%, #ffe9bd 0%, #f0d49a 48%, #d9b978 100%);
+    border-color: #7a6a44; }
+  .chip.mode { background: radial-gradient(125% 100% at 50% -10%, #ddd3bc 0%, #c8bda2 46%, #b3a888 100%); }
+  .chip .dot { box-shadow: 0 0 4px currentColor, 0 1px 0 rgba(255,255,255,0.5); }
   #nuke { position: fixed; inset: 0; z-index: 12; background: #fff; opacity: 0; pointer-events: none; }
   #nuke.hide { display: none; }
   #nukeWarn { position: fixed; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column;
@@ -166,13 +179,19 @@
   .archCap { font-size: 10px; letter-spacing: 0.22em; color: var(--alert); text-align: center;
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; }
-  .btn { flex: 1; border: 1px solid var(--amber); background: rgba(255,196,107,0.08);
-    color: var(--amber); font: inherit; font-size: 11px; letter-spacing: 0.18em;
-    padding: 12px 4px; border-radius: 3px; text-transform: uppercase; }
-  .btn:active { background: rgba(255,196,107,0.25); }
-  .btn.cy { border-color: var(--cyan); color: var(--cyan); background: rgba(107,227,255,0.06); }
-  .btn.rd { border-color: var(--alert); color: var(--alert); background: rgba(255,92,57,0.08); }
-  .btn.on { background: rgba(255,196,107,0.3); color: #fff; }
+  .btn { flex: 1;
+    color: #241d12; font: inherit; font-size: 11px; letter-spacing: 0.18em; font-weight: 700;
+    padding: 12px 4px; border-radius: 5px; text-transform: uppercase; }
+  .btn.cy { color: #12454e; }
+  .btn.rd { background: radial-gradient(125% 100% at 50% -10%, #e59480 0%, #cd6b56 46%, #ad4f3c 100%);
+    border-color: #7d3527; color: #2a0e08; text-shadow: 0 1px 0 rgba(255,255,255,0.30); }
+  .btn.on { color: #4a3a10; }
+  #bEngage { flex: 2.6; letter-spacing: 0.22em; position: relative; }   /* the space bar */
+  #bEngage::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 34%; height: 1px;
+    transform: translateX(-50%); background: rgba(120,105,74,0.5); }
+  #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget {                 /* the modifier keys, darker plastic */
+    background: radial-gradient(125% 100% at 50% -10%, #ded5bd 0%, #c4b99e 46%, #ada285 100%); }
+  #bAll { flex: 1.15; letter-spacing: 0.1em; }
   .hide { display: none !important; }
 
   #bGear { flex: 0 0 56px; }
@@ -876,7 +895,57 @@ const PLANETS = [                                               // the family po
   { n: "JUPITER", r: 5.2, c: "#e8c9a0" }, { n: "SATURN", r: 4.3, c: "#f0dfae", ring: true },
   { n: "URANUS", r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", r: 3.0, c: "#7aa8ff" }
 ];
-let earthRot = 0, earthLastT = 0, modeHit = [];
+let earthRot = 0, earthLastT = 0, modeHit = [], sunTex = null;
+function buildSunTex() {                                        // granulation cells, baked once
+  const N = 128, c = document.createElement("canvas"); c.width = c.height = N;
+  const g = c.getContext("2d"), im = g.createImageData(N, N);
+  let sd = 20261;
+  const rnd = () => ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const P = Array.from({ length: 90 }, () => ({ x: rnd() * N, y: rnd() * N, r: 6 + rnd() * 9, v: 0.55 + rnd() * 0.45 }));
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let v = 0.35;
+    for (const p of P) {                                        // wrap in x so the drift never shows a seam
+      let dx = Math.abs(x - p.x); if (dx > N / 2) dx = N - dx;
+      const d = Math.hypot(dx, y - p.y);
+      if (d < p.r) v = Math.max(v, p.v * (1 - d / p.r));
+    }
+    const i = (y * N + x) * 4;
+    im.data[i] = 255; im.data[i + 1] = 190 + v * 60; im.data[i + 2] = 60 + v * 110; im.data[i + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  sunTex = c;
+}
+function drawSunDisc(x, y, r, t) {                                  // small, bright, alive: no big wash of glow
+  if (!sunTex) buildSunTex();
+  glow(x, y, r * 2.0, "#ffb03a", 0.30);                         // a tight corona, nothing more
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.clip();
+  const off = (t * 6) % 128;
+  ctx.globalAlpha = 0.95;
+  for (let i = -1; i <= 1; i++) ctx.drawImage(sunTex, x - r + i * 2 * r - off * (2 * r / 128), y - r, 2 * r, 2 * r);
+  const lg = ctx.createRadialGradient(x, y, r * 0.15, x, y, r);  // limb darkening
+  lg.addColorStop(0, "rgba(255,255,235,0.55)"); lg.addColorStop(0.65, "rgba(255,190,70,0)");
+  lg.addColorStop(1, "rgba(190,70,10,0.55)");
+  ctx.globalAlpha = 1; ctx.fillStyle = lg; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  ctx.restore();
+  ctx.strokeStyle = "rgba(255,214,140,0.85)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.stroke();
+  for (let i = 0; i < 3; i++) {                                 // prominences licking off the limb
+    const a = t * 0.35 + i * 2.1, sw = 0.22 + 0.1 * Math.sin(t * 1.7 + i);
+    const hh = r * (0.22 + 0.14 * Math.sin(t * 2.3 + i * 1.7));
+    ctx.strokeStyle = "rgba(255,140,60," + (0.30 + 0.25 * Math.sin(t * 3 + i)).toFixed(2) + ")";
+    ctx.lineWidth = Math.max(1, r * 0.10);
+    ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, hh, a - sw, a + sw); ctx.stroke();
+  }
+  for (let i = 0; i < 14; i++) {                                // short shimmering rays
+    const a = (i / 14) * 6.283 + t * 0.05, ln = r * (0.22 + 0.16 * Math.sin(t * 2 + i * 1.3));
+    ctx.strokeStyle = "rgba(255,190,90,0.20)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a) * r * 1.06, y + Math.sin(a) * r * 1.06);
+    ctx.lineTo(x + Math.cos(a) * (r * 1.06 + ln), y + Math.sin(a) * (r * 1.06 + ln));
+    ctx.stroke();
+  }
+}
 function orthPt(lon, lat, cx, cy, R) {                          // orthographic: the sphere as we see it, tilted 20 north
   const la = lat * Math.PI / 180, lo = (lon + earthRot) * Math.PI / 180, p0 = 0.349;
   const cosc = Math.sin(p0) * Math.sin(la) + Math.cos(p0) * Math.cos(la) * Math.cos(lo);
@@ -892,22 +961,21 @@ function drawEarthHub(sx, sy, t) {
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   if (S.planets) {
     ctx.strokeStyle = "rgba(255,196,107,0.14)"; ctx.setLineDash([2, 6]);
-    ctx.beginPath(); ctx.ellipse(sx, sy, R * 3.1, R * 1.75, 0, Math.PI * 1.06, Math.PI * 1.94); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(sx - R * 3.1, sy - R * 1.62); ctx.lineTo(sx + R * 3.1, sy - R * 1.62); ctx.stroke(); ctx.setLineDash([]);
     PLANETS.forEach((p, i) => {
-      const x = sx + (i - 3) * R * 0.86, y = sy - R * 1.60 - Math.abs(i - 3) * R * 0.10;
-      glow(x, y, p.r * 3.4, p.c, 0.26);
+      const x = sx + (i - 3) * R * 0.86, y = sy - R * 1.62;   // one straight line, as he asked
+      glow(x, y, p.r * 3.6, p.c, 0.5);
       ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
       if (p.ring) {
         ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.ellipse(x, y, p.r * 2.2, p.r * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
       }
-      ctx.fillStyle = "rgba(232,226,212,0.45)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
       ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
     });
   }
-  glow(sunX, sunY, R * 0.95, "#ffd34d", 0.5);
-  ctx.fillStyle = "#fff3c4"; ctx.beginPath(); ctx.arc(sunX, sunY, R * 0.19, 0, 6.29); ctx.fill();
-  label(sunX + R * 0.34, sunY + 4, "SOL", "", "#ffd34d");
+  drawSunDisc(sunX, sunY, R * 0.20, t);
+  label(sunX + R * 0.36, sunY + 4, "SOL", "", "#ffd34d");
   const ma = t * 0.20, mx = sx + Math.cos(ma) * R * 1.95, my = sy + Math.sin(ma) * R * 1.15;   // Luna, on its round
   const mr = R * 0.17;
   glow(mx, my, mr * 2.6, "#d8d8de", 0.22);
