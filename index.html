@@ -283,8 +283,8 @@
     background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
     border-top: 1px solid rgba(210,198,168,0.22);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 -10px 24px rgba(0,0,0,0.45); }
-  #chips { display: flex; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px;   /* one lane, swipes forever */
-    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity;
+  #chips { display: flex; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px;   /* one lane, drifts forever */
+    overflow-x: auto; overflow-y: hidden;
     -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
   #chips::-webkit-scrollbar { display: none; }
   .chip, .btn {                                                    /* moulded keycaps, aged beige */
@@ -299,8 +299,13 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 2px 6px rgba(90,78,55,0.45),
       0 1px 0 #93886a, 0 2px 6px rgba(0,0,0,0.5); }
   .chip { flex: 0 0 auto; width: 152px; padding: 7px 10px; font: inherit; font-size: 10px;
-    line-height: 1.4; text-align: left; margin-bottom: 6px; scroll-snap-align: center; }
+    line-height: 1.4; text-align: left; margin-bottom: 6px; }
   .chip small { display: block; color: #6a5f45; font-size: 9px; }
+  .chipEnd { flex: 0 0 auto; width: 30px; align-self: stretch; margin-bottom: 6px;   /* you have seen them all */
+    display: flex; align-items: center; justify-content: center;
+    border-left: 1px dashed rgba(210,198,168,0.45); border-right: 1px dashed rgba(210,198,168,0.45);
+    color: var(--amber-dim); font-size: 7px; letter-spacing: 0.18em; text-align: center;
+    writing-mode: vertical-rl; text-orientation: mixed; white-space: nowrap; }
   .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
     margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
   .chip.sel { background: radial-gradient(125% 100% at 50% -10%, #ffe9bd 0%, #f0d49a 48%, #d9b978 100%);
@@ -377,8 +382,8 @@
     content: ""; position: absolute; inset: 20%; border-radius: 50%; pointer-events: none;
     background: radial-gradient(circle at 50% 58%, rgba(255,248,205,0.42), rgba(255,248,205,0) 70%);
     opacity: 0.45; transition: opacity 0.08s linear; }
-  #bEngage .lbl { position: relative; z-index: 2; font-size: 13px; letter-spacing: 0.2em;
-    font-weight: 700; color: #06340f; text-shadow: 0 1px 0 rgba(255,255,255,0.55); }
+  #bEngage .lbl { position: relative; z-index: 2; font-size: 12px; letter-spacing: 0.16em;
+    font-weight: 700; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }   /* painted on, not moulded */
   #bEngage .lbl.stop { display: none; }
   #bEngage:active .cap::before {                                 /* pressed: the plunger sinks into the collar */
     transform: translateY(6px) scale(0.985);
@@ -408,7 +413,7 @@
       inset 0 5px 11px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(255,255,255,0.25),
       0 1px 2px rgba(0,0,0,0.35), 0 0 24px 8px rgba(255,120,90,0.55); }
   body.run #bEngage .lbl.go, body.active #bEngage .lbl.go { display: none; }
-  body.run #bEngage .lbl.stop, body.active #bEngage .lbl.stop { display: inline; color: #2c0a04; font-size: 11px; }
+  body.run #bEngage .lbl.stop, body.active #bEngage .lbl.stop { display: inline; color: #ffffff; font-size: 10.5px; }
   #bStop { display: none !important; }                            /* the arcade button is the stop now */
   #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget {                 /* the modifier keys, darker plastic */
     background: radial-gradient(125% 100% at 50% -10%, #ded5bd 0%, #c4b99e 46%, #ada285 100%); }
@@ -1667,7 +1672,7 @@ var GLOBE_TERM      = 0.055;   // terminator half-width in sin(angle) ~= 6.3 deg
 var GLOBE_NIGHT_AMT = 1.0;     // city-light strength
 var GLOBE_RIM_AMT   = 1.0;     // atmosphere rim strength
 var GLOBE_SPEC_AMT  = 0.34;    // ocean sheen; set 0 to drop the branch entirely
-var GLOBE_MAXBUF    = 640;     // internal buffer diameter cap, device px
+var GLOBE_MAXBUF    = 576;     // internal buffer diameter cap, device px
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
 var GLOBE_GEOCACHE  = 3;       // how many (size,tilt) geometries to keep
 
@@ -2542,12 +2547,13 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
 let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = 1;
+let earthTilt = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99;
 function buildEarthAssets() {                                   // built in stages so nothing locks up
   if (earthAssets) return;
   earthAssets = 1;
   const big = Math.min(W, H) >= 520;
   const steps = [
-    () => { earthTex = buildEarthTexture(LAND_RINGS, big ? 3072 : 2048, big ? 1536 : 1024); },
+    () => { earthTex = buildEarthTexture(LAND_RINGS, 2048, 1024); },   // one size: big tablets ran out of canvas
     () => { moonTex = buildMoonTexture(1024, 512); },
     () => { earthNight = buildEarthNight(LAND_RINGS, 1536, 768); },
     () => { earthClouds = buildCloudTexture(1536, 768, LAND_RINGS); earthAssets = 2;
@@ -2572,9 +2578,85 @@ function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun) {
   return cv;
 }
 const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
+function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the water, the unit, the drones it lets go
+  const P3 = TRIANGLE.map((c) => orthPt(c[1], c[0], sx, sy, RZ, earthTilt));
+  if (!P3.every((p) => p.v)) return;
+  ctx.save();
+  ctx.globalAlpha = zt * 0.85;
+  ctx.beginPath(); ctx.moveTo(P3[0].x, P3[0].y);
+  ctx.lineTo(P3[1].x, P3[1].y); ctx.lineTo(P3[2].x, P3[2].y); ctx.closePath();
+  ctx.fillStyle = "rgba(255,142,94,0.13)"; ctx.fill();
+  ctx.strokeStyle = "#ff8e5e"; ctx.lineWidth = 1.4; ctx.setLineDash([5, 5]);
+  ctx.lineDashOffset = -t * 12; ctx.stroke(); ctx.setLineDash([]);
+  const corner = ["MIAMI", "BERMUDA", "SAN JUAN"];
+  ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ff8e5e"; ctx.textAlign = "center";
+  P3.forEach((p, i) => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 6.29); ctx.fill();
+    ctx.fillText(corner[i], p.x, p.y - 6);
+  });
+  ctx.textAlign = "left";
+  const a = t * 0.16;                                           // it never stops moving down there
+  const uLat = BERMUDA.lat + Math.sin(a) * 2.1, uLon = BERMUDA.lon + Math.cos(a * 0.83) * 3.4;
+  const u = orthPt(uLon, uLat, sx, sy, RZ, earthTilt);
+  const uPrev = orthPt(BERMUDA.lon + Math.cos((a - 0.12) * 0.83) * 3.4,
+    BERMUDA.lat + Math.sin(a - 0.12) * 2.1, sx, sy, RZ, earthTilt);
+  if (u.v) {
+    const hd = Math.atan2(u.y - uPrev.y, u.x - uPrev.x);
+    const L = Math.max(7, RZ * 0.055), hB = L * 0.30;            // the hull: bigger than any rig, and dark
+    ctx.globalAlpha = zt * 0.5;                                  // its wake
+    ctx.strokeStyle = "rgba(190,230,255,0.7)"; ctx.lineWidth = Math.max(1, L * 0.12);
+    ctx.beginPath(); ctx.moveTo(u.x - Math.cos(hd) * L * 4.5, u.y - Math.sin(hd) * L * 4.5);
+    ctx.lineTo(u.x - Math.cos(hd) * L, u.y - Math.sin(hd) * L); ctx.stroke();
+    ctx.globalAlpha = zt;
+    for (let i = 0; i < 2; i++) {                                // gravity leans the water in around it
+      const rr = 2.4 - ((t * 0.3 + i / 2) % 1) * 1.1;
+      ctx.strokeStyle = "rgba(150,190,255," + (0.22 * zt).toFixed(2) + ")"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(u.x, u.y, L * rr, L * rr * 0.5, hd, 0, 6.29); ctx.stroke();
+    }
+    ctx.save(); ctx.translate(u.x, u.y); ctx.rotate(hd);
+    const bun = ctx.createLinearGradient(0, -hB * 1.6, 0, hB * 1.2);
+    bun.addColorStop(0, "#3d434f"); bun.addColorStop(0.45, "#1d222c"); bun.addColorStop(1, "#080b11");
+    ctx.fillStyle = bun; ctx.strokeStyle = "rgba(150,175,210,0.35)"; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.ellipse(0, -hB * 0.35, L, hB * 1.1, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, hB * 0.35, L * 0.96, hB * 0.65, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#05070b"; ctx.fillRect(-L * 0.98, -hB * 0.35, L * 1.96, hB * 0.7);
+    ctx.restore();
+    ctx.globalAlpha = Math.min(1, zt * 1.4);
+    ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+    ctx.fillStyle = "#9fd8ff";
+    ctx.fillText("MOBILE CONSTRUCTION UNIT", u.x, u.y + L * 2.1);
+    ctx.fillStyle = "rgba(232,226,212,0.75)";
+    ctx.fillText("450 KNOTS · DARK · BIGGER THAN AN OIL RIG", u.x, u.y + L * 2.1 + 9);
+    ctx.textAlign = "left";
+    if (unitOrbs.length < 3 && Math.sin(t * 0.55) > 0.995) unitOrbs.push({ t0: t, x: u.x, y: u.y });
+    for (let i = unitOrbs.length - 1; i >= 0; i--) {             // and what it lets go of
+      const o = unitOrbs[i], q = (t - o.t0) / 3.4;
+      if (q >= 1) { unitOrbs.splice(i, 1); continue; }
+      const ox = o.x + (o.x - sx) * q * 0.55, oy = o.y + (o.y - sy) * q * 0.55 - q * q * RZ * 0.22;
+      const orr = Math.max(1.6, RZ * 0.012) * (1 - q * 0.4);
+      ctx.globalAlpha = zt * (1 - q);
+      glow(ox, oy, orr * 4, "#dff6ff", 0.5);
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ox, oy, orr, 0, 6.29); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
 function drawEarthHub(t) {
-  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R, RZ = R * earthZoom;   // zoom magnifies, the disc stays put
+  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R, RZ = R * earthZoom;   // zoom moves the camera in
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
+  const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // 0 = the whole world, 1 = down on the Triangle
+  if (zt > 0) {                                                 // going in means going to one place only
+    earthAuto = false; earthVel = 0;
+    let d = -BERMUDA.lon - earthRot; d = ((d + 180) % 360 + 360) % 360 - 180;
+    earthRot += d * Math.min(1, dt * 2.6 * zt);
+    earthTilt += (BERMUDA.lat * 0.8 - earthTilt) * Math.min(1, dt * 2.6 * zt);
+  } else if (Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);
+  if (earthZoom > 1.02 && t - zoomT > 14) {                      // after a long look it pulls back by itself
+    earthZoom += (1 - earthZoom) * Math.min(1, dt * 0.8);
+    if (earthZoom < 1.02) { earthZoom = 1; earthAuto = true; }
+    earthRef.dirty = true;
+  }
   if (!reduced && !dragEarth) {                                 // a flick carries, then it settles back
     if (Math.abs(earthVel) > 0.6) {
       earthRot += earthVel * dt; earthVel *= Math.exp(-dt * 1.05);
@@ -2582,26 +2664,33 @@ function drawEarthHub(t) {
     } else if (earthAuto) earthRot += dt * 1.2;                 // its own slow turn
   }
   modeHit = [];
-  const sunX = Math.max(R * 0.13, sx - R * 1.02), sunY = sy - R * 1.20;   // Sol, pushed up above the world
+  const sunX = sx, sunY = sy - R * 1.24;                        // Sol, pushed up above the world
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
-  if (S.planets) {
-    ctx.strokeStyle = "rgba(255,196,107,0.14)"; ctx.setLineDash([2, 6]);
-    ctx.beginPath(); ctx.moveTo(sx - R * 0.86, sy - R * 1.20); ctx.lineTo(sx + R * 0.86, sy - R * 1.20); ctx.stroke(); ctx.setLineDash([]);
+  if (S.planets) {                                              // real orbits, seen almost edge-on so they keep their line
+    const front = [];
     PLANETS.forEach((p, i) => {
-      const x = sx + (i - 3) * R * 0.24, y = sy - R * 1.20;   // one straight line, as he asked
-      glow(x, y, p.r * 3.6, p.c, 0.5);
-      ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
-      if (p.ring) {
-        ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.ellipse(x, y, p.r * 2.2, p.r * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
-      }
-      ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
-      ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
+      const a = R * (0.18 + i * 0.137), th = t * (0.30 / Math.pow(i + 1, 0.72)) + i * 1.7;
+      const x = sunX + Math.cos(th) * a, y = sunY + Math.sin(th) * a * 0.10;
+      ctx.strokeStyle = "rgba(255,196,107,0.09)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * 0.10, 0, 0, 6.29); ctx.stroke();
+      const job = () => {
+        glow(x, y, p.r * 3.6, p.c, 0.5);
+        ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
+        if (p.ring) {
+          ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.ellipse(x, y, p.r * 2.2, p.r * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
+        }
+        ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+        ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
+      };
+      if (Math.sin(th) >= 0) front.push(job); else job();        // behind the Sun first, in front of it after
     });
-  }
+    PLANET_FRONT = front;
+  } else PLANET_FRONT = null;
   drawSunDisc(sunX, sunY, R * 0.085, t);
-  label(sunX + R * 0.15, sunY + 4, "SOL", "", "#ffd34d");
+  label(sunX + R * 0.14, sunY + 4, "SOL", "", "#ffd34d");
+  if (PLANET_FRONT) for (const job of PLANET_FRONT) job();      // the near half passes in front of Sol
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; }   // one lap in about 37 seconds
   const mA = RZ * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.52;  // the lane rides high: the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
@@ -2624,7 +2713,7 @@ function drawEarthHub(t) {
   }
   if (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
-    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, G.tilt, sunV);
+    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTilt, sunV);
     ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);         // no crop: closer means bigger
   } else {
     const og = ctx.createRadialGradient(sx - RZ * 0.35, sy - RZ * 0.4, RZ * 0.1, sx, sy, RZ);
@@ -2654,6 +2743,7 @@ function drawEarthHub(t) {
     }
     ctx.globalAlpha = 1;
   }
+  if (zt > 0.12) drawTriangleZoom(sx, sy, RZ, zt, t);           // the Triangle, and what lives in it
   const site = nearestSite();                                   // the two spots you can leave from, on the world itself
   const pins = [
     { id: "berm", lat: BERMUDA.lat, lon: BERMUDA.lon, c: "#ff8e5e", n: "TRIANGLE" },
@@ -2661,7 +2751,7 @@ function drawEarthHub(t) {
   ];
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const pin of pins) {
-    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, G.tilt); if (!p.v) continue;
+    const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, earthTilt); if (!p.v) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
     const on = selected.id === pin.id;
     glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
@@ -2675,7 +2765,7 @@ function drawEarthHub(t) {
     ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
-  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, G.tilt);  // and where you are standing
+  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, earthTilt);   // and where you are standing
   if (you.v) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
@@ -3654,7 +3744,7 @@ function engage() {
     cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
   }
   t0 = performance.now();
-  $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
+  $("bAll").classList.add("hide");                            // the arcade button stays: it turns into the stop
   $("chips").classList.add("hide"); retShow(false);
   $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
   document.body.classList.add("run"); document.body.classList.remove("active");
@@ -4090,6 +4180,7 @@ try {
   const tiles = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 21, maxNativeZoom: 19, keepBuffer: 8, updateWhenIdle: false,
+      errorTileUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
       attribution: "Esri World Imagery" }).addTo(map);
   tiles.on("tileerror", () => {
     if (tileFail) return; tileFail = true;
@@ -4132,21 +4223,38 @@ function makeChip(s) {
   };
   return b;
 }
-for (let rep = 0; rep < 3; rep++) for (const s of CHIP_SRC) chipsEl.appendChild(makeChip(s));
-let chipLoopW = 0;
+for (let rep = 0; rep < 3; rep++) {
+  for (const s of CHIP_SRC) chipsEl.appendChild(makeChip(s));
+  const cap = document.createElement("div");                    // the post at the end of the set
+  cap.className = "chipEnd";
+  cap.textContent = "ALL " + CHIP_SRC.length + " · ROUND AGAIN";
+  chipsEl.appendChild(cap);
+}
+let chipLoopW = 0, chipsAuto = true, chipsResume = 0, chipPos = 0, chipSelf = false;
 function chipLoopInit() {                                       // start in the middle copy so it runs both ways
   chipLoopW = chipsEl.scrollWidth / 3;
-  if (chipLoopW > 0) chipsEl.scrollLeft = chipLoopW;
+  if (chipLoopW > 0) { chipPos = chipLoopW; chipSelf = true; chipsEl.scrollLeft = chipPos; }
   measureCtl();
 }
 chipsEl.addEventListener("scroll", () => {                      // hop a whole copy: the seam never shows
   if (!chipLoopW) return;
+  if (chipSelf) chipSelf = false; else chipPos = chipsEl.scrollLeft;   // his finger moved it: follow along
   const sl = chipsEl.scrollLeft;
-  if (sl < chipLoopW * 0.45) chipsEl.scrollLeft = sl + chipLoopW;
-  else if (sl > chipLoopW * 1.55) chipsEl.scrollLeft = sl - chipLoopW;
+  if (sl < chipLoopW * 0.45) { chipPos = sl + chipLoopW; chipSelf = true; chipsEl.scrollLeft = chipPos; }
+  else if (sl > chipLoopW * 1.55) { chipPos = sl - chipLoopW; chipSelf = true; chipsEl.scrollLeft = chipPos; }
 }, { passive: true });
 setTimeout(chipLoopInit, 80);
 addEventListener("resize", () => setTimeout(chipLoopInit, 120));
+["pointerdown", "touchstart", "wheel"].forEach((ev) =>                // his hand always wins
+  chipsEl.addEventListener(ev, () => {
+    chipsAuto = false; clearTimeout(chipsResume);
+    chipsResume = setTimeout(() => (chipsAuto = true), 5000);
+  }, { passive: true }));
+setInterval(() => {                                             // a slow drift, against the way the world turns
+  if (!chipsAuto || !chipLoopW || phase !== "chart" || document.hidden) return;
+  if (chipsEl.classList.contains("hide") || reduced) return;
+  chipPos += 0.42; chipSelf = true; chipsEl.scrollLeft = chipPos;   // whole-number reads would eat a 0.42 step
+}, 33);
 measureCtl();
 setTimeout(buildEarthAssets, 220);                              // after the first frame is up
 addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
@@ -4339,7 +4447,7 @@ cvs.addEventListener("pointermove", (e) => {
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
-      if (dragEarth) earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * d / pinchD));  // the camera moves in
+      if (dragEarth) { earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; }   // the camera moves in
       else chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));         // the sky barely needs it
     }
     pinchD = d;
@@ -4378,6 +4486,7 @@ cvs.addEventListener("wheel", (e) => {
   const G = earthGeom(), r = cvs.getBoundingClientRect();
   if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04) {   // over the world
     earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
+    zoomT = performance.now() / 1000;
     earthRef.dirty = true;
     return;
   }
