@@ -660,6 +660,7 @@
     <div class="setBox">
     <div class="setSec">THE JOURNEY</div>
     <div class="setRow">
+      <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — A FIELD SKETCH OF THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT A PHOTOGRAPH)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
       <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
@@ -945,7 +946,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true };
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -3215,6 +3216,7 @@ function drawSystemView(t) {
     ctx.globalAlpha = (a - 0.6) / 0.4;
     label(cx, Math.max(30, cy - R * 3.4 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center");
     label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center");
+    if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, (a - 0.6) / 0.4);
     ctx.globalAlpha = 1;
   }
 }
@@ -3466,6 +3468,63 @@ function drawWarp(p, t) {
 }
 
 /* origin system: sit with them at home, then depart */
+const SPECIES = {                                                // the field sketches: head, eyes, shoulders, as witnesses describe them
+  GREYS:       { hw: 34, hh: 40, top: 8,  eye: [12, 6, 0.55, "dark"], neck: 8,  sh: 30, skin: "#b9c0c8", ht: "1.0\u20131.4 M", note: "LARGE BLACK EYES \u00b7 NO HAIR \u00b7 THE ONES MOST OFTEN REPORTED" },
+  NORDICS:     { hw: 22, hh: 30, top: 12, eye: [7, 3.4, 0.05, "pale"], neck: 10, sh: 42, skin: "#e8d9c8", hair: 1, ht: "1.8\u20132.2 M", note: "HUMAN-LOOKING \u00b7 TALL \u00b7 FAIR HAIR \u00b7 CALM" },
+  SIRIANS:     { hw: 24, hh: 35, top: 6,  eye: [8, 4, 0.35, "cat"], neck: 9,  sh: 38, skin: "#d9c8b0", ht: "ABOUT 2 M", note: "LONG SKULL \u00b7 CAT-LIKE EYES \u00b7 TALL AND SLENDER" },
+  ARCTURIANS:  { hw: 30, hh: 34, top: 10, eye: [10, 6, 0.4, "dark"], neck: 7,  sh: 24, skin: "#9fd6c0", ht: "1.0\u20131.2 M", note: "SMALL \u00b7 GREEN-BLUE SKIN \u00b7 LARGE DARK EYES" },
+  LYRANS:      { hw: 26, hh: 30, top: 12, eye: [8, 4, 0.2, "cat"], neck: 9,  sh: 40, skin: "#d8c4a0", ears: 1, ht: "ABOUT 1.8 M", note: "FELINE FEATURES \u00b7 POINTED EARS \u00b7 THE OLD LINE, THEY SAY" },
+  ORION:       { hw: 24, hh: 36, top: 6,  eye: [5, 7, 0, "slit"], neck: 10, sh: 44, skin: "#8fb08a", ridge: 1, ht: "2.0\u20132.5 M", note: "ANGULAR HEAD \u00b7 VERTICAL PUPILS \u00b7 RIDGED BROW" },
+  ANDROMEDANS: { hw: 24, hh: 34, top: 8,  eye: [9, 6, 0.3, "glow"], neck: 7,  sh: 28, skin: "#bcd0ff", ht: "1.8\u20132.2 M", note: "SLENDER \u00b7 BLUE-WHITE SKIN \u00b7 LUMINOUS EYES" }
+};
+function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketch beside their star: as reported, not a photograph
+  const kind = (s.tag || "").split(" ")[0], P = SPECIES[kind]; if (!P) return;
+  const k = size / 100, a = Math.max(0, Math.min(1, alpha === undefined ? 1 : alpha));
+  if (a <= 0) return;
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k); ctx.globalAlpha = a; ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.strokeStyle = s.c; ctx.lineWidth = 1.1 / k; ctx.globalAlpha = 0.35 * a;         // the card
+  ctx.strokeRect(-50, -50, 100, 118);
+  for (const [x, y] of [[-50, -50], [50, -50], [-50, 68], [50, 68]]) { ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
+  ctx.globalAlpha = a;
+  const hw = P.hw, hh = P.hh, hy = -50 + P.top + hh;               // the head sits at hy (its centre), the chin at hy + hh
+  ctx.fillStyle = "#050508"; ctx.beginPath();                      // shoulders and neck, dark against the card
+  ctx.moveTo(-P.neck, hy + hh - 4); ctx.lineTo(P.neck, hy + hh - 4); ctx.lineTo(P.neck + 2, hy + hh + 10);
+  ctx.lineTo(P.sh, hy + hh + 22); ctx.lineTo(P.sh + 4, 68); ctx.lineTo(-P.sh - 4, 68); ctx.lineTo(-P.sh, hy + hh + 22); ctx.lineTo(-P.neck - 2, hy + hh + 10); ctx.closePath();
+  ctx.fill(); ctx.strokeStyle = s.c; ctx.lineWidth = 1.3 / k; ctx.globalAlpha = 0.7 * a; ctx.stroke(); ctx.globalAlpha = a;
+  if (P.hair) {                                                    // long hair, both sides
+    ctx.strokeStyle = "#e9dcb8"; ctx.lineWidth = 2.2 / k; ctx.globalAlpha = 0.8 * a;
+    for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * hw * 0.28, hy - hh * 0.95); ctx.quadraticCurveTo(i * hw * 0.62, hy + hh * 0.2, i * hw * 0.55 + (i < 0 ? -6 : 6), hy + hh + 16); ctx.stroke(); }
+    ctx.globalAlpha = a;
+  }
+  ctx.fillStyle = P.skin; ctx.beginPath();                          // the head: a taper, wide at the brow for the Greys, angular for Orion
+  if (P.ridge) { ctx.moveTo(0, hy - hh); ctx.lineTo(hw, hy - hh * 0.45); ctx.lineTo(hw * 0.8, hy + hh * 0.55); ctx.lineTo(0, hy + hh); ctx.lineTo(-hw * 0.8, hy + hh * 0.55); ctx.lineTo(-hw, hy - hh * 0.45); ctx.closePath(); }
+  else { ctx.moveTo(0, hy - hh); ctx.bezierCurveTo(hw * 1.35, hy - hh, hw * 1.15, hy + hh * 0.35, 0, hy + hh); ctx.bezierCurveTo(-hw * 1.15, hy + hh * 0.35, -hw * 1.35, hy - hh, 0, hy - hh); }
+  ctx.fill(); ctx.strokeStyle = s.c; ctx.lineWidth = 1.3 / k; ctx.stroke();
+  if (P.ears) { ctx.fillStyle = P.skin; for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sg * hw * 0.7, hy - hh * 0.55); ctx.lineTo(sg * hw * 1.25, hy - hh * 1.25); ctx.lineTo(sg * hw * 1.05, hy - hh * 0.1); ctx.closePath(); ctx.fill(); ctx.stroke(); } }
+  if (P.ridge) { ctx.globalAlpha = 0.5 * a; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-hw * (0.5 - i * 0.12), hy - hh * (0.55 + i * 0.12)); ctx.lineTo(hw * (0.5 - i * 0.12), hy - hh * (0.55 + i * 0.12)); ctx.stroke(); } ctx.globalAlpha = a; }
+  const [ew, eh, tilt, style] = P.eye, ey = hy - hh * 0.05, ex = hw * 0.48;   // the eyes
+  for (const sg of [-1, 1]) {
+    ctx.save(); ctx.translate(sg * ex, ey); ctx.rotate(sg * tilt);
+    ctx.fillStyle = style === "pale" ? "#f4f2ec" : style === "glow" ? "#dfe9ff" : "#050508";
+    ctx.beginPath(); ctx.ellipse(0, 0, ew, eh, 0, 0, 6.29); ctx.fill();
+    if (style === "pale") { ctx.fillStyle = "#3a5a7a"; ctx.beginPath(); ctx.arc(0, 0, eh * 0.75, 0, 6.29); ctx.fill(); ctx.fillStyle = "#050508"; ctx.beginPath(); ctx.arc(0, 0, eh * 0.35, 0, 6.29); ctx.fill(); }
+    if (style === "cat") { ctx.fillStyle = "#d9c26a"; ctx.beginPath(); ctx.ellipse(0, 0, ew * 0.8, eh * 0.8, 0, 0, 6.29); ctx.fill(); ctx.fillStyle = "#050508"; ctx.beginPath(); ctx.ellipse(0, 0, ew * 0.16, eh * 0.85, 0, 0, 6.29); ctx.fill(); }
+    if (style === "slit") { ctx.fillStyle = "#c9b36a"; ctx.beginPath(); ctx.ellipse(0, 0, ew * 0.85, eh * 0.85, 0, 0, 6.29); ctx.fill(); ctx.fillStyle = "#050508"; ctx.beginPath(); ctx.ellipse(0, 0, ew * 0.22, eh * 0.9, 0, 0, 6.29); ctx.fill(); }
+    if (style === "glow") { ctx.fillStyle = "#6f8dff"; ctx.beginPath(); ctx.arc(0, 0, eh * 0.7, 0, 6.29); ctx.fill(); ctx.fillStyle = "#050508"; ctx.beginPath(); ctx.arc(0, 0, eh * 0.35, 0, 6.29); ctx.fill(); }
+    ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.beginPath(); ctx.arc(-ew * 0.35, -eh * 0.35, Math.max(0.8, eh * 0.22), 0, 6.29); ctx.fill();   // the catch-light
+    ctx.restore();
+  }
+  ctx.strokeStyle = "rgba(5,5,8,0.7)"; ctx.lineWidth = 1 / k;         // a hint of a mouth
+  ctx.beginPath(); ctx.moveTo(-hw * 0.18, hy + hh * 0.55); ctx.lineTo(hw * 0.18, hy + hh * 0.55); ctx.stroke();
+  ctx.restore();
+  ctx.globalAlpha = a; ctx.textAlign = "center";
+  ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
+  ctx.fillText(s.tag + " \u00b7 " + P.ht, cx, cy + size * 0.68 + 12);
+  ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.7)";
+  ctx.fillText(P.note, cx, cy + size * 0.68 + 22);
+  ctx.fillText("A FIELD SKETCH FROM WITNESS ACCOUNTS \u00b7 NOT A PHOTOGRAPH", cx, cy + size * 0.68 + 31);
+  ctx.globalAlpha = 1; ctx.textAlign = "left";
+}
 function paintSystemArt(cx, cy, R, s, t, worlds) {              // a star (or cluster, or galaxy) and its worlds
   glow(cx, cy, R * 2.8, s.c, 0.35 + 0.08 * Math.sin(t * 2));
   if (s.cluster) {
@@ -3520,6 +3579,7 @@ function drawOrigin(p, t) {
   paintSystemArt(cx, cy, R, s, t, sc > 0.3);
   label(cx, Math.max(30, cy - R * 1.9 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
     (allChannels ? " \u00b7 +6 SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
+  if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, easeIO(arr) * (1 - easeIO(dep)));   // who you are calling
   if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
   if (p >= 0.3 && !wpHit.has("o2")) {
     wpHit.add("o2"); log("HAILING " + s.tag + " \u2014 INVITATION SENT");
@@ -4213,6 +4273,7 @@ function loop(ts) {
 raf = requestAnimationFrame(loop);
 
 function engage() {
+  introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
   wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
   precacheTiles();
@@ -5332,7 +5393,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5408,6 +5469,7 @@ $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
 $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
+$("ckFaces").onchange = (e) => (S.faces = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };

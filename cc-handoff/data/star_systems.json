@@ -1,0 +1,159 @@
+{
+  "_meta": {
+    "compiled": "2026-08-27",
+    "note": "Real astronomy (J2000) for star systems named in Lazar/Lear claims. This records what was CLAIMED, not what is true.",
+    "attribution_values": ["explicit", "inferred", "derivative", "none"],
+    "ra_dec": "J2000. ra_deg = hours * 15. Null for Sol and the combined Zeta Reticuli entry (use components)."
+  },
+  "systems": [
+    {
+      "id": "zeta_reticuli",
+      "name": "Zeta Reticuli (ζ1 + ζ2 Ret)",
+      "constellation": "Reticulum",
+      "spectral_type": "wide binary (common proper motion pair), both Sun-like G dwarfs, ~5 arcmin apart (~3,750 AU projected)",
+      "distance_ly": 39.3,
+      "ra": null, "dec": null, "ra_deg": null, "dec_deg": null,
+      "components": ["zeta1_reticuli", "zeta2_reticuli"],
+      "claimed_by": ["lear", "lazar"],
+      "attribution": "explicit",
+      "linked_entities": ["lear_grey_1_ebe", "lear_grey_2", "lear_grey_3", "lazar_reticulan_greys"]
+    },
+    {
+      "id": "zeta1_reticuli",
+      "name": "Zeta1 Reticuli",
+      "constellation": "Reticulum",
+      "spectral_type": "G2.5 V",
+      "distance_ly": 39.3,
+      "ra": "03h 17m 46.2s", "dec": "-62° 34′ 31″",
+      "ra_deg": 49.4425, "dec_deg": -62.5753,
+      "claimed_by": ["lear"],
+      "attribution": "explicit",
+      "linked_entities": ["lear_grey_1_ebe"]
+    },
+    {
+      "id": "zeta2_reticuli",
+      "name": "Zeta2 Reticuli",
+      "constellation": "Reticulum",
+      "spectral_type": "G1 V",
+      "distance_ly": 39.3,
+      "ra": "03h 18m 12.8s", "dec": "-62° 30′ 23″",
+      "ra_deg": 49.5533, "dec_deg": -62.5064,
+      "claimed_by": ["lazar"],
+      "attribution": "explicit",
+      "linked_entities": ["lazar_reticulan_greys"],
+      "planets_claimed": [
+        {"name": "Reticulum 4", "note": "4th planet — Lazar 1989 regression + 1991 Lazar Tape"},
+        {"name": "ZR3", "note": "3rd planet — Lazar, JRE #1315 (2019). Contradiction kept, not resolved."}
+      ]
+    },
+    {
+      "id": "sol",
+      "name": "Sol (Sun)",
+      "constellation": null,
+      "spectral_type": "G2 V",
+      "distance_ly": 0,
+      "ra": null, "dec": null, "ra_deg": null, "dec_deg": null,
+      "claimed_by": ["lazar"],
+      "attribution": "explicit",
+      "linked_entities": ["lazar_lore_sol_3"],
+      "planets_claimed": [{"name": "Sol 3", "note": "The briefing docs' designation for Earth"}]
+    },
+    {
+      "id": "rigel",
+      "name": "Rigel (Beta Orionis)",
+      "constellation": "Orion",
+      "spectral_type": "B8 Ia (blue supergiant; multiple system)",
+      "distance_ly": 860,
+      "ra": "05h 14m 32.3s", "dec": "-08° 12′ 06″",
+      "ra_deg": 78.6346, "dec_deg": -8.2017,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lc_rigelians", "lc_tall_greys_orion"]
+    },
+    {
+      "id": "bellatrix",
+      "name": "Bellatrix (Gamma Orionis)",
+      "constellation": "Orion",
+      "spectral_type": "B2 III",
+      "distance_ly": 250,
+      "ra": "05h 25m 07.9s", "dec": "+06° 20′ 59″",
+      "ra_deg": 81.2829, "dec_deg": 6.3497,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lc_tall_greys_orion"]
+    },
+    {
+      "id": "betelgeuse",
+      "name": "Betelgeuse (Alpha Orionis)",
+      "constellation": "Orion",
+      "spectral_type": "M1–M2 Ia–ab (red supergiant)",
+      "distance_ly": 550,
+      "ra": "05h 55m 10.3s", "dec": "+07° 24′ 25″",
+      "ra_deg": 88.7929, "dec_deg": 7.4070,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lc_tall_greys_orion"]
+    },
+    {
+      "id": "pleiades",
+      "name": "Pleiades (M45)",
+      "constellation": "Taurus",
+      "spectral_type": "open cluster, ~1,000+ stars, age ~100 Myr",
+      "distance_ly": 444,
+      "ra": "03h 47m 24s", "dec": "+24° 07′",
+      "ra_deg": 56.85, "dec_deg": 24.1167,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lear_nordics"]
+    },
+    {
+      "id": "procyon",
+      "name": "Procyon (Alpha Canis Minoris)",
+      "constellation": "Canis Minor",
+      "spectral_type": "F5 IV–V + DQZ white dwarf (Procyon B)",
+      "distance_ly": 11.46,
+      "ra": "07h 39m 18.1s", "dec": "+05° 13′ 30″",
+      "ra_deg": 114.8255, "dec_deg": 5.2250,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lc_procyon_nordics", "lear_nordics"]
+    },
+    {
+      "id": "sirius",
+      "name": "Sirius (Alpha Canis Majoris)",
+      "constellation": "Canis Major",
+      "spectral_type": "A1 V + DA2 white dwarf (Sirius B)",
+      "distance_ly": 8.6,
+      "ra": "06h 45m 08.9s", "dec": "-16° 42′ 58″",
+      "ra_deg": 101.2870, "dec_deg": -16.7161,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lear_mib"]
+    },
+    {
+      "id": "thuban",
+      "name": "Thuban (Alpha Draconis)",
+      "constellation": "Draco",
+      "spectral_type": "A0 III (spectroscopic/eclipsing binary)",
+      "distance_ly": 303,
+      "ra": "14h 04m 23.3s", "dec": "+64° 22′ 33″",
+      "ra_deg": 211.0971, "dec_deg": 64.3758,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": ["lc_reptilians_draco"]
+    },
+    {
+      "id": "barnards_star",
+      "name": "Barnard's Star",
+      "constellation": "Ophiuchus",
+      "spectral_type": "M4 V (red dwarf)",
+      "distance_ly": 5.96,
+      "ra": "17h 57m 48.5s", "dec": "+04° 41′ 36″",
+      "ra_deg": 269.4521, "dec_deg": 4.6933,
+      "claimed_by": ["lear_circle"],
+      "attribution": "derivative",
+      "linked_entities": [],
+      "note": "Alias trap: one popular derivative list calls Zeta Reticuli 'the Bernard star'. Kept separate; do NOT merge with zeta_reticuli."
+    }
+  ]
+}
