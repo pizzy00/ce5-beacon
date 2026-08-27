@@ -319,6 +319,8 @@
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
       <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
+      <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE REST OF THE SOLAR SYSTEM ABOVE EARTH — NOWHERE NEAR TO SCALE</label>
+      <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC RUNNING THE ROUTES BOTH WAYS</label>
       <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
       <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
       <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
@@ -583,7 +585,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: true, sun: true, moon: true, jwst: false, hubble: false, nukeAll: true, cache: "normal",
-  deep: true, deepA: 0.15, spin: 0.05, trails: true };
+  deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -860,6 +862,142 @@ function dashLine(x1, y1, x2, y2, color, t) {
 }
 
 let chartRot = 0, chartZoom = 1, chartAuto = true, chartLastT = 0, chartResume = 0;
+const EARTH_LAND = [                                            // coarse coastlines: enough to read as Earth at this size
+  [[-168,65],[-158,71],[-130,70],[-110,68],[-95,72],[-80,73],[-62,60],[-55,50],[-70,42],[-75,35],[-81,25],[-97,26],[-105,20],[-114,28],[-124,40],[-124,48],[-135,58],[-152,58],[-165,60]],
+  [[-79,9],[-70,11],[-60,10],[-50,0],[-35,-6],[-39,-16],[-48,-25],[-58,-35],[-63,-42],[-70,-53],[-75,-46],[-73,-33],[-71,-18],[-76,-6],[-80,2]],
+  [[-17,15],[-16,25],[-8,32],[3,36],[11,37],[22,32],[32,31],[36,22],[43,12],[51,11],[47,-1],[40,-12],[35,-21],[32,-28],[25,-34],[18,-34],[12,-16],[9,-2],[3,5],[-8,5],[-13,10]],
+  [[-10,36],[-1,44],[2,51],[-4,58],[8,63],[15,68],[28,71],[45,68],[60,71],[75,73],[90,75],[105,77],[120,73],[135,72],[150,70],[160,67],[170,62],[155,55],[143,45],[130,35],[122,23],[108,10],[100,13],[92,22],[80,8],[72,20],[57,25],[48,30],[44,42],[36,36],[28,41],[18,42],[12,45],[3,42]],
+  [[113,-22],[122,-16],[132,-11],[142,-11],[147,-19],[153,-28],[150,-38],[141,-38],[132,-32],[125,-34],[115,-34],[113,-26]],
+  [[-45,60],[-25,70],[-20,78],[-30,83],[-50,82],[-58,76],[-55,66]]
+];
+const EARTH_CITY = [[-74,40.7],[-118,34],[-87,41.9],[-79,43.7],[-99,19.4],[-74,4.6],[-46,-23.5],[-58,-34.6],[0,51.5],[2.3,48.9],[-3.7,40.4],[13.4,52.5],[37.6,55.8],[31.2,30],[3.4,6.5],[28,-26.2],[55.3,25.2],[72.9,19.1],[77.2,28.6],[100.5,13.8],[106.8,-6.2],[116.4,40],[121.5,31.2],[127,37.6],[139.7,35.7],[151.2,-33.9],[115.9,-32]];
+const PLANETS = [                                               // the family portrait, nowhere near to scale
+  { n: "MERCURY", r: 1.6, c: "#c9b9a6" }, { n: "VENUS", r: 2.6, c: "#ffd9a0" }, { n: "MARS", r: 2.1, c: "#ff8e5e" },
+  { n: "JUPITER", r: 5.2, c: "#e8c9a0" }, { n: "SATURN", r: 4.3, c: "#f0dfae", ring: true },
+  { n: "URANUS", r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", r: 3.0, c: "#7aa8ff" }
+];
+let earthRot = 0, earthLastT = 0, modeHit = [];
+function orthPt(lon, lat, cx, cy, R) {                          // orthographic: the sphere as we see it, tilted 20 north
+  const la = lat * Math.PI / 180, lo = (lon + earthRot) * Math.PI / 180, p0 = 0.349;
+  const cosc = Math.sin(p0) * Math.sin(la) + Math.cos(p0) * Math.cos(la) * Math.cos(lo);
+  return { x: cx + R * Math.cos(la) * Math.sin(lo),
+    y: cy - R * (Math.cos(p0) * Math.sin(la) - Math.sin(p0) * Math.cos(la) * Math.cos(lo)), v: cosc >= 0 };
+}
+function drawEarthHub(sx, sy, t) {
+  const R = Math.min(W, H) * 0.135;
+  const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
+  if (!reduced) earthRot += dt * 4.2;                           // one turn in about a minute and a half
+  modeHit = [];
+  const sunX = sx - R * 0.55, sunY = sy - R * 2.55;             // Sol, pushed up above the world
+  const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
+  if (S.planets) {
+    ctx.strokeStyle = "rgba(255,196,107,0.14)"; ctx.setLineDash([2, 6]);
+    ctx.beginPath(); ctx.ellipse(sx, sy, R * 3.1, R * 1.75, 0, Math.PI * 1.06, Math.PI * 1.94); ctx.stroke(); ctx.setLineDash([]);
+    PLANETS.forEach((p, i) => {
+      const x = sx + (i - 3) * R * 0.86, y = sy - R * 1.60 - Math.abs(i - 3) * R * 0.10;
+      glow(x, y, p.r * 3.4, p.c, 0.26);
+      ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
+      if (p.ring) {
+        ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(x, y, p.r * 2.2, p.r * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = "rgba(232,226,212,0.45)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+      ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
+    });
+  }
+  glow(sunX, sunY, R * 0.95, "#ffd34d", 0.5);
+  ctx.fillStyle = "#fff3c4"; ctx.beginPath(); ctx.arc(sunX, sunY, R * 0.19, 0, 6.29); ctx.fill();
+  label(sunX + R * 0.34, sunY + 4, "SOL", "", "#ffd34d");
+  const ma = t * 0.20, mx = sx + Math.cos(ma) * R * 1.95, my = sy + Math.sin(ma) * R * 1.15;   // Luna, on its round
+  const mr = R * 0.17;
+  glow(mx, my, mr * 2.6, "#d8d8de", 0.22);
+  ctx.fillStyle = "#c9c9d2"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.29); ctx.fill();
+  ctx.fillStyle = "rgba(90,90,110,0.55)";
+  for (const c of [[-0.35, -0.2, 0.26], [0.3, 0.25, 0.18], [0.05, -0.45, 0.13]]) {
+    ctx.beginPath(); ctx.arc(mx + c[0] * mr, my + c[1] * mr, c[2] * mr, 0, 6.29); ctx.fill();
+  }
+  modeHit.push({ id: "luna", x: mx, y: my });
+  const og = ctx.createRadialGradient(sx - R * 0.35, sy - R * 0.4, R * 0.1, sx, sy, R);   // the ocean
+  og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
+  ctx.fillStyle = og; ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.clip();
+  ctx.fillStyle = "#2f6b46";                                    // the land
+  for (const poly of EARTH_LAND) {
+    let run = [];
+    const flush = () => {
+      if (run.length > 2) {
+        ctx.beginPath(); ctx.moveTo(run[0].x, run[0].y);
+        for (let i = 1; i < run.length; i++) ctx.lineTo(run[i].x, run[i].y);
+        ctx.closePath(); ctx.fill();
+      }
+      run = [];
+    };
+    for (const c of poly) { const p = orthPt(c[0], c[1], sx, sy, R); if (p.v) run.push(p); else flush(); }
+    flush();
+  }
+  const dg = ctx.createLinearGradient(sx + svx * R, sy + svy * R, sx - svx * R, sy - svy * R);   // night falls away from Sol
+  dg.addColorStop(0, "rgba(2,4,12,0)"); dg.addColorStop(0.42, "rgba(2,4,12,0.12)");
+  dg.addColorStop(0.63, "rgba(2,4,12,0.72)"); dg.addColorStop(1, "rgba(2,5,14,0.90)");
+  ctx.fillStyle = dg; ctx.fillRect(sx - R, sy - R, R * 2, R * 2);
+  for (const c of EARTH_CITY) {                                 // city lights, only where it is dark
+    const p = orthPt(c[0], c[1], sx, sy, R); if (!p.v) continue;
+    const d = ((p.x - sx) / R) * svx + ((p.y - sy) / R) * svy;
+    if (d > 0.12) continue;
+    ctx.globalAlpha = Math.min(1, (0.12 - d) * 2.2) * 0.85; ctx.fillStyle = "#ffd9a0";
+    ctx.fillRect(p.x - 0.6, p.y - 0.6, 1.4, 1.4);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  ctx.strokeStyle = "rgba(120,200,255,0.5)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.stroke();
+  glow(sx, sy, R * 1.3, "#6bb7ff", 0.14);
+  const site = nearestSite();                                   // the two spots you can leave from, on the world itself
+  const pins = [
+    { id: "berm", lat: BERMUDA.lat, lon: BERMUDA.lon, c: "#ff8e5e", n: "TRIANGLE" },
+    { id: "uso", lat: site.lat, lon: site.lon, c: "#5ee0c0", n: "THE DEEP" }
+  ];
+  ctx.font = "7px ui-monospace, Menlo, monospace";
+  for (const pin of pins) {
+    const p = orthPt(pin.lon, pin.lat, sx, sy, R); if (!p.v) continue;
+    modeHit.push({ id: pin.id, x: p.x, y: p.y });
+    const on = selected.id === pin.id;
+    glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
+    ctx.fillStyle = pin.c; ctx.beginPath(); ctx.arc(p.x, p.y, on ? 2.6 : 2, 0, 6.29); ctx.fill();
+    ctx.strokeStyle = pin.c; ctx.globalAlpha = on ? 0.95 : 0.6; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(p.x, p.y, (on ? 7 : 5.5) + (on ? Math.sin(t * 4) : 0), 0, 6.29); ctx.stroke();
+    ctx.globalAlpha = 0.85; ctx.fillStyle = pin.c; ctx.textAlign = p.x > sx ? "left" : "right";
+    ctx.fillText(pin.n, p.x + (p.x > sx ? 9 : -9), p.y + 2.5);
+    ctx.globalAlpha = 1; ctx.textAlign = "left";
+  }
+  const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, R);        // and where you are standing
+  if (you.v) {
+    ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
+    ctx.moveTo(you.x, you.y - 4); ctx.lineTo(you.x, you.y + 4); ctx.stroke();
+    ctx.globalAlpha = 0.75; ctx.fillStyle = "#ffc46b"; ctx.textAlign = "center";
+    ctx.fillText("YOU", you.x, you.y - 7); ctx.textAlign = "left"; ctx.globalAlpha = 1;
+  }
+  label(sx, sy + R + 16, "EARTH", "TAP THE TRIANGLE, THE DEEP OR THE MOON", "#8fd0ff", "center");
+}
+function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels running the routes, both ways
+  if (!S.traffic) return;
+  for (let i = 0; i < SYSTEMS.length; i++) {
+    const s = SYSTEMS[i], a = posOf(s);
+    if (!a || a.x === undefined) continue;
+    const l1 = Math.hypot(px - a.x, py - a.y), l2 = Math.hypot(sx - px, sy - py), tot = l1 + l2;
+    if (tot < 1) continue;
+    for (let k = 0; k < 3; k++) {
+      let u = (t * (0.055 + (i % 3) * 0.018) + i * 0.37 + k * 0.33) % 1;
+      if ((i + k) % 2) u = 1 - u;
+      const d = u * tot;
+      const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (sx - px) * ((d - l1) / l2);
+      const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (sy - py) * ((d - l1) / l2);
+      ctx.globalAlpha = 0.65; ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
+      ctx.globalAlpha = 0.22; ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
 let chartTgt = null, chartDrift = -1, chartLastRot = 0;         // where the sky is swinging to, and which way it last moved
 function spinText(v) { return v <= 0 ? "HELD STILL" : "ONE TURN EVERY " + Math.round(6.283 / v) + "S"; }
 function chartProject(s, rotOff) {                              // the sky as a turntable around Earth at the bottom
@@ -890,6 +1028,7 @@ function drawChart(t) {
   const origins = (allChannels ? SYSTEMS : [selected]).filter((o) => !o.mode);
   for (const o of origins) dashLine(o.x * W, o.y * H, px, py, o.c, t);
   dashLine(px, py, sx, sy, "#ffe9a6", t);
+  drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), px, py, sx, sy);
 
   // Polaris gate
   star(px, py, 3.2, POLARIS.c);
@@ -921,13 +1060,12 @@ function drawChart(t) {
   }
 
   // Sol
-  star(sx, sy, 2.6, SOL.c);
-  label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
+  drawEarthHub(sx, sy, t);
   if (modeOf()) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
-    ctx.beginPath(); ctx.arc(sx, sy, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
     ctx.globalAlpha = 1;
-    label(sx, sy - 46, "DEPARTURE: " + selected.name,
+    label(sx, sy - Math.min(W, H) * 0.135 - 30, "DEPARTURE: " + selected.name,
       modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
         : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
       selected.c, "center");
@@ -978,6 +1116,7 @@ function drawChart3D(t) {
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   for (const o of origins) dashLine(o.px, o.py, px, py, o.c, t);
   dashLine(px, py, sx, sy, "#ffe9a6", t);
+  drawTraffic(t, (s) => ({ x: s.px, y: s.py }), px, py, sx, sy);
   star(px, py, 3.2, POLARIS.c);
   glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
   label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
@@ -1004,13 +1143,12 @@ function drawChart3D(t) {
     label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
     ctx.globalAlpha = 1;
   }
-  star(sx, sy, 2.6, SOL.c);
-  label(sx + 12, sy + 4, "SOL → EARTH", "PICKUP: YOUR COORDINATES", "#ffd34d");
+  drawEarthHub(sx, sy, t);
   if (modeOf()) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
-    ctx.beginPath(); ctx.arc(sx, sy, 15 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
     ctx.globalAlpha = 1;
-    label(sx, sy - 46, "DEPARTURE: " + selected.name,
+    label(sx, sy - Math.min(W, H) * 0.135 - 30, "DEPARTURE: " + selected.name,
       modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
         : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
       selected.c, "center");
@@ -2305,7 +2443,18 @@ function focusChart(s) {                                        // a pick before
   chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.5 };   // modes depart from Earth itself
   chartResume = setTimeout(() => (chartAuto = true), 8000);
 }
+function pickDeparture(o) {
+  selected = o; allChannels = false; $("bAll").classList.remove("on");
+  [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === o.id));
+  focusChart(o);
+  log("DEPARTURE SET: " + o.name + " (" + o.tag + ")");
+}
 function chartTap(cx, cy) {
+  for (const m of modeHit) {                                     // the spots on the globe, and the Moon
+    if (Math.hypot(cx - m.x, cy - m.y) > 22) continue;
+    const o = MODES.find((q) => q.id === m.id);
+    if (o) { pickDeparture(o); return; }
+  }
   let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
     const hx = S.chart3d ? s.px : s.x * W, hy = S.chart3d ? s.py : s.y * H;
@@ -2313,12 +2462,7 @@ function chartTap(cx, cy) {
     const d = Math.hypot(cx - hx, cy - hy) - (S.chart3d ? (s.pk || 1) * 3 : 0);
     if (d < bd) { bd = d; best = s; }
   }
-  if (!best) return;
-  const s = best;
-  selected = s; allChannels = false; $("bAll").classList.remove("on");
-  [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
-  focusChart(s);
-  log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
+  if (best) pickDeparture(best);
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
@@ -2445,7 +2589,8 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
-  chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
+  chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin));
+  chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = saveSettings;
@@ -2510,6 +2655,8 @@ $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
+$("ckPlanets").onchange = (e) => (S.planets = e.target.checked);
+$("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
 $("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
@@ -2536,6 +2683,7 @@ log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
 if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE TO LEAN IN", "cy");
+  log("EARTH IS LIVE AT THE HUB — TAP THE TRIANGLE, THE DEEP OR THE MOON", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
