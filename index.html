@@ -593,6 +593,8 @@
       </select>
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
       <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
+      <div class="setLbl">PINCH INTO A SYSTEM AT THE FRONT — HOLD THEIR HOME FOR <span id="vSys">7.5</span>S</div>
+      <input type="range" id="rSys" min="3" max="20" step="0.5" value="7.5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
@@ -897,7 +899,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
-  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true };
+  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5 };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -3057,6 +3059,43 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
   ctx.globalAlpha = 1;
 }
 let chartTgt = null, chartDrift = -1, chartLastRot = 0;         // where the sky is swinging to, and which way it last moved
+let sysView = null;                                              // the home-system look: pinch into a system at the front
+function sysEnter(s) {
+  if (sysView || !s || s.mode) return;
+  sysView = { s, t0: performance.now() / 1000, zoom: chartZoom, out: 0 };
+  chartVel = 0; chartTgt = null; chartAuto = false; clearTimeout(chartResume); wasPinch = true;
+  log("LEANING IN \u2014 " + s.name + " HOME SYSTEM", "cy");
+}
+function sysLeave() { if (sysView && !sysView.out) sysView.out = performance.now() / 1000; }
+function sysTry() {                                             // pinch (or wheel) past full zoom: look into the system at the front
+  if (sysView || !S.chart3d || phase !== "chart" || allChannels) return;
+  let s = selected && !selected.mode && (selected.pk || 0) > 1.3 ? selected : null;
+  if (!s) for (const q of SYSTEMS) if ((q.pk || 0) > 1.3 && (!s || q.pk > s.pk)) s = q;
+  if (s) sysEnter(s);
+}
+function drawSystemView(t) {
+  if (!sysView) return;
+  const v = sysView, now = performance.now() / 1000, IN = 0.6, OUT = 0.6, hold = reduced ? 3 : (S.sysHold || 7.5);
+  const fin = reduced ? 1 : Math.min(1, (now - v.t0) / IN);
+  if (!v.out && now - v.t0 >= IN + hold) v.out = now;          // time is up: back out
+  const fout = v.out ? (reduced ? 1 : Math.min(1, (now - v.out) / OUT)) : 0;
+  if (v.out && fout >= 1) {                                    // done: the sky gets its zoom back and turns again
+    sysView = null; chartTgt = { rot: chartRot, zoom: 1 };
+    if (!ptrs.size) { clearTimeout(chartResume); chartResume = setTimeout(() => (chartAuto = true), 1500); }
+    return;
+  }
+  const a = easeIO(fin) * (1 - easeIO(fout)), s = v.s, q = chartProject(s);
+  const cx = q.x + (W / 2 - q.x) * a, cy = q.y + (H * 0.42 - q.y) * a;
+  const R = Math.max(2, Math.min(W, H) * 0.11 * (0.25 + 0.75 * a));
+  ctx.fillStyle = "rgba(0,0,0," + (0.7 * a).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H);
+  paintSystemArt(cx, cy, R, s, t, a > 0.5);
+  if (a > 0.6) {
+    ctx.globalAlpha = (a - 0.6) / 0.4;
+    label(cx, Math.max(30, cy - R * 3.4 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center");
+    label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center");
+    ctx.globalAlpha = 1;
+  }
+}
 function spinText(v) { return v <= 0 ? "HELD STILL" : "ONE TURN EVERY " + Math.round(6.283 / v) + "S"; }
 function chartProject(s, rotOff) {                              // the sky as a turntable around Earth at the bottom
   const a = s.az + chartRot + (rotOff || 0);
@@ -3064,7 +3103,8 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const X = Math.sin(a) * R, Z = Math.cos(a) * R;               // Z > 0 = toward the viewer
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
   const sx = SOL.x * W, sy = skyBase();
-  const el = (SOL.y - s.y) / (SOL.y - POLARIS.y);               // height above Earth, Polaris = 1
+  const el0 = (SOL.y - s.y) / (SOL.y - POLARIS.y);              // height above Earth, Polaris = 1
+  const el = Math.min(1, 0.5 + (el0 - 0.5) * 1.22);            // a little more vertical spread between the systems
   const span = (sy - POLARIS.y * H - 20) * Math.min(1, chartZoom) - R * 0.16;
   return { x: sx + X * k, y: sy + Z * 0.16 - el * span, k, z: Z };   // feet on the ring: the near rim sits lower
 }
@@ -3139,7 +3179,7 @@ function drawChart3D(t) {
   if (!reduced && ptrs.size === 0 && Math.abs(chartVel) > 0.012) {   // the flick runs down, then it settles back
     chartRot += chartVel * dt; chartVel *= Math.exp(-dt * 1.05);
     if (Math.abs(chartVel) <= 0.012) { chartVel = 0; chartAuto = true; }
-  } else if (chartAuto && !reduced) chartRot += dt * S.spin;    // his slider: seconds per turn
+  } else if (chartAuto && !reduced && !sysView) chartRot += dt * S.spin;    // his slider: seconds per turn
   if (chartTgt) {                                                // swing the pick to the front and lean in
     let d = chartTgt.rot - chartRot; d = Math.atan2(Math.sin(d), Math.cos(d));   // the short way round
     const e = reduced ? 1 : Math.min(1, dt * 3.5);
@@ -3216,14 +3256,19 @@ function drawChart3D(t) {
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
   drawEarthHub(t);
-  if (modeOf()) {
-    ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
-    ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
-    ctx.globalAlpha = 1;
-    label(sx, sy - Math.min(W, H) * 0.135 - 30, "DEPARTURE: " + selected.name,
-      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
-        : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
-      selected.c, "center");
+  drawSystemView(t);
+  if (modeOf() && !sysView) {                                   // the pick sits on the spot itself: the Moon, the Triangle, the trench
+    const m = modeHit.find((q) => q.id === selected.id);
+    const sub = modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
+      : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE";
+    if (m) {
+      const rr = (modeOf() === "moon" ? 15 : 10) + 2.5 * Math.sin(t * 3);
+      ctx.strokeStyle = selected.c; ctx.lineWidth = 1.2;
+      ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.arc(m.x, m.y, rr, 0, 6.29); ctx.stroke();
+      ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(m.x, m.y, rr + 7, 0, 6.29); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 1;
+      label(m.x, m.y - rr - 28, "DEPARTURE: " + selected.name, sub, selected.c, "center");
+    } else label(sx, sy - 30, "DEPARTURE: " + selected.name, sub, selected.c, "center");   // (the Moon is round the back)
   }
 }
 
@@ -3269,19 +3314,7 @@ function drawWarp(p, t) {
 }
 
 /* origin system: sit with them at home, then depart */
-function drawOrigin(p, t) {
-  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, W, H);
-  const s = selected;
-  const dep = Math.max(0, (p - 0.55) / 0.45);            // 0 = at home, 1 = gone
-  const arr = Math.min(1, p / 0.12);                      // ease in on arrival
-  const sc = (0.35 + 0.65 * easeIO(arr)) * (1 - 0.94 * easeIO(dep)) * (1 + 0.03 * Math.sin(t * 2));
-  for (const q of bgStars) {                              // slow drift, faster as we leave
-    ctx.globalAlpha = 0.3 + 0.2 * Math.sin(t * 1.5 + q.tw); ctx.fillStyle = "#cfd6ff";
-    ctx.fillRect(q.x, (q.y + t * (4 + dep * 60)) % H, q.r, q.r);
-  }
-  ctx.globalAlpha = 1;
-  const cx = W / 2, cy = H * 0.46;
-  const base = Math.min(W, H) * 0.11, R = Math.max(1.5, base * sc);
+function paintSystemArt(cx, cy, R, s, t, worlds) {              // a star (or cluster, or galaxy) and its worlds
   glow(cx, cy, R * 2.8, s.c, 0.35 + 0.08 * Math.sin(t * 2));
   if (s.cluster) {
     for (let i = 0; i < 7; i++)
@@ -3305,7 +3338,7 @@ function drawOrigin(p, t) {
     g.addColorStop(0, "#ffffff"); g.addColorStop(0.55, s.c); g.addColorStop(1, s.c);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
   }
-  if (sc > 0.3 && !s.galaxy) {                            // their worlds
+  if (worlds && !s.galaxy) {                              // their worlds
     const orbits = [[1.9, 0.9, 0.9], [2.6, 0.55, 2.4], [3.3, 0.35, 4.1]];
     for (const [k, w, ph] of orbits) {
       const rx = R * k, ry = rx * 0.32;
@@ -3318,6 +3351,21 @@ function drawOrigin(p, t) {
     }
     ctx.globalAlpha = 1;
   }
+}
+function drawOrigin(p, t) {
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, W, H);
+  const s = selected;
+  const dep = Math.max(0, (p - 0.55) / 0.45);            // 0 = at home, 1 = gone
+  const arr = Math.min(1, p / 0.12);                      // ease in on arrival
+  const sc = (0.35 + 0.65 * easeIO(arr)) * (1 - 0.94 * easeIO(dep)) * (1 + 0.03 * Math.sin(t * 2));
+  for (const q of bgStars) {                              // slow drift, faster as we leave
+    ctx.globalAlpha = 0.3 + 0.2 * Math.sin(t * 1.5 + q.tw); ctx.fillStyle = "#cfd6ff";
+    ctx.fillRect(q.x, (q.y + t * (4 + dep * 60)) % H, q.r, q.r);
+  }
+  ctx.globalAlpha = 1;
+  const cx = W / 2, cy = H * 0.46;
+  const base = Math.min(W, H) * 0.11, R = Math.max(1.5, base * sc);
+  paintSystemArt(cx, cy, R, s, t, sc > 0.3);
   label(cx, Math.max(30, cy - R * 1.9 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
     (allChannels ? " \u00b7 +6 SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
   if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
@@ -4795,6 +4843,7 @@ cvs.addEventListener("pointerdown", (e) => {
     if (dragEarth) { earthAuto = false; earthVel = 0; lastMoveT = 0; clearTimeout(earthResume); }
   }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
+  if (sysView) { sysLeave(); wasPinch = true; }                  // any finger while looking in: come back out (no tap-pick)
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
 });
@@ -4805,7 +4854,10 @@ cvs.addEventListener("pointermove", (e) => {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
       if (dragEarth) { earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; }   // the camera moves in
-      else chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));         // the sky barely needs it
+      else {
+        chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));           // the sky barely needs it
+        if (d > pinchD && chartZoom >= 1.349) sysTry();                               // and past that: into the front system
+      }
     }
     pinchD = d;
   } else if (dragEarth) {                                       // his finger on the world
@@ -4849,6 +4901,7 @@ cvs.addEventListener("wheel", (e) => {
   }
   chartTgt = null;
   chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
+  if (e.deltaY < 0 && chartZoom >= 1.349) sysTry();
 }, { passive: false });
 
 function skipCurrent() {                                        // a tap anywhere mid-run: on to the next stage
@@ -4957,6 +5010,7 @@ function applyS() {                                             // push S into e
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
+  set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic);
   set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
@@ -5029,6 +5083,7 @@ $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
+$("rSys").oninput = (e) => { S.sysHold = +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
 $("ckPlanets").onchange = (e) => (S.planets = e.target.checked);
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
@@ -5066,6 +5121,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("LUNA PUSHED OUT · STARLINK HUGS THE WORLD — CLOSER TO TRUE", "cy");
   log("DURING A RUN: TAP THE SCREEN = NEXT STAGE", "cy");
   log("TRAFFIC ROAMS — SYSTEM TO SYSTEM, TO THE HABITABLE WORLDS, IN AND OUT OF OPEN SPACE", "cy");
+  log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
