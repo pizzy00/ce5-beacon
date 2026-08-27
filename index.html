@@ -614,6 +614,7 @@
     <div class="setBox">
     <div class="setSec">THE EARTH</div>
     <div class="setRow">
+      <label class="setChk"><input type="checkbox" id="ckSites" checked />THE OLD ONES' SKY-ALIGNED PLACES — GIZA, STONEHENGE, TEOTIHUACAN AND 12 MORE · TAP ONE FOR ITS STORY</label>
       <div class="setLbl">THE GLOBE'S SURFACE</div>
       <select id="selEarth">
         <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
@@ -716,7 +717,8 @@
       <input type="range" id="rStretch" min="0.5" max="3" step="0.1" value="1" />
       <div class="setStat">1× = AS FILMED · TEST CAMERAS RAN FAST, SO THE FILM IS ALREADY SLOWER THAN LIFE</div>
       <div class="setLbl">FLASHES — <span id="vRepeat">1</span></div>
-      <input type="range" id="rRepeat" min="1" max="3" step="1" value="1" />
+      <input type="range" id="rRepeat" min="1" max="8" step="1" value="1" />
+      <label class="setChk"><input type="checkbox" id="ckSalvo" />A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT</label>
       <div class="setLbl">EYES-CLOSED COUNTDOWN — <span id="vWarn">6</span>S</div>
       <input type="range" id="rWarn" min="2" max="15" step="1" value="6" />
       <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
@@ -897,7 +899,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail: "full",
-  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
+  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, salvo: false, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
@@ -905,7 +907,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true };
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -1231,6 +1233,24 @@ const PLANETS = [                                               // real order ou
   { n: "STARMAN", au: 1.61, r: 1.3, c: "#ff3b30", L: 345, car: true }   // the Roadster: 1.61 AU out today, a few degrees ahead of Earth (approx.)
 ];
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
+let siteHit = [];                                                // the sky-aligned places on the globe, for a tap
+const SKY_SITES = [                                              // where the old ones watched the sky, and what they lined up with
+  { n: "GIZA", lat: 29.979, lon: 31.134, s: "THE GREAT PYRAMID IS SQUARE TO TRUE NORTH WITHIN 1/20 OF A DEGREE \u00b7 SHAFTS AIMED AT ORION\u2019S BELT AND THUBAN" },
+  { n: "STONEHENGE", lat: 51.179, lon: -1.826, s: "THE AXIS TAKES THE MIDSUMMER SUNRISE AND THE MIDWINTER SUNSET" },
+  { n: "TEOTIHUACAN", lat: 19.692, lon: -98.844, s: "THE AVENUE OF THE DEAD IS TURNED 15.5\u00b0 EAST OF NORTH \u00b7 THE PYRAMID OF THE SUN FACES THE PLEIADES SETTING" },
+  { n: "CHICHEN ITZA", lat: 20.683, lon: -88.568, s: "ON THE EQUINOX THE SUN DRAWS A SERPENT OF LIGHT DOWN EL CASTILLO\u2019S STAIR" },
+  { n: "NAZCA", lat: -14.739, lon: -75.130, s: "LINES ACROSS THE DESERT, SOME OF THEM POINTING AT THE SOLSTICE SUN" },
+  { n: "ANGKOR WAT", lat: 13.412, lon: 103.867, s: "ON THE SPRING EQUINOX THE SUN RISES DEAD OVER THE CENTRAL TOWER" },
+  { n: "MACHU PICCHU", lat: -13.163, lon: -72.545, s: "THE INTIHUATANA STONE CATCHES THE SUN ON THE SOLSTICES \u00b7 THE TORREON WINDOW TAKES THE JUNE SUNRISE" },
+  { n: "NEWGRANGE", lat: 53.695, lon: -6.475, s: "5,200 YEARS OLD \u00b7 THE MIDWINTER SUNRISE RUNS DOWN THE PASSAGE AND LIGHTS THE CHAMBER" },
+  { n: "CHACO CANYON", lat: 36.061, lon: -107.971, s: "THE SUN DAGGER: A BLADE OF LIGHT CROSSES A SPIRAL AT NOON ON THE SUMMER SOLSTICE" },
+  { n: "G\u00d6BEKLI TEPE", lat: 37.223, lon: 38.922, s: "THE OLDEST TEMPLE WE KNOW, 11,500 YEARS \u00b7 SOME SAY ITS PILLARS TRACKED SIRIUS" },
+  { n: "KARNAK", lat: 25.719, lon: 32.657, s: "THE TEMPLE AXIS TAKES THE MIDWINTER SUNRISE" },
+  { n: "ABU SIMBEL", lat: 22.337, lon: 31.626, s: "TWICE A YEAR THE SUN REACHES 60 M INTO THE ROCK AND LIGHTS THE SEATED GODS" },
+  { n: "CARNAC", lat: 47.593, lon: -3.079, s: "3,000 STANDING STONES IN ROWS \u00b7 SOLSTICE SIGHTLINES CLAIMED ACROSS THEM" },
+  { n: "MNAJDRA", lat: 35.827, lon: 14.436, s: "MALTA, 5,500 YEARS \u00b7 THE EQUINOX SUN COMES STRAIGHT THROUGH THE DOOR" },
+  { n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" }
+];
 let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
 function measureCtl() {
@@ -3007,6 +3027,19 @@ function drawEarthHub(t) {
     ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
+  siteHit = [];
+  if (S.sites) {                                                // the old ones' sky-aligned places: gold pyramids, names when you lean in
+    const big = earthZoom > 1.25, r = big ? 4 : 3;
+    ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ffd27a";
+    for (const q of SKY_SITES) {
+      const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
+      siteHit.push({ q, x: p.x, y: p.y });
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y + r * 0.8); ctx.lineTo(p.x - r, p.y + r * 0.8); ctx.closePath(); ctx.fill();
+      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.n, p.x + (p.x > sx ? 7 : -7), p.y + 2.5); }
+    }
+    ctx.globalAlpha = 1; ctx.textAlign = "left";
+  }
   const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, earthTiltDraw);   // and where you are standing
   if (you.v) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
@@ -4204,6 +4237,7 @@ function nukeTour(i, token) {
   }, (fly + S.bHold + 4) * 1000);
 }
 let flashShot = null, flashRaf = 0, flashT0 = 0, flashRun = 0, flashDone = false, photosDone = false, flashAfter = null;
+let flashFar = 1;                                               // a salvo: the later shots are far off, so dimmer
 function preDive() { startDive(); }                              // the flash happens after touchdown now
 function pickShot() {
   if (S.nShot !== "random") { const f = NUKE_CURVES.find((c) => c.id === S.nShot); if (f) return f; }
@@ -4214,8 +4248,9 @@ function nukeFlash(token) {
   document.body.classList.remove("holding");
   setPhase("flash", "THE FLASH");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
-  flashShot = pickShot(); flashRun = 0;
+  flashShot = pickShot(); flashRun = 0; flashFar = 1;
   log((flashAfter ? "ON YOUR SPOT" : "STAGE " + (tourPlan.length ? 3 : 2)) + ": THE FLASH — " + flashShot.name, "alert");
+  if (S.salvo && S.nRepeat > 1) log(S.nRepeat + " OF THEM \u2014 THE REST GO OFF FAR AWAY, AT RANDOM GAPS", "alert");
   log("CLOSE YOUR EYES · COVER THEM · IT COMES THROUGH THE LIDS", "alert");
   $("dSig").textContent = "58%";
   warnThenFlash(token);
@@ -4247,7 +4282,7 @@ function runFlash(token) {
     const y = v[i0] * (1 - f) + v[i1] * f;
     if (y < 0.02) { if (quietSince < 0) quietSince = t; } else quietSince = -1;
     if (t > 2 && quietSince >= 0 && t - quietSince > 0.8) return endFlash(token);   // the light is gone
-    const k = Math.pow(y, 0.6) * S.nInt, mx = Math.min(1, y * 1.6);
+    const k = Math.pow(y, 0.6) * S.nInt * flashFar, mx = Math.min(1, y * 1.6);
     layer.style.background = "rgb(" + Math.round(tint[0] + (255 - tint[0]) * mx) + "," +
       Math.round(tint[1] + (255 - tint[1]) * mx) + "," + Math.round(tint[2] + (255 - tint[2]) * mx) + ")";
     layer.style.opacity = k.toFixed(3);
@@ -4261,7 +4296,15 @@ function endFlash(token) {
   stopFlash();
   if (token !== bermToken) return;
   flashRun++;
-  if (flashRun < S.nRepeat) { bermHold = setTimeout(() => warnThenFlash(token), 2500); return; }
+  if (flashRun < S.nRepeat) {
+    if (S.salvo) {                                              // the next one: a different shot, far off, on its own clock
+      const far = flashRun < S.nRepeat - 1 || Math.random() < 0.5;
+      flashShot = pickShot(); flashFar = far ? 0.22 + Math.random() * 0.4 : 1;
+      log((far ? "ANOTHER ONE \u2014 FAR OFF \u00b7 " : "ANOTHER ONE \u2014 CLOSE \u00b7 ") + flashShot.name, "alert");
+      bermHold = setTimeout(() => runFlash(token), 500 + Math.random() * 3500); return;
+    }
+    bermHold = setTimeout(() => warnThenFlash(token), 2500); return;
+  }
   flashDone = true;
   log("THE LIGHT IS GONE · " + flashShot.name, "cy");
   if (flashAfter) { const cb = flashAfter; flashAfter = null; bermHold = setTimeout(cb, 1500); return; }
@@ -4874,6 +4917,9 @@ function chartTap(cx, cy) {
     const o = MODES.find((q) => q.id === m.id);
     if (o) { pickDeparture(o); return; }
   }
+  for (const h of siteHit) if (Math.hypot(cx - h.x, cy - h.y) < 12) {   // a tap on an old place: its story on the tube
+    log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
+  }
   let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
     const hx = S.chart3d ? s.px : s.x * W, hy = S.chart3d ? s.py : s.y * H;
@@ -5041,7 +5087,7 @@ function applyS() {                                             // push S into e
   set("rFly", S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
-  set("selUTime", S.uTime); chk("ckExo", S.exo);
+  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites);
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
@@ -5052,7 +5098,7 @@ function applyS() {                                             // push S into e
   set("rHold", S.bHold); txt("vHold", S.bHold); set("rBFly", S.bFly); txt("vBFly", S.bFly);
   set("selShot", S.nShot); set("rInt", Math.round(S.nInt * 100)); txt("vInt", Math.round(S.nInt * 100));
   set("rStretch", S.nStretch); txt("vStretch", S.nStretch.toFixed(1));
-  set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
+  set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); chk("ckSalvo", S.salvo); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
   chk("ckPhotos", S.bPhotos); set("rPhoto", S.pHold); txt("vPhoto", S.pHold.toFixed(1));
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
   locSync();
@@ -5153,6 +5199,7 @@ $("rCloud").oninput = (e) => { S.cloudA = +e.target.value / 100; $("vCloud").tex
 $("rCloudSpd").oninput = (e) => { S.cloudSpd = +e.target.value / 10; $("vCloudSpd").textContent = S.cloudSpd.toFixed(1); };
 $("selUTime").onchange = (e) => (S.uTime = +e.target.value);
 $("ckExo").onchange = (e) => (S.exo = e.target.checked);
+$("ckSites").onchange = (e) => (S.sites = e.target.checked);
 applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
@@ -5160,6 +5207,7 @@ $("selShot").onchange = (e) => (S.nShot = e.target.value);
 $("rInt").oninput = (e) => { S.nInt = +e.target.value / 100; $("vInt").textContent = e.target.value; };
 $("rStretch").oninput = (e) => { S.nStretch = +e.target.value; $("vStretch").textContent = S.nStretch.toFixed(1); };
 $("rRepeat").oninput = (e) => { S.nRepeat = +e.target.value; $("vRepeat").textContent = S.nRepeat; };
+$("ckSalvo").onchange = (e) => (S.salvo = e.target.checked);
 $("rWarn").oninput = (e) => { S.nWarn = +e.target.value; $("vWarn").textContent = S.nWarn; };
 $("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
 
@@ -5180,6 +5228,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("TRAFFIC ROAMS — SYSTEM TO SYSTEM, TO THE HABITABLE WORLDS, IN AND OUT OF OPEN SPACE", "cy");
   log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
   log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");
+  log("GOLD PYRAMIDS ON THE GLOBE = THE OLD ONES\u2019 SKY-ALIGNED PLACES \u00b7 PINCH IN FOR NAMES, TAP ONE FOR ITS STORY", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
