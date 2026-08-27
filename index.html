@@ -339,12 +339,12 @@
   .btn.rd { background: radial-gradient(125% 100% at 50% -10%, #e59480 0%, #cd6b56 46%, #ad4f3c 100%);
     border-color: #7d3527; color: #2a0e08; text-shadow: 0 1px 0 rgba(255,255,255,0.30); }
   .btn.on { color: #4a3a10; }
-  #bEngage { flex: 2.6; letter-spacing: 0.22em; position: relative; }   /* the space bar */
+  #bEngage { flex: 3.4; letter-spacing: 0.22em; position: relative; }   /* the space bar */
   #bEngage::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 34%; height: 1px;
     transform: translateX(-50%); background: rgba(120,105,74,0.5); }
   #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget {                 /* the modifier keys, darker plastic */
     background: radial-gradient(125% 100% at 50% -10%, #ded5bd 0%, #c4b99e 46%, #ada285 100%); }
-  #bAll { flex: 1.15; letter-spacing: 0.1em; }
+  #bAll { display: none !important; }                             /* he asked for it off the console */
   .hide { display: none !important; }
 
   #bGear { flex: 0 0 56px; }
@@ -419,6 +419,7 @@
   #setCard { -webkit-touch-callout: none; }
   #setCard select { width: 100%; background: #0d0d20; border: 1px solid var(--amber-dim);
     color: var(--ink); font: inherit; font-size: 11px; padding: 9px; border-radius: 3px; }
+  .setNote { color: var(--amber-dim); font-size: 8.5px; letter-spacing: 0.06em; }
   .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
   .setChk input { accent-color: var(--amber); margin-right: 8px; }
 
@@ -525,6 +526,8 @@
       <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
     </div>
     <div class="setRow">
+      <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · EARTH)</span></div>
+      <input type="range" id="rFly" min="2" max="25" step="0.5" value="5" />
       <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
       <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
       <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
@@ -563,6 +566,8 @@
       <label class="setChk"><input type="checkbox" id="ckVoyager" checked />VOYAGER 1 — THE FARTHEST THING WE EVER MADE · 25 BILLION KM</label>
       <label class="setChk"><input type="checkbox" id="ckJwst" checked />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
       <label class="setChk"><input type="checkbox" id="ckHubble" checked />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
+      <label class="setChk"><input type="checkbox" id="ckIss" checked />INTERNATIONAL SPACE STATION — 420 KM UP · CREWED SINCE 2000</label>
+      <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH ON THE CHART — THOUSANDS OF THEM UP THERE</label>
     </div>
     <div class="setRow">
       <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
@@ -752,12 +757,13 @@
 /* ---------------- target ---------------- */
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
-const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
+const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, nukeAll: true, cache: "normal",
+  polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
+  nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1099,14 +1105,6 @@ function drawSunDisc(x, y, r, t) {                                  // small, br
     ctx.strokeStyle = "rgba(255,140,60," + (0.30 + 0.25 * Math.sin(t * 3 + i)).toFixed(2) + ")";
     ctx.lineWidth = Math.max(1, r * 0.10);
     ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, hh, a - sw, a + sw); ctx.stroke();
-  }
-  for (let i = 0; i < 14; i++) {                                // short shimmering rays
-    const a = (i / 14) * 6.283 + t * 0.05, ln = r * (0.22 + 0.16 * Math.sin(t * 2 + i * 1.3));
-    ctx.strokeStyle = "rgba(255,190,90,0.20)"; ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x + Math.cos(a) * r * 1.06, y + Math.sin(a) * r * 1.06);
-    ctx.lineTo(x + Math.cos(a) * (r * 1.06 + ln), y + Math.sin(a) * (r * 1.06 + ln));
-    ctx.stroke();
   }
 }
 function orthPt(lon, lat, cx, cy, R, tiltDeg) {                 // orthographic, matching the sphere renderer
@@ -1532,9 +1530,12 @@ function buildEarthNight(rings, w, h) {
 /* ======================================================================
    CLOUDS
    ====================================================================== */
-function buildCloudTexture(w, h) {
+function buildCloudTexture(w, h, rings) {
   w = w || 2048; h = h || 1024;
   var cv = etCanvas(w, h), ctx = cv.getContext("2d");
+  /* weather stays off the land: whoever is using this is standing under one of those coasts */
+  var cmw = Math.max(64, w >> 1), cmh = Math.max(32, h >> 1);
+  var dSea = rings ? etDistance(etRasterMask(rings, cmw, cmh), cmw, cmh, true) : null;
   /* wide flat lattices: weather is stretched along the parallels, not round */
   var K = etField(w, 31337, [[19, 7, 1], [41, 15, 0.55], [83, 31, 0.30], [173, 64, 0.17], [349, 128, 0.09]]);
   var im = ctx.createImageData(w, h), px = im.data;
@@ -1553,11 +1554,15 @@ function buildCloudTexture(w, h) {
       - 0.34 * Math.exp(-Math.pow((lat - 27) / 10, 2))          // subtropical highs, clear
       - 0.34 * Math.exp(-Math.pow((lat + 24) / 10, 2));
     cover = etClamp(cover, 0, 1.1);
-    var lo = 0.78 - 0.55 * cover, hi = lo + 0.30;
+    var lo = 0.84 - 0.50 * cover, hi = lo + 0.30;                 // sparser: weather, not a blanket
     var q = y * w * 4;
     for (var x = 0; x < w; x++, q += 4) {
       var n = etFieldAt(K, x);
       var a = etSm(lo, hi, n);
+      if (a > 0 && dSea) {                                       // fade out as the sea approaches a coast
+        var mi = ((y * cmh / h) | 0) * cmw + ((x * cmw / w) | 0);
+        a *= etSm(0.4, 6.0, dSea[mi]);
+      }
       if (a > 0) {
         var bright = 232 + 23 * etSm(lo, hi + 0.16, n);
         px[q] = bright; px[q + 1] = bright; px[q + 2] = 255;
@@ -1588,7 +1593,7 @@ var GLOBE_TERM      = 0.055;   // terminator half-width in sin(angle) ~= 6.3 deg
 var GLOBE_NIGHT_AMT = 1.0;     // city-light strength
 var GLOBE_RIM_AMT   = 1.0;     // atmosphere rim strength
 var GLOBE_SPEC_AMT  = 0.34;    // ocean sheen; set 0 to drop the branch entirely
-var GLOBE_MAXBUF    = 512;     // internal buffer diameter cap, device px
+var GLOBE_MAXBUF    = 640;     // internal buffer diameter cap, device px
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
 var GLOBE_GEOCACHE  = 3;       // how many (size,tilt) geometries to keep
 
@@ -1773,7 +1778,7 @@ function globeDirty(opt) {
   if (glLast.buf !== globeGeoSize(opt.R, opt.dpr, opt.quality)) return true;
   if (glLast.tex !== opt.tex || glLast.night !== (opt.night || null) || glLast.clouds !== (opt.clouds || null)) return true;
   if (Math.abs(glLast.tilt - (opt.tilt || 0)) > 0.08) return true;
-  if (Math.abs(globeWrap(glLast.rot - (opt.rot || 0))) > 0.14) return true;
+  if (Math.abs(globeWrap(glLast.rot - (opt.rot || 0))) > 0.22) return true;
   var cr = (opt.cloudRot === undefined) ? (opt.rot || 0) : opt.cloudRot;
   if (Math.abs(globeWrap(glLast.cloudRot - cr)) > 0.22) return true;
   var s = opt.sun || { x: 0, y: 0, z: 1 };
@@ -2462,19 +2467,25 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 }
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
-let globeCv = null, moonCv = null, moonRot = 0;
-function buildEarthAssets() {                                   // ~0.5 s, once, after the first paint
+let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0;
+function buildEarthAssets() {                                   // built in stages so nothing locks up
   if (earthAssets) return;
   earthAssets = 1;
-  const small = Math.min(W, H) < 520;
-  try {
-    earthTex = buildEarthTexture(LAND_RINGS, small ? 1536 : 2048, small ? 768 : 1024);
-    earthNight = buildEarthNight(LAND_RINGS, 1024, 512);
-    earthClouds = buildCloudTexture(1024, 512);
-    moonTex = buildMoonTexture(768, 384);
-    earthAssets = 2;
-    log("SURFACE IMAGERY LOADED — EARTH AND LUNA", "cy");
-  } catch (e) { earthAssets = 3; log("IMAGERY FAILED — FALLING BACK", "alert"); }
+  const big = Math.min(W, H) >= 520;
+  const steps = [
+    () => { earthTex = buildEarthTexture(LAND_RINGS, big ? 3072 : 2048, big ? 1536 : 1024); },
+    () => { moonTex = buildMoonTexture(1024, 512); },
+    () => { earthNight = buildEarthNight(LAND_RINGS, 1536, 768); },
+    () => { earthClouds = buildCloudTexture(1536, 768, LAND_RINGS); earthAssets = 2;
+      log("SURFACE IMAGERY LOADED — EARTH AND LUNA", "cy"); }
+  ];
+  const run = (i) => {
+    if (i >= steps.length) return;
+    try { steps[i](); } catch (e) { earthAssets = 3; log("IMAGERY FAILED — FALLING BACK", "alert"); return; }
+    earthRef.dirty = true; moonRef.dirty = true;
+    setTimeout(() => run(i + 1), 40);
+  };
+  run(0);
 }
 function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun) {
   const px = Math.max(2, Math.round(2 * R * DPR));
@@ -2490,7 +2501,12 @@ const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
 function drawEarthHub(t) {
   const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R;
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
-  if (!reduced && earthAuto) earthRot += dt * 1.2;              // its own slow turn
+  if (!reduced && !dragEarth) {                                 // a flick carries, then it settles back
+    if (Math.abs(earthVel) > 0.6) {
+      earthRot += earthVel * dt; earthVel *= Math.exp(-dt * 1.05);
+      if (Math.abs(earthVel) <= 0.6) { earthVel = 0; earthAuto = true; }
+    } else if (earthAuto) earthRot += dt * 1.2;                 // its own slow turn
+  }
   modeHit = [];
   const sunX = Math.max(R * 0.13, sx - R * 1.02), sunY = sy - R * 1.20;   // Sol, pushed up above the world
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
@@ -2512,18 +2528,28 @@ function drawEarthHub(t) {
   }
   drawSunDisc(sunX, sunY, R * 0.085, t);
   label(sunX + R * 0.15, sunY + 4, "SOL", "", "#ffd34d");
-  const ma = t * 0.20, mx = sx + Math.cos(ma) * R * 0.98, my = sy - R * 0.86 + Math.sin(ma) * R * 0.16;   // Luna, on its round
-  const mr = R * 0.10;
-  if (!reduced) moonRot += dt * 1.4;
-  glow(mx, my, mr * 2.4, "#d8d8de", 0.18);
-  if (earthAssets === 2) {
-    const mc = paintSphere(moonRef, moonTex, null, null, mr, moonRot, 0, sunV);
-    ctx.drawImage(mc, mx - mr, my - mr, mr * 2, mr * 2);
-  } else {
-    ctx.fillStyle = "#c9c9d2"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.29); ctx.fill();
+  if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; }   // one lap in about 37 seconds
+  const mA = R * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - R * 0.52;   // the lane rides high: the console eats the rest
+  const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
+  const mr = R * 0.115, behind = mSin < 0;                      // far side of the orbit: it goes behind the world
+  ctx.strokeStyle = "rgba(200,214,255,0.13)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
+  const drawMoon = () => {
+    glow(mx, my, mr * 2.4, "#d8d8de", 0.16);
+    if (moonTex) {
+      const mc = paintSphere(moonRef, moonTex, null, null, mr, moonRot, 0, sunV);
+      ctx.drawImage(mc, mx - mr, my - mr, mr * 2, mr * 2);
+    } else { ctx.fillStyle = "#c9c9d2"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.29); ctx.fill(); }
+  };
+  if (behind) {                                                 // clip the world out of it while it passes behind
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx, sy, R, 0, 6.29);
+    ctx.clip("evenodd");
+    drawMoon();
+    ctx.restore();
   }
-  modeHit.push({ id: "luna", x: mx, y: my });
-  if (earthAssets === 2) {                                      // the real thing: land, sea, cloud, night side
+  if (!behind || Math.hypot(mx - sx, my - sy) > R + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
+  if (earthTex) {                                               // the real thing: land, sea, cloud, night side
     const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, R, earthRot, G.tilt, sunV);
     ctx.drawImage(gc, sx - R, sy - R, R * 2, R * 2);
   } else {
@@ -2531,8 +2557,29 @@ function drawEarthHub(t) {
     og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
     ctx.fillStyle = og; ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.fill();
     if (!earthAssets) buildEarthAssets();
+    ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.beginPath(); ctx.arc(sx, sy, R, 0, 6.29); ctx.stroke();
   }
   glow(sx, sy, R * 1.18, "#6bb7ff", 0.10);
+  if (!behind) drawMoon();                                      // in front of the world, so it lands on top
+  ctx.strokeStyle = "rgba(200,214,255,0.16)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke(); ctx.setLineDash([]);
+  if (S.starlink) {                                             // his option: the shell of little ones
+    const inc = [0.34, 0.52, 0.22], scy = sy - R * 0.34;         // lifted for the same reason as Luna's lane
+    ctx.strokeStyle = "rgba(190,210,255,0.10)"; ctx.lineWidth = 1;
+    for (let r2 = 0; r2 < 3; r2++) {
+      const rad2 = R * (1.06 + r2 * 0.04);
+      ctx.beginPath(); ctx.ellipse(sx, scy, rad2, rad2 * inc[r2], 0, 0, 6.29); ctx.stroke();
+    }
+    for (let i = 0; i < 66; i++) {
+      const r2 = i % 3, rad2 = R * (1.06 + r2 * 0.04);
+      const ph = (i / 22) * 6.283 + t * (0.20 + r2 * 0.035) * (r2 === 1 ? -1 : 1);
+      const sn = Math.sin(ph), x2 = sx + Math.cos(ph) * rad2, y2 = scy + sn * rad2 * inc[r2];
+      if (sn < 0 && Math.hypot(x2 - sx, y2 - sy) < R) continue;  // behind the world
+      ctx.globalAlpha = sn < 0 ? 0.30 : 0.85; ctx.fillStyle = "#e4ecff";
+      ctx.fillRect(x2 - 0.9, y2 - 0.9, 1.8, 1.8);
+    }
+    ctx.globalAlpha = 1;
+  }
   const site = nearestSite();                                   // the two spots you can leave from, on the world itself
   const pins = [
     { id: "berm", lat: BERMUDA.lat, lon: BERMUDA.lon, c: "#ff8e5e", n: "TRIANGLE" },
@@ -2610,14 +2657,17 @@ function drawChart(t) {
   const px = POLARIS.x * W, py = POLARIS.y * H;
   const sx = SOL.x * W, sy = SOL.y * H;
   const origins = (allChannels ? SYSTEMS : [selected]).filter((o) => !o.mode);
-  for (const o of origins) dashLine(o.x * W, o.y * H, px, py, o.c, t);
-  dashLine(px, py, sx, sy, "#ffe9a6", t);
-  drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), px, py, sx, sy);
+  const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
+  for (const o of origins) dashLine(o.x * W, o.y * H, gate ? px : sx, gate ? py : sy, o.c, t);
+  if (gate) dashLine(px, py, sx, sy, "#ffe9a6", t);
+  drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), gate ? px : sx, gate ? py : sy, sx, sy);
 
   // Polaris gate
-  star(px, py, 3.2, POLARIS.c);
-  glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
-  label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+  if (gate) {
+    star(px, py, 3.2, POLARIS.c);
+    glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
+    label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+  }
 
   // systems
   for (const s of SYSTEMS) {
@@ -2658,7 +2708,10 @@ function drawChart(t) {
 
 function drawChart3D(t) {
   const dt = Math.min(0.1, Math.max(0, t - chartLastT)); chartLastT = t;
-  if (chartAuto && !reduced) chartRot += dt * S.spin;           // his slider: seconds per turn
+  if (!reduced && ptrs.size === 0 && Math.abs(chartVel) > 0.012) {   // the flick runs down, then it settles back
+    chartRot += chartVel * dt; chartVel *= Math.exp(-dt * 1.05);
+    if (Math.abs(chartVel) <= 0.012) { chartVel = 0; chartAuto = true; }
+  } else if (chartAuto && !reduced) chartRot += dt * S.spin;    // his slider: seconds per turn
   if (chartTgt) {                                                // swing the pick to the front and lean in
     let d = chartTgt.rot - chartRot; d = Math.atan2(Math.sin(d), Math.cos(d));   // the short way round
     const e = reduced ? 1 : Math.min(1, dt * 3.5);
@@ -2698,12 +2751,15 @@ function drawChart3D(t) {
     ctx.globalAlpha = 1;
   }
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
-  for (const o of origins) dashLine(o.px, o.py, px, py, o.c, t);
-  dashLine(px, py, sx, sy, "#ffe9a6", t);
-  drawTraffic(t, (s) => ({ x: s.px, y: s.py }), px, py, sx, sy);
-  star(px, py, 3.2, POLARIS.c);
-  glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
-  label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+  const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
+  for (const o of origins) dashLine(o.px, o.py, gate ? px : sx, gate ? py : sy, o.c, t);
+  if (gate) dashLine(px, py, sx, sy, "#ffe9a6", t);
+  drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : sx, gate ? py : sy, sx, sy);
+  if (gate) {
+    star(px, py, 3.2, POLARIS.c);
+    glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
+    label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
+  }
   for (const { s, q } of P) {
     const x = q.x, y = q.y, k = q.k, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9));
     ctx.globalAlpha = depth;
@@ -3036,6 +3092,50 @@ function drawJwst(p, t) {                                       // the gold mirr
   $("dRng").textContent = "1.5M KM";
   $("dSig").textContent = "62%";
 }
+function drawIss(p, t) {                                        // the one with people in it
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  const limbR = W * 1.6, limbY = H * 0.74 + limbR;
+  const g = ctx.createRadialGradient(W / 2, limbY, limbR * 0.985, W / 2, limbY, limbR * 1.03);
+  g.addColorStop(0, "#1d5fae"); g.addColorStop(0.5, "rgba(90,170,255,0.55)"); g.addColorStop(1, "rgba(90,170,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#0c2f5c"; ctx.beginPath(); ctx.arc(W / 2, limbY, limbR * 0.985, 0, 6.29); ctx.fill();
+  const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
+  const cx = W * (0.78 - grow * 0.28) - drift * W * 0.9, cy = H * 0.34;
+  const L = Math.min(150, Math.min(W, H) * 0.34) * (0.3 + grow * 0.7);
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.26);
+  ctx.strokeStyle = "#b9bfcc"; ctx.lineWidth = Math.max(1.4, L * 0.035);   // the truss
+  ctx.beginPath(); ctx.moveTo(-L * 0.86, 0); ctx.lineTo(L * 0.86, 0); ctx.stroke();
+  for (let i = 0; i < 4; i++) {                                 // four pairs of arrays
+    const sgn = i < 2 ? -1 : 1, off = (i % 2) ? 0.86 : 0.56;
+    for (const up of [-1, 1]) {
+      const ax = sgn * L * off, ay = up * L * 0.30;
+      const ag = ctx.createLinearGradient(ax - L * 0.16, ay, ax + L * 0.16, ay);
+      ag.addColorStop(0, "#1f3f78"); ag.addColorStop(0.5, "#3f6fc0"); ag.addColorStop(1, "#25497f");
+      ctx.fillStyle = ag; ctx.fillRect(ax - L * 0.15, ay - L * 0.22, L * 0.30, L * 0.44);
+      ctx.strokeStyle = "rgba(190,215,255,0.45)"; ctx.lineWidth = 0.6;
+      for (let k = 1; k < 5; k++) {
+        const yy = ay - L * 0.22 + k * L * 0.088;
+        ctx.beginPath(); ctx.moveTo(ax - L * 0.15, yy); ctx.lineTo(ax + L * 0.15, yy); ctx.stroke();
+      }
+      ctx.strokeStyle = "#9aa2b2"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(ax, 0); ctx.lineTo(ax, ay - up * L * 0.22); ctx.stroke();
+    }
+  }
+  ctx.fillStyle = "#e9e9ef"; ctx.strokeStyle = "#8d94a4"; ctx.lineWidth = 1;   // the modules
+  ctx.beginPath(); ctx.ellipse(0, 0, L * 0.30, L * 0.075, 0, 0, 6.29); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-L * 0.05, L * 0.13, L * 0.075, L * 0.20, 0, 0, 6.29); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#cfd6e4";
+  ctx.fillRect(-L * 0.34, -L * 0.30, L * 0.10, L * 0.24);        // radiators
+  ctx.fillRect(L * 0.24, -L * 0.30, L * 0.10, L * 0.24);
+  ctx.fillStyle = "rgba(140,220,255," + (0.55 + 0.35 * Math.sin(t * 2.2)).toFixed(2) + ")";
+  ctx.beginPath(); ctx.arc(L * 0.22, L * 0.02, Math.max(1.2, L * 0.022), 0, 6.29); ctx.fill();
+  ctx.restore();
+  glow(cx, cy, L * 0.8, "#cfd8ff", 0.10);
+  label(W / 2, cy + L * 0.55 + 34, "INTERNATIONAL SPACE STATION",
+    "420 KM UP · 28,000 KM/H · CREWED WITHOUT A BREAK SINCE 2000", "#cfd8ff", "center");
+  $("dRng").textContent = "420 KM";
+  $("dSig").textContent = "80%";
+}
 function drawHubble(p, t) {                                     // low Earth orbit: the limb below, the telescope drifting over it
   ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
   const limbR = W * 1.6, limbY = H * 0.76 + limbR;             // Earth's limb along the bottom
@@ -3356,11 +3456,12 @@ function drawMoonStage(p, t) {
 /* ---------------- sequencer ---------------- */
 let t0 = 0, raf = 0;
 const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
-  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY", voyager: "VOYAGER 1" };
+  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY",
+  voyager: "VOYAGER 1", iss: "STATION PASS" };
 function stageAfter(cur) {
-  const order = ["warp", "polaris", "voyager", "sun", "jwst", "moon", "hubble", "earth"];
+  const order = ["warp", "polaris", "voyager", "sun", "jwst", "moon", "hubble", "iss", "earth"];
   const on = { warp: true, polaris: S.polaris, voyager: S.voyager, sun: S.sun, jwst: S.jwst,
-    moon: S.moon, hubble: S.hubble, earth: true };
+    moon: S.moon, hubble: S.hubble, iss: S.iss, earth: true };
   let i = order.indexOf(cur) + 1;
   while (i < order.length - 1 && !on[order[i]]) i++;
   return order[i];
@@ -3376,10 +3477,12 @@ function advance(cur, ts) {
   else if (n === "voyager") log("VOYAGER 1 — 25 BILLION KM OUT, STILL TALKING TO US", "cy");
   else if (n === "jwst") log("WEBB FLYBY — THE GOLD MIRROR AT L2", "cy");
   else if (n === "hubble") log("HUBBLE FLYBY — 540 KM UP · ON STATION SINCE 1990", "cy");
+  else if (n === "iss") log("STATION PASS — SOMEBODY IS AWAKE UP THERE", "cy");
 }
 function loop(ts) {
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
+  const segF = () => Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.flyby * 1000)));   // his flyby slider, in seconds
   if (phase === "chart") drawChart(t);
   else if (phase === "origin") {
     const mode = modeOf(), p = seg((mode === "bermuda" ? 17000 : 12000) * S.originMul);
@@ -3408,31 +3511,35 @@ function loop(ts) {
     drawWarp(p, t);
     if (p >= 1) advance("warp", ts);
   } else if (phase === "polaris") {
-    const p = seg(3600);
+    const p = segF();
     drawPolaris(p, t);
     if (p >= 1) advance("polaris", ts);
   } else if (phase === "sun") {
-    const p = seg(4600);
+    const p = segF();
     drawSun(p, t);
     if (p >= 1) advance("sun", ts);
   } else if (phase === "moon") {
-    const p = seg(4600);
+    const p = segF();
     drawMoonStage(p, t);
-    if (p >= 1) { if (modeOf() === "moon" && !S.hubble) return preDive(); advance("moon", ts); }
+    if (p >= 1) { if (modeOf() === "moon" && !S.hubble && !S.iss) return preDive(); advance("moon", ts); }
   } else if (phase === "voyager") {
-    const p = seg(5600);
+    const p = segF();
     drawVoyager(p, t);
     if (p >= 1) advance("voyager", ts);
   } else if (phase === "jwst") {
-    const p = seg(5200);
+    const p = segF();
     drawJwst(p, t);
     if (p >= 1) advance("jwst", ts);
+  } else if (phase === "iss") {
+    const p = segF();
+    drawIss(p, t);
+    if (p >= 1) advance("iss", ts);
   } else if (phase === "hubble") {
-    const p = seg(5200);
+    const p = segF();
     drawHubble(p, t);
-    if (p >= 1) { if (modeOf() === "moon") return preDive(); advance("hubble", ts); }
+    if (p >= 1) advance("hubble", ts);
   } else if (phase === "earth") {
-    const p = seg(3200);
+    const p = segF();
     drawEarth(p);
     if (p >= 1) return preDive();
   }
@@ -4089,7 +4196,7 @@ $("bTone").onclick = () => {
 };
 
 /* chart tap: select system / skip warp */
-const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false, dragEarth = false;
+const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false, dragEarth = false, chartVel = 0, skyMoveT = 0;
 function focusChart(s) {                                        // a pick before ENGAGE: bring that sky to the front, lean in
   if (!S.chart3d || phase !== "chart") return;
   chartAuto = false; clearTimeout(chartResume);
@@ -4124,7 +4231,8 @@ cvs.addEventListener("pointerdown", (e) => {
     dragMoved = 0; wasPinch = false; chartTgt = null;
     const G = earthGeom(), r = cvs.getBoundingClientRect();     // inside the world = turn the world
     dragEarth = Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * 1.04;
-    if (dragEarth) { earthAuto = false; clearTimeout(earthResume); }
+    if (!dragEarth) { chartVel = 0; skyMoveT = 0; }
+    if (dragEarth) { earthAuto = false; earthVel = 0; lastMoveT = 0; clearTimeout(earthResume); }
   }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
   chartAuto = false; clearTimeout(chartResume);
@@ -4137,8 +4245,18 @@ cvs.addEventListener("pointermove", (e) => {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * d / pinchD));
     pinchD = d;
-  } else if (dragEarth) earthRot -= dx * 0.30;                  // his finger on the world
-  else if (S.chart3d) chartRot += dx * 0.006;
+  } else if (dragEarth) {                                       // his finger on the world
+    const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (lastMoveT || now - 16)));
+    earthRot -= dx * 0.30;
+    earthVel = Math.max(-420, Math.min(420, (-dx * 0.30 * 1000) / dtm));
+    lastMoveT = now;
+  }
+  else if (S.chart3d) {                                         // a flick of the sky carries on turning
+    const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (skyMoveT || now - 16)));
+    chartRot += dx * 0.006;
+    chartVel = Math.max(-4, Math.min(4, (dx * 0.006 * 1000) / dtm));
+    skyMoveT = now;
+  }
   dragMoved += Math.hypot(dx, dy);
 });
 const endPtr = (e) => {
@@ -4235,9 +4353,11 @@ function applyS() {                                             // push S into e
   const chk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
   set("rBreath", S.breath); txt("vBreath", S.breath.toFixed(1));
   set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
+  set("rFly", S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckNukeAll", S.nukeAll);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager);
+  chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
@@ -4285,6 +4405,7 @@ $("rBreath").oninput = (e) => {
   if (breathTimer) { clearInterval(breathTimer); startBreath(); }
 };
 $("rSpace").oninput = (e) => { S.spaceMul = +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
+$("rFly").oninput = (e) => { S.flyby = +e.target.value; $("vFly").textContent = S.flyby.toFixed(1); };
 $("rDive").oninput = (e) => { S.diveMul = +e.target.value; $("vDive").textContent = S.diveMul.toFixed(1); };
 $("rOrigin").oninput = (e) => { S.originMul = +e.target.value; $("vOrigin").textContent = S.originMul.toFixed(1); };
 $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
@@ -4293,6 +4414,8 @@ $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("ckJwst").onchange = (e) => (S.jwst = e.target.checked);
 $("ckVoyager").onchange = (e) => (S.voyager = e.target.checked);
+$("ckIss").onchange = (e) => (S.iss = e.target.checked);
+$("ckStar").onchange = (e) => (S.starlink = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
 $("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
