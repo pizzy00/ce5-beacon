@@ -809,7 +809,7 @@
       <div class="setLbl">THE BOARD — EVERYONE</div>
       <div id="bdAll"></div>
     </div>
-    <div class="infoFoot">LIGHT-YEARS COUNT THE DISTANCE TO THE SYSTEM YOU INVITED · LUNA, THE DEEP AND THE TRIANGLE COUNT AS EARTH TRIPS</div>
+    <div class="infoFoot">LIGHT-YEARS COUNT THE DISTANCE TO THE SYSTEM YOU INVITED · LUNA, THE DEEP AND THE TRIANGLE COUNT AS EARTH TRIPS · THE BOARD LIVES ON GITHUB, NO SERVER: <a href="https://github.com/pizzy00/ce5-board/blob/main/BOARD.md" target="_blank" rel="noopener" style="color:var(--cyan)">BOARD.MD</a></div>
   </div>
 </div>
 <div id="info" class="hide">
@@ -5090,8 +5090,10 @@ $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("
 $("bClose").onclick = () => $("settings").classList.add("hide");
 const SAVE_KEY = "ce5.console.v1";
 /* ---------------- the travellers board ---------------- */
-const BOARD_URL = "";                                            // the shared board's endpoint; empty = this device only (needs a stable public host)
-const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign";
+const BOARD_REPO = "pizzy00/ce5-board";                          // the board lives on GitHub, no server: trips = issues, an Action writes board.json
+const BOARD_READ = "https://raw.githubusercontent.com/" + BOARD_REPO + "/main/board.json";
+const BOARD_TOKEN = "";                                          // a fine-grained token for THAT repo only, Issues: write (it can do nothing else)
+const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign", PEND_KEY = "ce5.pending.v1";
 const CS_A = ["ZETA", "ORION", "LYRAN", "SIRIAN", "VEGAN", "ARCTURIAN", "PLEIADIAN", "ANDROMEDAN", "NORDIC", "GREY", "MANTID",
   "TALL WHITE", "VENUSIAN", "MARTIAN", "LUNAR", "DEEP", "POLARIS", "SOLAR", "TRIANGLE", "TAU CETI"];
 const CS_B = ["PILOT", "WATCHER", "SIGNAL", "BEACON", "DRIFTER", "ENVOY", "NAVIGATOR", "LANTERN", "WANDERER", "ORBITER", "SCOUT",
@@ -5108,8 +5110,28 @@ function logTrip() {                                            // a run reached
   const trip = { n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
   const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
-  if (BOARD_URL) fetch(BOARD_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(trip) }).catch(() => {});
+  const P = readPending(); P.push(trip); while (P.length > 50) P.shift();
+  try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {}
+  flushPending();
 }
+function readPending() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || "[]") || []; } catch (e) { return []; } }
+let flushing = false;
+function flushPending() {                                       // file what this device still owes the board, one issue per trip
+  if (!BOARD_TOKEN || flushing || !navigator.onLine) return;
+  const P = readPending(); if (!P.length) return;
+  flushing = true;
+  const trip = P[0];
+  fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ n: trip.n, d: trip.d, ly: trip.ly }) })
+  }).then((r) => {
+    if (r.ok || r.status === 422) { P.shift(); try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {} }
+    flushing = false; if (r.ok && P.length) setTimeout(flushPending, 1500);
+  }).catch(() => { flushing = false; });
+}
+addEventListener("online", flushPending);
+setTimeout(flushPending, 4000);
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function bdWhen(t) {
   const m = Math.round((Date.now() - t) / 60000);
@@ -5127,14 +5149,23 @@ function openBoard() {
   const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
   $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
     " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + bdRows(L.slice(0, 12), true);
-  if (!BOARD_URL) {
-    $("bdAll").innerHTML = '<div class="setStat">THE SHARED BOARD IS NOT CONNECTED YET \u00b7 WHEN IT IS, EVERY TRAVELLER SHOWS UP HERE, MOST LIGHT-YEARS FIRST</div>';
-  } else {
-    $("bdAll").innerHTML = '<div class="setStat">LOADING\u2026</div>';
-    fetch(BOARD_URL).then((r) => r.json())
-      .then((rows) => { $("bdAll").innerHTML = bdRows((rows || []).sort((a, b) => (b.ly || 0) - (a.ly || 0)).slice(0, 25)); })
-      .catch(() => { $("bdAll").innerHTML = '<div class="setStat">NO ANSWER FROM THE BOARD</div>'; });
-  }
+  const pend = readPending().length;
+  const note = !BOARD_TOKEN
+    ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
+    : (pend ? '<div class="setStat">' + pend + ' OF YOURS STILL TO FILE \u00b7 THE BOARD CATCHES UP WITHIN A FEW MINUTES</div>' : "");
+  $("bdAll").innerHTML = note + '<div class="setStat">LOADING\u2026</div>';
+  fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" }).then((r) => r.json())
+    .then((b) => {
+      const lead = (b && b.leaders || []).slice(0, 25), last = (b && b.trips || []).slice(-8).reverse();
+      let h = note;
+      if (!lead.length) h += '<div class="setStat">NOBODY ON THE BOARD YET \u00b7 BE THE FIRST</div>';
+      else h += lead.map((r, i) => '<div class="bdRow' + (r.n === callsign ? " me" : "") + '"><span><b>' + (i + 1) + ". " + esc(r.n) + '</b> \u00b7 ' + r.trips + ' TRIP' + (r.trips === 1 ? "" : "S") +
+        '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.last) + '</i></span></div>').join("");
+      if (last.length) h += '<div class="setLbl" style="margin-top:10px">LATEST TRIPS</div>' + bdRows(last);
+      if (b && b.updated) h += '<div class="setStat">BOARD WRITTEN ' + bdWhen(Date.parse(b.updated)) + ' \u00b7 IT CATCHES UP A FEW MINUTES AFTER EACH TRIP</div>';
+      $("bdAll").innerHTML = h;
+    })
+    .catch(() => { $("bdAll").innerHTML = note + '<div class="setStat">NO ANSWER FROM THE BOARD</div>'; });
   $("board").classList.remove("hide");
 }
 function setName(v) {
