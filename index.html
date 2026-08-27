@@ -339,9 +339,48 @@
   .btn.rd { background: radial-gradient(125% 100% at 50% -10%, #e59480 0%, #cd6b56 46%, #ad4f3c 100%);
     border-color: #7d3527; color: #2a0e08; text-shadow: 0 1px 0 rgba(255,255,255,0.30); }
   .btn.on { color: #4a3a10; }
-  #bEngage { flex: 3.4; letter-spacing: 0.22em; position: relative; }   /* the space bar */
-  #bEngage::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 34%; height: 1px;
-    transform: translateX(-50%); background: rgba(120,105,74,0.5); }
+  #bEngage {                                                     /* a cabinet button bolted into the plate */
+    flex: 0 0 auto; width: 116px; height: 98px; padding: 0; position: relative;
+    display: flex; align-items: center; justify-content: center; }
+  #bEngage .cap { position: absolute; left: 50%; top: 50%; width: 78px; height: 78px; margin: -39px 0 0 -39px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 34%, #86ffa6 0%, #35d95f 40%, #128f39 74%, #0a5b26 100%);
+    box-shadow:
+      0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,                      /* the mounting collar in the plate */
+      inset 0 4px 7px rgba(255,255,255,0.55),                    /* inner bevel, lit from above */
+      inset 0 -7px 12px rgba(0,0,0,0.45),
+      0 6px 0 #0a4a1f,                                           /* the plunger's side wall */
+      0 9px 12px rgba(0,0,0,0.6);
+    transition: transform 0.06s linear, box-shadow 0.06s linear, background 0.12s linear; }
+  #bEngage .cap::after { content: ""; position: absolute; inset: 14%; border-radius: 50%;
+    background: radial-gradient(circle at 50% 55%, rgba(255,244,190,0.35), rgba(255,244,190,0) 68%);
+    opacity: 0.5; transition: opacity 0.08s linear; }             /* the bulb behind the plastic */
+  #bEngage .lbl { position: relative; z-index: 2; font-size: 13px; letter-spacing: 0.22em;
+    font-weight: 700; color: #06340f; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
+  #bEngage .lbl.stop { display: none; }
+  #bEngage:active .cap {                                          /* pressed: it drops and the lamp comes up */
+    transform: translateY(6px);
+    background: radial-gradient(circle at 50% 42%, #e8ffee 0%, #86ffa6 28%, #37e263 62%, #14a13f 100%);
+    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
+      inset 0 3px 9px rgba(0,0,0,0.5), 0 1px 0 #0a4a1f, 0 3px 7px rgba(0,0,0,0.5),
+      0 0 26px 7px rgba(120,255,150,0.55); }
+  #bEngage:active .cap::after { opacity: 1; }
+  body.run #bEngage, body.active #bEngage { width: 86px; height: 76px; }   /* it shrinks into the stop */
+  body.run #bEngage .cap, body.active #bEngage .cap {
+    width: 56px; height: 56px; margin: -28px 0 0 -28px;
+    background: radial-gradient(circle at 50% 34%, #ffa593 0%, #e2503a 40%, #a32a18 74%, #6b190d 100%);
+    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
+      inset 0 3px 6px rgba(255,255,255,0.45), inset 0 -6px 10px rgba(0,0,0,0.45),
+      0 5px 0 #59150a, 0 8px 11px rgba(0,0,0,0.6); }
+  body.run #bEngage:active .cap, body.active #bEngage:active .cap {
+    transform: translateY(5px);
+    background: radial-gradient(circle at 50% 42%, #ffe6df 0%, #ff9b86 28%, #e2503a 62%, #a32a18 100%);
+    box-shadow: 0 0 0 3px #cabd9c, 0 0 0 5px #8d8266,
+      inset 0 3px 9px rgba(0,0,0,0.5), 0 1px 0 #59150a, 0 3px 7px rgba(0,0,0,0.5),
+      0 0 24px 7px rgba(255,120,90,0.55); }
+  body.run #bEngage .lbl.go, body.active #bEngage .lbl.go { display: none; }
+  body.run #bEngage .lbl.stop, body.active #bEngage .lbl.stop { display: inline; color: #2c0a04; font-size: 11px; }
+  #bStop { display: none !important; }                            /* the arcade button is the stop now */
   #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget {                 /* the modifier keys, darker plastic */
     background: radial-gradient(125% 100% at 50% -10%, #ded5bd 0%, #c4b99e 46%, #ada285 100%); }
   #bAll { display: none !important; }                             /* he asked for it off the console */
@@ -602,6 +641,8 @@
     </div>
     <div class="setRow">
       <div class="setLbl">THE FLASH — WHICH SHOT'S LIGHT</div>
+      <div class="setLbl">HOLD ON YOUR SPOT BEFORE THE FLASH — <span id="vArr">8</span>S</div>
+      <input type="range" id="rArr" min="0" max="40" step="1" value="8" />
       <label class="setChk"><input type="checkbox" id="ckNukeAll" checked />THE FLASH ON EVERY TRIP — CLOSE YOUR EYES BEFORE THE DESCENT (OFF = BERMUDA ONLY)</label>
       <select id="selShot">
         <option value="random">RANDOM EACH RUN</option>
@@ -738,7 +779,7 @@
 <div id="ctl">
   <div id="chips"></div>
   <div id="btns">
-    <button class="btn" id="bEngage">Engage<span class="long"> Approach</span></button>
+    <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span></button>
     <button class="btn cy" id="bAll">All Channels</button>
     <button class="btn" id="bGear">⚙</button>
     <button class="btn cy" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
@@ -758,7 +799,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail: "full",
-  bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
+  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
@@ -3677,14 +3718,7 @@ function nukeTour(i, token) {
   }, (fly + S.bHold + 4) * 1000);
 }
 let flashShot = null, flashRaf = 0, flashT0 = 0, flashRun = 0, flashDone = false, photosDone = false, flashAfter = null;
-function preDive() {                                            // eyes closed, the flash, then the descent, on every trip
-  if (S.nukeAll && modeOf() !== "bermuda" && !flashDone && !reduced) {
-    cancelAnimationFrame(raf);
-    tourPlan = []; flashAfter = startDive;
-    return nukeFlash(++bermToken);
-  }
-  startDive();
-}
+function preDive() { startDive(); }                              // the flash happens after touchdown now
 function pickShot() {
   if (S.nShot !== "random") { const f = NUKE_CURVES.find((c) => c.id === S.nShot); if (f) return f; }
   return NUKE_CURVES[Math.floor(Math.random() * NUKE_CURVES.length)];
@@ -3694,7 +3728,7 @@ function nukeFlash(token) {
   setPhase("flash", "THE FLASH");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
   flashShot = pickShot(); flashRun = 0;
-  log((flashAfter ? "BEFORE THE DESCENT" : "STAGE " + (tourPlan.length ? 3 : 2)) + ": THE FLASH — " + flashShot.name, "alert");
+  log((flashAfter ? "ON YOUR SPOT" : "STAGE " + (tourPlan.length ? 3 : 2)) + ": THE FLASH — " + flashShot.name, "alert");
   log("CLOSE YOUR EYES · COVER THEM · IT COMES THROUGH THE LIDS", "alert");
   $("dSig").textContent = "58%";
   warnThenFlash(token);
@@ -3946,12 +3980,21 @@ function arrive() {
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
   log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN"
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
-  log('TX: "' + S.msg + '"', "alert");
-  log("AWAITING RESPONSE...");
-  if (S.mOn) morseHold = setTimeout(() => sendMorse(S.msg), 1500);
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
   ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
+  const callOut = () => {                                        // the message goes out last
+    setPhase("active", "BEACON ACTIVE");
+    log('TX: "' + S.msg + '"', "alert");
+    log("AWAITING RESPONSE...");
+    if (S.mOn) morseHold = setTimeout(() => sendMorse(S.msg), 1500);
+  };
+  if (S.nukeAll && modeOf() !== "bermuda" && !flashDone && !reduced) {
+    log("HOLD HERE — BREATHE · THE FLASH COMES BEFORE THE CALL", "cy");
+    cueStage("HOLD HERE"); cueSub("THE FLASH COMES FIRST");
+    tourPlan = []; flashAfter = callOut;
+    bermHold = setTimeout(() => nukeFlash(++bermToken), Math.max(0, S.arrHold) * 1000);
+  } else callOut();
 }
 
 function replay() {
@@ -4059,7 +4102,11 @@ for (const s of [...SYSTEMS, ...MODES]) {
 measureCtl();
 setTimeout(buildEarthAssets, 220);                              // after the first frame is up
 addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
-$("bEngage").onclick = engage;
+$("bEngage").onclick = () => {                                  // one button: start, then stop
+  if (document.body.classList.contains("run") || document.body.classList.contains("active")) {
+    log("STOPPED — BACK TO THE CHART", "alert"); replay();
+  } else engage();
+};
 $("bAll").onclick = () => {
   allChannels = !allChannels;
   if (allChannels && selected.mode) {
@@ -4373,7 +4420,8 @@ function applyS() {                                             // push S into e
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin));
-  chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
+  chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic);
+  set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = saveSettings;
@@ -4418,6 +4466,7 @@ $("ckIss").onchange = (e) => (S.iss = e.target.checked);
 $("ckStar").onchange = (e) => (S.starlink = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
 $("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
+$("rArr").oninput = (e) => { S.arrHold = +e.target.value; $("vArr").textContent = e.target.value; };
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
 $("selMotion").onchange = (e) => {
