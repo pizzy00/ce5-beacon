@@ -88,6 +88,7 @@
   #data span { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
   #data i { font-style: normal; font-size: 8px; letter-spacing: 0.1em; opacity: 0.7; }
   #data b { font-weight: 400; color: #dcffe8; }
+  #data .lz b { color: var(--amber); letter-spacing: 0.14em; }   /* the landing zone: where the numbers point */
   @media (max-width: 380px) { #data { font-size: 8px; gap: 0 6px; } #data i { font-size: 7px; } #keys { gap: 4px; } }
   /* the departures: one line of phosphor text drifting left across the screen; drag it, tap a name */
   #loc { flex: none; margin-top: auto; height: 13px; line-height: 13px; overflow: hidden; white-space: nowrap;
@@ -309,24 +310,24 @@
     text-shadow: 0 0 6px rgba(255,92,57,0.5); line-height: 1.5; }
   #btns { display: flex; gap: 8px; align-items: stretch; }
   #deck { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }   /* the CRT over the key row; a fixed height, so START does not move when it turns into STOP */
-  #keys { display: flex; gap: 6px; flex: 0 0 auto; height: 33px; align-items: flex-start; min-width: 0;
+  #keys { display: flex; gap: 6px; flex: 0 0 auto; height: 38px; align-items: flex-end; padding-bottom: 4px; box-sizing: border-box; min-width: 0;
     overflow-x: auto; overflow-y: hidden;
     -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }   /* 28px keys + room for their shadow */
   #keys::-webkit-scrollbar, #chips::-webkit-scrollbar { display: none; }
   #keys .btn { flex: 0 0 auto; min-width: 44px; }
   /* the keys: Apple IIe keycaps, chocolate plastic, cream legend, all the same short height */
-  #keys .key { background: linear-gradient(180deg, #5b4838 0%, #4a3a2c 45%, #392c21 100%); color: #efe4c8;
-    border: 1px solid #241a13; border-radius: 4px; text-shadow: 0 1px 0 rgba(0,0,0,0.45);
-    box-shadow: inset 0 1px 0 rgba(255,235,200,0.25), inset 0 -2px 0 rgba(0,0,0,0.35), 0 3px 0 #1e1610, 0 4px 6px rgba(0,0,0,0.6);
+  #keys .key { background: linear-gradient(180deg, #ece5d2 0%, #dcd2ba 48%, #c9bea4 100%); color: #3a3128;   /* 1980s Apple beige, sun-yellowed */
+    border: 1px solid #8a7d64; border-radius: 4px; text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #8a7d64, 0 4px 6px rgba(0,0,0,0.6);
     font-weight: 700; font-size: 11px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase;
-    height: 28px; min-width: 44px; padding: 0 10px; position: relative;
+    height: 34px; min-width: 44px; padding: 0 10px; position: relative;                        /* tall: the key bottoms meet the START plate's */
     display: inline-flex; align-items: center; justify-content: center; }
   #keys .key::before { content: ""; position: absolute; inset: 2px 3px 55% 3px; border-radius: 3px;
-    background: radial-gradient(70% 60% at 50% 30%, rgba(255,240,210,0.12), transparent); pointer-events: none; }
+    background: radial-gradient(70% 60% at 50% 30%, rgba(255,255,255,0.35), transparent); pointer-events: none; }
   #keys .key:active, #keys .key.on { transform: translateY(2px);
-    box-shadow: inset 0 1px 0 rgba(255,235,200,0.15), 0 1px 0 #1e1610, 0 2px 4px rgba(0,0,0,0.6); }
-  #keys .key.on { color: #fff3d6; background: linear-gradient(180deg, #4a3a2c 0%, #3d2f23 45%, #2f241b 100%); }
-  #keys .key.cy, #keys .key.rd { color: #efe4c8; }
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 0 #8a7d64, 0 2px 4px rgba(0,0,0,0.6); }
+  #keys .key.on { color: #1f1a14; background: linear-gradient(180deg, #d6cbb2 0%, #c7bba1 48%, #b5a98e 100%); }
+  #keys .key.cy, #keys .key.rd { color: #3a3128; }
   #keys .key svg { display: block; }
   #bGear { font-size: 15px; letter-spacing: 0; }
   #bGps { margin-left: auto; }                                     /* the arrows sit left, the three tools sit right */
@@ -341,12 +342,16 @@
     #loc { font-size: 12px; height: 15px; line-height: 15px; }
     #keys .key { min-width: 54px; }
   }
-  #bLocL, #bLocR { color: #a9ffc6; }                                /* phosphor legends: these two are the ones to press */
-  #bLocL svg, #bLocR svg { width: 9px; height: 11px; animation: arrowGlow 2.4s ease-in-out infinite; }
-  @keyframes arrowGlow { 0%, 100% { filter: drop-shadow(0 0 1px rgba(125,251,168,0.35)); }
-    50% { filter: drop-shadow(0 0 5px rgba(125,251,168,0.95)); } }
+  #keys #bLocL, #keys #bLocR { color: #0d7a3c;                     /* the two to press: green-tinted caps that breathe light */
+    background: linear-gradient(180deg, #e4f4dc 0%, #cfe6c2 48%, #b6d2a8 100%); border-color: #5f8a5a;
+    animation: keyGlow 2.4s ease-in-out infinite; }
+  #bLocL svg, #bLocR svg { width: 10px; height: 12px; filter: drop-shadow(0 0 2px rgba(60,220,120,0.8)); }
+  @keyframes keyGlow {
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 4px rgba(125,251,168,0.25); }
+    50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 16px rgba(125,251,168,0.95); }
+  }
   @media (prefers-reduced-motion: reduce) {
-    #bLocL svg, #bLocR svg { animation: none; filter: drop-shadow(0 0 3px rgba(125,251,168,0.7)); }
+    #keys #bLocL, #keys #bLocR { animation: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 10px rgba(125,251,168,0.7); }
   }
   body.run #bLocL, body.run #bLocR, body.active #bLocL, body.active #bLocR { display: none; }   /* nothing to step through mid-run */
   .btn { flex: 1;
@@ -400,6 +405,18 @@
       inset 0 5px 11px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(255,255,255,0.25),
       0 1px 2px rgba(0,0,0,0.35), 0 0 26px 8px rgba(120,255,150,0.55); }
   #bEngage:active .cap::after { opacity: 1; }
+  #bEngage .cover {                                              /* the clear safety cover: flip it up, then press */
+    position: absolute; left: 50%; top: 50%; width: calc(var(--cs) + 16px); height: calc(var(--cs) + 16px);
+    margin: calc((var(--cs) + 16px) / -2) 0 0 calc((var(--cs) + 16px) / -2); border-radius: 9px; z-index: 3; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,0.38), rgba(200,230,255,0.10) 45%, rgba(255,255,255,0.24));
+    border: 1.5px solid rgba(255,255,255,0.6); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 3px 6px rgba(0,0,0,0.45);
+    transform-origin: 50% 0; transform: perspective(320px) rotateX(0deg); transition: transform 0.38s cubic-bezier(0.3, 1.3, 0.5, 1);
+    backface-visibility: visible; }
+  #bEngage .cover::before { content: ""; position: absolute; left: 12%; right: 12%; top: -4px; height: 7px; border-radius: 3px;   /* the hinge */
+    background: linear-gradient(180deg, #8d8d94, #55555c); box-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+  #bEngage .cover::after { content: "LIFT"; position: absolute; left: 0; right: 0; bottom: 7%; text-align: center;
+    font-size: 7px; letter-spacing: 0.32em; color: rgba(15,30,18,0.65); }
+  #bEngage.open .cover, body.run #bEngage .cover, body.active #bEngage .cover { transform: perspective(320px) rotateX(-112deg); }
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -421,7 +438,7 @@
   body.run #bEngage .lbl.go, body.active #bEngage .lbl.go { display: none; }
   body.run #bEngage .lbl.stop, body.active #bEngage .lbl.stop { display: inline; color: #ffffff; font-size: 10.5px; }
   #bStop { display: none !important; }                            /* the arcade button is the stop now */
-  #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget {                 /* the modifier keys, darker plastic */
+  #bAll, #bGear, #bInfo, #bGps, #bTone, #bTarget, #bBoard {        /* the modifier keys, a shade darker putty */
     background: radial-gradient(125% 100% at 50% -10%, #ded5bd 0%, #c4b99e 46%, #ada285 100%); }
   #bAll { display: none !important; }                             /* he asked for it off the console */
   .hide { display: none !important; }
@@ -581,6 +598,7 @@
       <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+      <label class="setChk"><input type="checkbox" id="ckSfx" checked />KEY CLICKS AND THE BUTTON SOUNDS</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
     </div>
     <div class="setRow">
@@ -901,10 +919,11 @@
 <div id="ctl">
   <div id="chips"></div>
   <div id="btns">
-    <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span></button>
+    <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span><i class="cover"></i></button>
     <div id="deck">
     <div id="head">
       <div id="data">
+        <span class="lz"><b>LZ</b></span>
         <span><i>LAT</i><b id="dLat">--</b></span>
         <span><i>LON</i><b id="dLon">--</b></span>
         <span><i>RNG</i><b id="dRng">--</b></span>
@@ -946,7 +965,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true };
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -4695,6 +4714,7 @@ function arrive() {
 }
 
 function replay() {
+  clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
   cancelAnimationFrame(raf);                               // never run two loops
@@ -4921,10 +4941,17 @@ setTimeout(measureCtl, 300);                                    // again once th
 addEventListener("load", measureCtl);
 setTimeout(buildEarthAssets, 220);                              // after the first frame is up
 addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
-$("bEngage").onclick = () => {                                  // one button: start, then stop
+$("bEngage").onclick = () => {                                  // one button: the cover, then start, then stop
   if (document.body.classList.contains("run") || document.body.classList.contains("active")) {
-    log("STOPPED — BACK TO THE CHART", "alert"); replay();
-  } else engage();
+    sfx("stop"); log("STOPPED — BACK TO THE CHART", "alert"); replay(); return;
+  }
+  if (!coverOpen) {                                             // first press lifts the safety cover
+    coverOpen = true; $("bEngage").classList.add("open"); sfx("cover");
+    log("SAFETY COVER UP \u2014 PRESS START", "cy");
+    clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 9000);
+    return;
+  }
+  clearTimeout(coverTimer); sfx("start"); engage();
 };
 $("bAll").onclick = () => {
   allChannels = !allChannels;
@@ -5044,6 +5071,35 @@ function sendMorse(text) {
   step();
 }
 let ac = null, toneOn = false, oscs = [];
+/* ---------------- the sounds: mechanical keys, the cover, the big button (synthesised, no files) ---------------- */
+function sfx(kind) {
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 0.9; out.connect(ac.destination);
+    const noise = (dur, hp, vol, at) => {
+      const n = ac.createBufferSource(), b = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      n.buffer = b; const f = ac.createBiquadFilter(); f.type = "highpass"; f.frequency.value = hp;
+      const g = ac.createGain(); g.gain.setValueAtTime(vol, t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur);
+      n.connect(f); f.connect(g); g.connect(out); n.start(t + at);
+    };
+    const tick = (freq, dur, vol, at, type) => {
+      const o = ac.createOscillator(), g = ac.createGain(); o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t + at); o.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.5), t + at + dur);
+      g.gain.setValueAtTime(vol, t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur);
+      o.connect(g); g.connect(out); o.start(t + at); o.stop(t + at + dur + 0.02);
+    };
+    if (kind === "key") { noise(0.018, 2500, 0.35, 0); tick(1900, 0.03, 0.10, 0); noise(0.03, 1200, 0.18, 0.05); tick(900, 0.04, 0.07, 0.05); }   // down-click, up-click
+    else if (kind === "cover") { noise(0.03, 900, 0.4, 0); tick(420, 0.08, 0.14, 0.01, "triangle"); noise(0.05, 600, 0.3, 0.17); tick(260, 0.1, 0.16, 0.18, "triangle"); }   // the flap, then its stop
+    else if (kind === "start") { noise(0.04, 500, 0.5, 0); tick(160, 0.12, 0.3, 0, "triangle"); tick(2400, 0.02, 0.1, 0.06); noise(0.08, 300, 0.25, 0.09); }   // a thunk and a relay
+    else if (kind === "stop") { noise(0.05, 400, 0.45, 0); tick(120, 0.16, 0.3, 0, "triangle"); noise(0.06, 800, 0.2, 0.12); }
+  } catch (e) {}
+}
+let coverOpen = false, coverTimer = 0;
+function coverClose() { coverOpen = false; $("bEngage").classList.remove("open"); }
+$("keys").addEventListener("pointerdown", (e) => { if (e.target.closest(".key")) sfx("key"); });
 $("bTone").onclick = () => {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5393,7 +5449,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); chk("ckSfx", S.sfx);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5470,6 +5526,7 @@ $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckFaces").onchange = (e) => (S.faces = e.target.checked);
+$("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
