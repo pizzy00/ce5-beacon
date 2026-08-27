@@ -598,7 +598,11 @@
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
-      <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS ON THEIR ORBITS (NOT TO SCALE)</label>
+      <div class="setLbl">HOW FAST THE SHIPS RUN — <span id="vShip">1.0</span>×</div>
+      <input type="range" id="rShip" min="10" max="300" step="10" value="100" />
+      <label class="setChk"><input type="checkbox" id="ckShipRnd" />RANDOM — EVERY SHIP AT ITS OWN SPEED · WHO KNOWS HOW FAST THEY REALLY GO</label>
+      <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS WHERE THEY REALLY ARE TODAY (NOT TO SCALE)</label>
+      <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
       <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
@@ -657,6 +661,7 @@
       <label class="setChk"><input type="checkbox" id="ckSun" checked />SOL</label>
       <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
       <label class="setChk"><input type="checkbox" id="ckVoyager" checked />VOYAGER 1 — THE FARTHEST THING WE EVER MADE · 25 BILLION KM</label>
+      <label class="setChk"><input type="checkbox" id="ckStarman" checked />STARMAN — THE TESLA ROADSTER, 1.6 AU OUT · FOR FUN</label>
       <label class="setChk"><input type="checkbox" id="ckJwst" checked />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
       <label class="setChk"><input type="checkbox" id="ckHubble" checked />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
       <label class="setChk"><input type="checkbox" id="ckIss" checked />INTERNATIONAL SPACE STATION — 420 KM UP · CREWED SINCE 2000</label>
@@ -896,10 +901,11 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
+  polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false, starman: true,
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
-  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5 };
+  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
+  shipSpd: 1, shipRnd: false, roadster: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -1216,11 +1222,13 @@ const EARTH_LAND = [                                            // coarse coastl
   [[-45,60],[-25,70],[-20,78],[-30,83],[-50,82],[-58,76],[-55,66]]
 ];
 const EARTH_CITY = [[-74,40.7],[-118,34],[-87,41.9],[-79,43.7],[-99,19.4],[-74,4.6],[-46,-23.5],[-58,-34.6],[0,51.5],[2.3,48.9],[-3.7,40.4],[13.4,52.5],[37.6,55.8],[31.2,30],[3.4,6.5],[28,-26.2],[55.3,25.2],[72.9,19.1],[77.2,28.6],[100.5,13.8],[106.8,-6.2],[116.4,40],[121.5,31.2],[127,37.6],[139.7,35.7],[151.2,-33.9],[115.9,-32]];
-const PLANETS = [                                               // real order out from the Sun; au = orbit in Earth-orbits
-  { n: "MERCURY", au: 0.39, r: 1.6, c: "#c9b9a6" }, { n: "VENUS", au: 0.72, r: 2.6, c: "#ffd9a0" },
-  { n: "MARS", au: 1.52, r: 2.1, c: "#ff8e5e" }, { n: "JUPITER", au: 5.2, r: 5.2, c: "#e8c9a0" },
-  { n: "SATURN", au: 9.54, r: 4.3, c: "#f0dfae", ring: true },
-  { n: "URANUS", au: 19.2, r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", au: 30.1, r: 3.0, c: "#7aa8ff" }
+const EARTH_L = 335.9, DEG = Math.PI / 180;                     // Earth's heliocentric longitude on 2026-08-27 (mean elements)
+const PLANETS = [                                               // real order out from the Sun; au = orbit in Earth-orbits; L = where it is today
+  { n: "MERCURY", au: 0.39, r: 1.6, c: "#c9b9a6", L: 133.3 }, { n: "VENUS", au: 0.72, r: 2.6, c: "#ffd9a0", L: 299.5 },
+  { n: "MARS", au: 1.52, r: 2.1, c: "#ff8e5e", L: 57.2 }, { n: "JUPITER", au: 5.2, r: 5.2, c: "#e8c9a0", L: 123.3 },
+  { n: "SATURN", au: 9.54, r: 4.3, c: "#f0dfae", ring: true, L: 15.7 },
+  { n: "URANUS", au: 19.2, r: 3.2, c: "#a8e8ff", L: 67.4 }, { n: "NEPTUNE", au: 30.1, r: 3.0, c: "#7aa8ff", L: 3.1 },
+  { n: "STARMAN", au: 1.61, r: 1.3, c: "#ff3b30", L: 345, car: true }   // the Roadster: 1.61 AU out today, a few degrees ahead of Earth (approx.)
 ];
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
 let earthAuto = true, earthResume = 0;
@@ -2884,12 +2892,16 @@ function drawEarthHub(t) {
     const dx = sx - sunX, q = 0.26, front = [];
     ctx.strokeStyle = "rgba(255,196,107,0.16)"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
+    const phiE = Math.atan2(-(sy - sunY) / q, sx - sunX);       // where Earth sits on its ring (counterclockwise, seen from the north)
     PLANETS.forEach((p, i) => {
+      if (p.car && !S.roadster) return;
       const a = dx * (p.au < 1 ? Math.pow(p.au, 0.6) : 1 + 0.32 * Math.log(p.au));   // inner ones honest, outer ones squeezed in
-      const th = t * 0.22 / Math.pow(p.au, 1.5) + i * 0.5 - 1.4;   // Kepler: the far ones crawl; they start on the side you can see
-      const x = sunX + Math.cos(th) * a, y = sunY + Math.sin(th) * a * q;
-      ctx.strokeStyle = "rgba(255,196,107,0.11)"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
+      const th = phiE + (p.L - EARTH_L) * DEG + t * 0.055 / Math.pow(p.au, 1.5);   // where it really is today, then Kepler at a quarter of the old pace
+      const x = sunX + Math.cos(th) * a, y = sunY - Math.sin(th) * a * q;
+      if (!p.car) {                                               // (the car shares Mars's lane near enough: no ring of its own)
+        ctx.strokeStyle = "rgba(255,196,107,0.11)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
+      }
       const job = () => {
         if (Math.hypot(x - sx, y - sy) < RZ * 1.01) return;     // the world is in front of anything on its disc
         glow(x, y, p.r * 3.6, p.c, 0.5);
@@ -2901,7 +2913,7 @@ function drawEarthHub(t) {
         ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
         ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
       };
-      if (Math.sin(th) >= 0) front.push(job); else job();        // the far half now, the near half after the world
+      if (Math.sin(th) <= 0) front.push(job); else job();        // the far half now, the near half after the world
     });
     PLANET_NEAR = front;
   }
@@ -3007,13 +3019,15 @@ function drawEarthHub(t) {
 }
 function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels running the routes, both ways
   if (!S.traffic) return;
+  const spd = (i, k) => (S.shipSpd || 1) *                      // his slider, and in random mode every lane has its own idea of fast
+    (S.shipRnd ? 0.35 + 1.9 * (((i * 37 + k * 91 + 17) % 23) / 23) : 1);
   for (let i = 0; i < SYSTEMS.length; i++) {
     const s = SYSTEMS[i], a = posOf(s);
     if (!a || a.x === undefined) continue;
     const l1 = Math.hypot(px - a.x, py - a.y), l2 = Math.hypot(sx - px, sy - py), tot = l1 + l2;
     if (tot < 1) continue;
     for (let k = 0; k < 3; k++) {
-      let u = (t * (0.055 + (i % 3) * 0.018) + i * 0.37 + k * 0.33) % 1;
+      let u = (t * spd(i, k) * (0.055 + (i % 3) * 0.018) + i * 0.37 + k * 0.33) % 1;
       if ((i + k) % 2) u = 1 - u;
       const d = u * tot;
       const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (sx - px) * ((d - l1) / l2);
@@ -3027,7 +3041,7 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
       const a = SYSTEMS[i], b = SYSTEMS[(i + step) % SYSTEMS.length], pa = posOf(a), pb = posOf(b);
       if (!pa || !pb || pa.x === undefined || pb.x === undefined) continue;
       for (let k = 0; k < 2; k++) {
-        let u = (t * (0.03 + ((i + k) % 3) * 0.012) + i * 0.29 + k * 0.5 + step * 0.17) % 1;
+        let u = (t * spd(i + step, k) * (0.03 + ((i + k) % 3) * 0.012) + i * 0.29 + k * 0.5 + step * 0.17) % 1;
         if ((i + k + step) % 2) u = 1 - u;
         const x = pa.x + (pb.x - pa.x) * u, y = pa.y + (pb.y - pa.y) * u;
         ctx.globalAlpha = 0.45; ctx.fillStyle = k ? b.c : a.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
@@ -3038,7 +3052,7 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
     for (let i = 0; i < EXOPLANETS.length; i++) {
       const e = EXOPLANETS[i], s = SYSTEMS[i % SYSTEMS.length], pe = exoOf(e), ps = posOf(s);
       if (!pe || !ps || pe.x === undefined || ps.x === undefined) continue;
-      let u = (t * (0.025 + (i % 4) * 0.008) + i * 0.41) % 1; if (i % 2) u = 1 - u;
+      let u = (t * spd(i, 5) * (0.025 + (i % 4) * 0.008) + i * 0.41) % 1; if (i % 2) u = 1 - u;
       const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u;
       ctx.globalAlpha = 0.5; ctx.fillStyle = u > 0.5 ? e.c : s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
     }
@@ -3049,7 +3063,7 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
     if (!a || a.x === undefined) continue;
     for (let k = 0; k < 2; k++) {
       const ang = i * 1.9 + k * 2.4 + Math.sin(t * 0.05 + i) * 0.3;   // each lane leans a little over time
-      let u = (t * (0.03 + ((i + k) % 3) * 0.008) + i * 0.23 + k * 0.5) % 1;
+      let u = (t * spd(i + 3, k) * (0.03 + ((i + k) % 3) * 0.008) + i * 0.23 + k * 0.5) % 1;
       if ((i + k) % 2) u = 1 - u;                                // half of them leave, half arrive
       const x = a.x + Math.cos(ang) * far * u, y = a.y + Math.sin(ang) * far * u;
       if (x < -4 || y < -4 || x > W + 4 || y > H + 4) continue;
@@ -3538,6 +3552,39 @@ function drawVoyager(p, t) {                                    // the farthest 
   $("dRng").textContent = "25B KM";
   $("dSig").textContent = "44%";
 }
+function drawStarman(p, t) {                                    // the cherry-red Roadster SpaceX threw past Mars in 2018, Starman at the wheel
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
+  star(W * 0.12, H * 0.64, 3.5, "#ffd27a"); glow(W * 0.12, H * 0.64, 40, "#ffd27a", 0.25);
+  label(W * 0.12, H * 0.64 + 20, "SOL", "1.6 AU BACK", "#ffd27a", "center");
+  star(W * 0.3, H * 0.68, 1.6, "#6bb7ff"); label(W * 0.3, H * 0.68 + 16, "EARTH", "", "#6bb7ff", "center");
+  const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
+  const cx = W * (0.78 - grow * 0.28) - drift * W * 0.9, cy = H * 0.36;
+  const L = Math.min(150, Math.min(W, H) * 0.36) * (0.3 + grow * 0.7), h = L * 0.22;   // car length, body height
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.18 + 0.04 * Math.sin(t * 0.7));   // a slow tumble
+  ctx.fillStyle = "#c8281f"; ctx.strokeStyle = "#5a0f0a"; ctx.lineWidth = 1;         // the body, cabin open
+  ctx.beginPath();
+  ctx.moveTo(-L / 2, h * 0.2); ctx.lineTo(-L / 2 + L * 0.06, -h * 0.35); ctx.lineTo(-L * 0.18, -h * 0.45);
+  ctx.lineTo(-L * 0.08, -h * 1.05); ctx.lineTo(L * 0.22, -h * 1.05); ctx.lineTo(L * 0.34, -h * 0.5);
+  ctx.lineTo(L / 2 - L * 0.04, -h * 0.4); ctx.lineTo(L / 2, h * 0.2); ctx.lineTo(L / 2, h * 0.55); ctx.lineTo(-L / 2, h * 0.55);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(120,170,220,0.55)";                                           // windscreen
+  ctx.beginPath(); ctx.moveTo(-L * 0.16, -h * 0.5); ctx.lineTo(-L * 0.07, -h * 1.0); ctx.lineTo(L * 0.2, -h * 1.0); ctx.lineTo(L * 0.3, -h * 0.5); ctx.closePath(); ctx.fill();
+  for (const wx of [-L * 0.3, L * 0.3]) {                                             // wheels
+    ctx.fillStyle = "#15161a"; ctx.strokeStyle = "#8a8f9a";
+    ctx.beginPath(); ctx.arc(wx, h * 0.55, h * 0.42, 0, 6.29); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#3a3d46"; ctx.beginPath(); ctx.arc(wx, h * 0.55, h * 0.18, 0, 6.29); ctx.fill();
+  }
+  ctx.fillStyle = "#f2f2f4"; ctx.beginPath(); ctx.arc(L * 0.02, -h * 1.15, h * 0.3, 0, 6.29); ctx.fill();   // Starman: helmet
+  ctx.fillStyle = "#1b1d24"; ctx.beginPath(); ctx.ellipse(L * 0.045, -h * 1.15, h * 0.17, h * 0.13, 0, 0, 6.29); ctx.fill();   // visor
+  ctx.strokeStyle = "#f2f2f4"; ctx.lineWidth = Math.max(1.5, h * 0.16);
+  ctx.beginPath(); ctx.moveTo(-L * 0.02, -h * 0.9); ctx.lineTo(-L * 0.2, -h * 0.45); ctx.stroke();   // one arm on the door
+  ctx.restore();
+  glow(cx, cy, L * 0.9, "#ff6a5a", 0.10);
+  label(W / 2, cy + L * 0.5 + 34, "STARMAN \u2014 TESLA ROADSTER, HELIOCENTRIC ORBIT",
+    "LAUNCHED FEB 2018 ON FALCON HEAVY \u00b7 1.6 AU FROM THE SUN TODAY \u00b7 DON\u2019T PANIC", "#ff8a7a", "center");
+  $("dRng").textContent = "1.6 AU";
+  $("dSig").textContent = "0%";
+}
 function drawJwst(p, t) {                                       // the gold mirror at L2, sunshield toward the Sun
   ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   star(W / 2, H * 0.55, 2.2, "#6be3ff");
@@ -3930,10 +3977,10 @@ function drawMoonStage(p, t) {
 let t0 = 0, raf = 0;
 const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
   moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY",
-  voyager: "VOYAGER 1", iss: "STATION PASS" };
+  voyager: "VOYAGER 1", iss: "STATION PASS", starman: "STARMAN FLYBY" };
 function stageAfter(cur) {
-  const order = ["warp", "polaris", "voyager", "sun", "jwst", "moon", "hubble", "iss", "earth"];
-  const on = { warp: true, polaris: S.polaris, voyager: S.voyager, sun: S.sun, jwst: S.jwst,
+  const order = ["warp", "polaris", "voyager", "sun", "starman", "jwst", "moon", "hubble", "iss", "earth"];
+  const on = { warp: true, polaris: S.polaris, voyager: S.voyager, sun: S.sun, starman: S.starman, jwst: S.jwst,
     moon: S.moon, hubble: S.hubble, iss: S.iss, earth: true };
   let i = order.indexOf(cur) + 1;
   while (i < order.length - 1 && !on[order[i]]) i++;
@@ -3948,11 +3995,12 @@ function advance(cur, ts) {
   else if (n === "sun") log("SOL CONFIRMED — HOME SYSTEM", "cy");
   else if (n === "moon") log("LUNAR FLYBY — PHASE IS LIVE", "cy");
   else if (n === "voyager") log("VOYAGER 1 — 25 BILLION KM OUT, STILL TALKING TO US", "cy");
+  else if (n === "starman") log("STARMAN — A CHERRY-RED ROADSTER, EIGHT YEARS OUT, NOBODY AT THE WHEEL", "cy");
   else if (n === "jwst") log("WEBB FLYBY — THE GOLD MIRROR AT L2", "cy");
   else if (n === "hubble") log("HUBBLE FLYBY — 540 KM UP · ON STATION SINCE 1990", "cy");
   else if (n === "iss") log("STATION PASS — SOMEBODY IS AWAKE UP THERE", "cy");
 }
-const DEEP_PHASES = { polaris: 1, sun: 1, moon: 1, voyager: 1, jwst: 1, iss: 1, hubble: 1, earth: 1 };
+const DEEP_PHASES = { polaris: 1, sun: 1, moon: 1, voyager: 1, starman: 1, jwst: 1, iss: 1, hubble: 1, earth: 1 };
 function loop(ts) {
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
@@ -4001,6 +4049,10 @@ function loop(ts) {
     const p = segF();
     drawVoyager(p, t);
     if (p >= 1) advance("voyager", ts);
+  } else if (phase === "starman") {
+    const p = segF();
+    drawStarman(p, t);
+    if (p >= 1) advance("starman", ts);
   } else if (phase === "jwst") {
     const p = segF();
     drawJwst(p, t);
@@ -4992,7 +5044,7 @@ function applyS() {                                             // push S into e
   set("selUTime", S.uTime); chk("ckExo", S.exo);
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
@@ -5011,7 +5063,8 @@ function applyS() {                                             // push S into e
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
-  chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic);
+  chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster);
+  set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
   set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
@@ -5053,6 +5106,7 @@ $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("ckJwst").onchange = (e) => (S.jwst = e.target.checked);
 $("ckVoyager").onchange = (e) => (S.voyager = e.target.checked);
+$("ckStarman").onchange = (e) => (S.starman = e.target.checked);
 $("ckIss").onchange = (e) => (S.iss = e.target.checked);
 $("ckStar").onchange = (e) => (S.starlink = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
@@ -5085,6 +5139,9 @@ $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
 $("rSys").oninput = (e) => { S.sysHold = +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
 $("ckPlanets").onchange = (e) => (S.planets = e.target.checked);
+$("ckRoadster").onchange = (e) => (S.roadster = e.target.checked);
+$("ckShipRnd").onchange = (e) => (S.shipRnd = e.target.checked);
+$("rShip").oninput = (e) => { S.shipSpd = +e.target.value / 100; $("vShip").textContent = S.shipSpd.toFixed(1); };
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
@@ -5122,6 +5179,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("DURING A RUN: TAP THE SCREEN = NEXT STAGE", "cy");
   log("TRAFFIC ROAMS — SYSTEM TO SYSTEM, TO THE HABITABLE WORLDS, IN AND OUT OF OPEN SPACE", "cy");
   log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
+  log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
