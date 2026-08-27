@@ -606,7 +606,7 @@ const MODES = [
   { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" },
   { id: "berm", name: "BERMUDA TRIANGLE", tag: "USO · UNIT", dist: "THE TRIGGER", c: "#ff8e5e", mode: "bermuda" }
 ];
-const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT" };
+const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT", speed: "640 KM/H" };
 const TRIANGLE = [[25.76, -80.19], [32.30, -64.78], [18.47, -66.10]]; // Miami · Bermuda · San Juan
 const NUKE_SITES = [ // order = how visible the scar is from orbit
   { name: "SEDAN CRATER · NEVADA TEST SITE", sub: "1962 · 104 KT · 928 TESTS ON THIS RANGE", lat: 37.1767, lon: -116.0466, z: 13 },
@@ -965,8 +965,11 @@ function drawEarthHub(sx, sy, t) {
     ctx.fillStyle = pin.c; ctx.beginPath(); ctx.arc(p.x, p.y, on ? 2.6 : 2, 0, 6.29); ctx.fill();
     ctx.strokeStyle = pin.c; ctx.globalAlpha = on ? 0.95 : 0.6; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(p.x, p.y, (on ? 7 : 5.5) + (on ? Math.sin(t * 4) : 0), 0, 6.29); ctx.stroke();
-    ctx.globalAlpha = 0.85; ctx.fillStyle = pin.c; ctx.textAlign = p.x > sx ? "left" : "right";
-    ctx.fillText(pin.n, p.x + (p.x > sx ? 9 : -9), p.y + 2.5);
+    let al = p.x > sx ? "left" : "right";                        // never let the name run off the edge
+    if (al === "right" && p.x < 62) al = "left";
+    if (al === "left" && p.x > W - 62) al = "right";
+    ctx.globalAlpha = 0.85; ctx.fillStyle = pin.c; ctx.textAlign = al;
+    ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
   const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, R);        // and where you are standing
@@ -1445,48 +1448,65 @@ function drawHubble(p, t) {                                     // low Earth orb
   $("dSig").textContent = "74%";
 }
 function drawUnitBirth(p, t) {                                  // the Triangle's unit answers the flash: it births orbs for your spot
+  const run = Math.max(0, 1 - p / 0.34);                        // it comes in at speed, then holds station
+  const flow = t * 300 * run;
+  const cx0 = W / 2, cy0 = H * 0.52, R0 = W * 0.46, hB0 = R0 * 0.34;
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, "#06284a"); g.addColorStop(0.5, "#031628"); g.addColorStop(1, "#02060e");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 5; i++) {                                 // light shafts from the surface
-    const x = W * (0.2 + i * 0.15) + Math.sin(t * 0.4 + i) * 20;
+    const x = (W * (0.2 + i * 0.15) + Math.sin(t * 0.4 + i) * 20 + flow * 0.4) % (W + 120);
     ctx.fillStyle = "rgba(120,200,230,0.04)";
     ctx.beginPath(); ctx.moveTo(x - 10, 0); ctx.lineTo(x + 10, 0); ctx.lineTo(x + 90, H); ctx.lineTo(x - 50, H); ctx.fill();
   }
-  ctx.fillStyle = "#cfe8f0";                                    // marine snow
-  for (const q of bgStars) { ctx.globalAlpha = 0.2 + 0.2 * Math.sin(t * 1.2 + q.tw); ctx.fillRect(q.x, (q.y + t * 6) % H, q.r, q.r); }
+  ctx.fillStyle = "#cfe8f0";                                    // marine snow, dragged past and bent around the hull
+  for (const q of bgStars) {
+    const qx = (q.x + flow) % W, qy = (q.y + t * 6) % H;
+    const ddx = qx - cx0, ddy = qy - cy0, dd = Math.hypot(ddx, ddy) + 1, pull = Math.min(30, 1100 / dd);
+    ctx.globalAlpha = 0.2 + 0.2 * Math.sin(t * 1.2 + q.tw);
+    ctx.fillRect(qx - (ddx / dd) * pull, qy - (ddy / dd) * pull, q.r, q.r);
+  }
+  if (run > 0.05) {                                             // it is moving: the water streaks past
+    ctx.strokeStyle = "rgba(190,225,245,0.22)"; ctx.lineWidth = 1;
+    for (let i = 0; i < 16; i++) {
+      const sx2 = (i * 137 + flow * 1.6) % (W + 200) - 100, sy2 = (i * 61) % H;
+      ctx.globalAlpha = 0.25 * run;
+      ctx.beginPath(); ctx.moveTo(sx2, sy2); ctx.lineTo(sx2 + 60 * run + 12, sy2); ctx.stroke();
+    }
+  }
   ctx.globalAlpha = 1;
   const floorY = H * 0.78;
   ctx.fillStyle = "#040a14"; ctx.beginPath(); ctx.moveTo(0, floorY + 10);
-  for (let x = 0; x <= W + 40; x += 40) ctx.lineTo(x, floorY + Math.sin(x * 0.05 + 1) * 8);
+  for (let x = 0; x <= W + 40; x += 40) ctx.lineTo(x, floorY + Math.sin(x * 0.05 + 1 + flow * 0.01) * 8);
   ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
   const reveal = easeIO(Math.min(1, p / 0.3));                  // 0-0.3: the unit comes out of the dark
   const cx = W / 2, cy = H * 0.52, R = W * 0.46, hB = R * 0.34;  // a hamburger: two silver domes and the band between
   ctx.globalAlpha = 0.15 + reveal * 0.85;
-  glow(cx, cy, R * 1.25, "#9fd8ff", 0.10 + reveal * 0.12);
+  for (let i = 0; i < 3; i++) {                                 // gravity leans the water in around it
+    const rr = 1.75 - ((t * 0.22 + i / 3) % 1) * 0.7;
+    ctx.strokeStyle = "rgba(150,190,255," + (0.15 * reveal * (1 - Math.abs(rr - 1.4) / 0.5)).toFixed(3) + ")";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.ellipse(cx, cy, R * rr, hB * 2.2 * rr, 0, 0, 6.29); ctx.stroke();
+  }
   const bun = ctx.createLinearGradient(cx, cy - hB * 1.9, cx, cy + hB * 1.3);
-  bun.addColorStop(0, "#f7f8fc"); bun.addColorStop(0.35, "#b8bcc8"); bun.addColorStop(0.6, "#6c717f"); bun.addColorStop(1, "#3a3e4a");
-  ctx.fillStyle = bun; ctx.strokeStyle = "rgba(220,230,255,0.35)"; ctx.lineWidth = 1;
+  bun.addColorStop(0, "#454c5a"); bun.addColorStop(0.28, "#252b36"); bun.addColorStop(0.6, "#141821"); bun.addColorStop(1, "#080b11");
+  ctx.fillStyle = bun; ctx.strokeStyle = "rgba(150,175,210,0.28)"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.ellipse(cx, cy - hB * 0.55, R, hB * 1.35, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(cx, cy + hB * 0.55, R * 0.97, hB * 0.75, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#1a1d26"; ctx.fillRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
-  ctx.strokeStyle = "rgba(220,230,255,0.25)"; ctx.strokeRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
-  ctx.strokeStyle = "rgba(40,44,56,0.5)";                       // panel seams on the top dome
+  ctx.fillStyle = "#05070b"; ctx.fillRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
+  ctx.strokeStyle = "rgba(150,175,210,0.18)"; ctx.strokeRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
+  ctx.strokeStyle = "rgba(90,105,130,0.22)";                    // panel seams on the top dome
   for (let i = 0; i < 14; i++) {
     const a = Math.PI + (i / 13) * Math.PI;
     ctx.beginPath(); ctx.moveTo(cx, cy - hB * 0.55); ctx.lineTo(cx + Math.cos(a) * R, cy - hB * 0.55 + Math.sin(a) * hB * 1.35); ctx.stroke();
   }
-  const lit = Math.max(0, Math.min(1, (p - 0.1) / 0.25));       // ports light up along the band
-  for (let i = 0; i < 17; i++) {
-    const x = cx - R * 0.9 + (i / 16) * R * 1.8, on = i / 16 <= lit;
-    ctx.globalAlpha = on ? 0.6 + 0.4 * Math.sin(t * 5 + i) : 0.15; ctx.fillStyle = on ? "#9fefff" : "#2a3340";
-    ctx.beginPath(); ctx.ellipse(x, cy, 6, 3.2, 0, 0, 6.29); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.5; ctx.strokeStyle = "rgba(150,175,210,0.30)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - R * 0.97, cy - hB * 1.05); ctx.lineTo(cx + R * 0.97, cy - hB * 1.05); ctx.stroke();
+  ctx.globalAlpha = 1;                                          // no ports, no running lights: it goes dark
   const open = easeIO(Math.max(0, Math.min(1, (p - 0.32) / 0.13)));   // the hatch in the band opens
   if (open > 0) {
     ctx.fillStyle = "#031628"; ctx.fillRect(cx - R * 0.22 * open, cy - hB * 0.5, R * 0.44 * open, hB);
-    glow(cx, cy, R * 0.35 * open, "#bffff0", 0.35 * open + 0.1 * Math.sin(t * 8));
+    glow(cx, cy, R * 0.3 * open, "#7fb6ff", 0.14 * open);      // the hatch, barely lit
   }
   const px = W * 0.2, py = floorY - 2, ph = Math.max(16, H * 0.05);   // an offshore platform on the floor, tiny beside it
   ctx.strokeStyle = "#9aa3b4"; ctx.fillStyle = "#9aa3b4"; ctx.lineWidth = 1.5;
@@ -1513,8 +1533,11 @@ function drawUnitBirth(p, t) {                                  // the Triangle'
   }
   const km = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString();
   label(cx, Math.max(30, cy - hB * 1.9 - 30), "THE UNIT — " + BERMUDA.unit,
-    "SILVER · BIGGER THAN A PLATFORM · " + BERMUDA.depth + " DOWN · " + km + " KM FROM YOUR SPOT", "#9fd8ff", "center");
-  if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — LIGHTS COMING UP ALONG THE BAND", "cy"); }
+    (run > 0.05 ? "RUNNING DARK · " + BERMUDA.speed : "HOLDING STATION · DARK") +
+    " · " + BERMUDA.depth + " DOWN", "#9fd8ff", "center");
+  if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — RUNNING DARK AT " + BERMUDA.speed + ", NO LIGHTS ON IT", "cy"); }
+  if (p >= 0.2 && !wpHit.has("u0")) { wpHit.add("u0"); log("GRAVITY BENDS AROUND THE HULL — THE WATER LEANS IN", "cy"); }
+  if (p >= 0.34 && !wpHit.has("uS")) { wpHit.add("uS"); log("IT STOPS DEAD — NO WAKE, NO SOUND", "cy"); cueStage("IT HAS STOPPED"); }
   if (p >= 0.32 && !wpHit.has("u2")) { wpHit.add("u2"); log("HATCH OPEN — SOMETHING IS BEING BORN"); cueSub("HOLD STILL · THE HATCH IS OPEN"); }
   if (p >= 0.5 && !wpHit.has("u3")) { wpHit.add("u3"); log("ORBS OUT — SILVER, SILENT, FOUR OF THEM", "cy"); cueStage("THE ORBS ARE OUT"); cueSub("SILVER SPHERES · RISING"); }
   if (p >= 0.78 && !wpHit.has("u4")) { wpHit.add("u4"); log("ORBS AWAY — HEADING FOR YOUR COORDINATES", "alert"); cueStage("THEY ARE COMING TO YOU"); cueSub(km + " KM · FOLLOW THEM DOWN"); }
@@ -1849,6 +1872,7 @@ function bermudaCall() {
   cueStage("FROM ORBIT"); cueSub("DESCENDING ON THE TRIANGLE · MIAMI · BERMUDA · SAN JUAN");
   log("STAGE 1: FROM ORBIT — DESCENDING ON THE TRIANGLE", "cy");
   log("ON FILE: " + BERMUDA.unit + " — BUILDS SMALLER CRAFT · KNOWN FOR DECADES", "cy");
+  log("DARK HULL · NO LIGHTS · BIGGER THAN AN OIL RIG · " + BERMUDA.speed + " SUBMERGED", "cy");
   log("TAP SCREEN = NEXT STAGE");
   $("dRng").textContent = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM";
   $("dSig").textContent = "24%";
