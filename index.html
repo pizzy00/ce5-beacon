@@ -303,6 +303,12 @@
         <option value="flat">FLAT CHART</option>
       </select>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+      <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
+      <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
+      <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
+      <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
+      <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
+      <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
       <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
       <input type="range" id="rBcn" min="0" max="10" step="0.25" value="0.25" />
       <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
@@ -560,7 +566,8 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: true, sun: true, moon: true, jwst: false, hubble: false, nukeAll: true, cache: "normal" };
+  polaris: true, sun: true, moon: true, jwst: false, hubble: false, nukeAll: true, cache: "normal",
+  deep: true, deepA: 0.15, spin: 0.05, trails: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -667,6 +674,128 @@ function setPhase(p, label) {
 }
 
 /* ---------------- canvas ---------------- */
+const DEEP_SKY = [                                              // real deep-sky objects, painted faint behind everything
+  { n: "M33 · TRIANGULUM", d: "2.7M LY", x: 0.40, y: 0.27, r: 0.085, k: "spiral", tilt: -0.5, sq: 0.62, c: "#bcd0ff" },
+  { n: "M51 · WHIRLPOOL", d: "31M LY", x: 0.22, y: 0.33, r: 0.060, k: "spiral", tilt: 0.35, sq: 0.85, c: "#cfd8ff", comp: true },
+  { n: "M104 · SOMBRERO", d: "29M LY", x: 0.66, y: 0.33, r: 0.072, k: "edge", tilt: -0.22, c: "#e6dcc4" },
+  { n: "M101 · PINWHEEL", d: "21M LY", x: 0.12, y: 0.46, r: 0.075, k: "spiral", tilt: 0.9, sq: 0.9, c: "#c4d6ff" },
+  { n: "M81 · BODE'S GALAXY", d: "12M LY", x: 0.50, y: 0.52, r: 0.055, k: "spiral", tilt: -1.0, sq: 0.55, c: "#d4dcff" },
+  { n: "M82 · CIGAR GALAXY", d: "12M LY", x: 0.565, y: 0.455, r: 0.042, k: "edge", tilt: -0.95, c: "#ffcaa8" },
+  { n: "NGC 5128 · CENTAURUS A", d: "12M LY", x: 0.83, y: 0.62, r: 0.058, k: "ell", tilt: 0.45, c: "#e8dccb" },
+  { n: "NGC 253 · SCULPTOR", d: "11M LY", x: 0.34, y: 0.63, r: 0.066, k: "edge", tilt: 0.55, c: "#dfe6ff" },
+  { n: "LARGE MAGELLANIC CLOUD", d: "163K LY", x: 0.80, y: 0.28, r: 0.055, k: "irr", tilt: 0.3, c: "#cfe0ff" },
+  { n: "SMALL MAGELLANIC CLOUD", d: "200K LY", x: 0.90, y: 0.40, r: 0.036, k: "irr", tilt: -0.4, c: "#cfe0ff" }
+];
+let deepCvs = null;
+function buildDeepSky() {                                       // baked once per resize: the layer never animates
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(1, Math.round(W * DPR)); cv.height = Math.max(1, Math.round(H * DPR));
+  const c = cv.getContext("2d");
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const gl = (x, y, r, col, a) => {
+    if (r <= 0) return;
+    const g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, col); g.addColorStop(1, "transparent");
+    c.globalAlpha = a; c.fillStyle = g;
+    c.beginPath(); c.arc(x, y, r, 0, 6.29); c.fill(); c.globalAlpha = 1;
+  };
+  const band = H * 0.075, yc = (x) => H * 0.34 + Math.sin((x / W) * 6.283) * H * 0.055;   // periodic: it tiles at the seam
+  for (let x = 0; x <= W; x += 3) {                             // the Milky Way, waving across the sky
+    const g = c.createLinearGradient(0, yc(x) - band, 0, yc(x) + band);
+    g.addColorStop(0, "rgba(200,214,255,0)"); g.addColorStop(0.5, "rgba(214,224,255,0.30)"); g.addColorStop(1, "rgba(200,214,255,0)");
+    c.fillStyle = g; c.fillRect(x, yc(x) - band, 4, band * 2);
+  }
+  let sd = 8191;
+  const rnd = () => ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  c.fillStyle = "#eef2ff";                                      // star clouds along the band
+  for (let i = 0; i < 900; i++) {
+    const x = rnd() * W, g1 = (rnd() + rnd() + rnd() - 1.5) * band * 0.8;
+    c.globalAlpha = 0.10 + rnd() * 0.35;
+    c.fillRect(x, yc(x) + g1, 1 + (rnd() > 0.9 ? 1 : 0), 1);
+  }
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = "destination-out";               // the Great Rift: dark dust carved out of the band
+  for (let i = 0; i < 7; i++) {
+    const x = W * (0.08 + i * 0.13);
+    c.globalAlpha = 0.5;
+    c.beginPath(); c.ellipse(x, yc(x) + band * 0.15, W * 0.09, band * 0.30, 0.25, 0, 6.29); c.fill();
+  }
+  c.globalAlpha = 1; c.globalCompositeOperation = "source-over";
+  const M = Math.min(W, H);
+  for (const o of DEEP_SKY) {
+    const x = o.x * W, y = o.y * H, R = o.r * M;
+    c.save(); c.translate(x, y); c.rotate(o.tilt);
+    if (o.k === "spiral") {
+      c.scale(1, o.sq);
+      gl(0, 0, R * 1.15, o.c, 0.16);                            // halo
+      gl(0, 0, R * 0.30, "#fff6e0", 0.55);                      // core
+      for (let a = 0; a < 2; a++) {                             // two logarithmic arms
+        c.strokeStyle = o.c; c.lineCap = "round";
+        for (let th = 0.2; th < 3.05; th += 0.06) {
+          const r0 = R * 0.20 * Math.exp(0.42 * th), r1 = R * 0.20 * Math.exp(0.42 * (th + 0.06));
+          if (r1 > R) break;
+          const p = th / 3.05;
+          c.globalAlpha = 0.38 * (1 - p * 0.75); c.lineWidth = R * 0.11 * (1 - p * 0.6);
+          c.beginPath();
+          c.moveTo(Math.cos(th + a * Math.PI) * r0, Math.sin(th + a * Math.PI) * r0);
+          c.lineTo(Math.cos(th + 0.06 + a * Math.PI) * r1, Math.sin(th + 0.06 + a * Math.PI) * r1);
+          c.stroke();
+        }
+      }
+      c.globalAlpha = 1;
+      c.fillStyle = "#ffffff";                                  // knots of young stars in the arms
+      for (let i = 0; i < 26; i++) {
+        const th = 0.3 + rnd() * 2.7, arm = rnd() > 0.5 ? Math.PI : 0, rr = R * 0.20 * Math.exp(0.42 * th);
+        if (rr > R) continue;
+        c.globalAlpha = 0.2 + rnd() * 0.3;
+        c.fillRect(Math.cos(th + arm) * rr, Math.sin(th + arm) * rr, 1.2, 1.2);
+      }
+      c.globalAlpha = 1;
+      if (o.comp) { gl(R * 1.15, -R * 0.35, R * 0.34, o.c, 0.30); gl(R * 1.15, -R * 0.35, R * 0.12, "#fff6e0", 0.5); }
+    } else if (o.k === "edge") {
+      gl(0, 0, R * 0.55, "#fff2d8", 0.45);                      // central bulge
+      const g = c.createLinearGradient(-R, 0, R, 0);
+      g.addColorStop(0, "transparent"); g.addColorStop(0.5, o.c); g.addColorStop(1, "transparent");
+      c.globalAlpha = 0.40; c.fillStyle = g;
+      c.beginPath(); c.ellipse(0, 0, R, R * 0.17, 0, 0, 6.29); c.fill();
+      c.globalAlpha = 0.22;
+      c.beginPath(); c.ellipse(0, 0, R * 0.75, R * 0.34, 0, 0, 6.29); c.fill();
+      c.globalAlpha = 1;
+      c.globalCompositeOperation = "destination-out";           // the dust lane
+      c.beginPath(); c.ellipse(0, R * 0.05, R * 0.98, R * 0.035, 0, 0, 6.29); c.fill();
+      c.globalCompositeOperation = "source-over";
+    } else if (o.k === "ell") {
+      c.scale(1, 0.78);
+      gl(0, 0, R * 1.1, o.c, 0.28); gl(0, 0, R * 0.45, "#fff4e2", 0.45);
+      c.globalCompositeOperation = "destination-out";
+      c.beginPath(); c.ellipse(0, 0, R * 1.05, R * 0.10, 0.06, 0, 6.29); c.fill();
+      c.globalCompositeOperation = "source-over";
+    } else {
+      gl(0, 0, R * 1.0, o.c, 0.14);                             // irregular: a ragged swarm
+      for (let i = 0; i < 30; i++) {
+        const a = rnd() * 6.283, rr = Math.pow(rnd(), 0.6) * R;
+        gl(Math.cos(a) * rr * 1.25, Math.sin(a) * rr * 0.6, R * (0.10 + rnd() * 0.22), i % 5 ? o.c : "#fff2d8", 0.16 + rnd() * 0.2);
+      }
+    }
+    c.restore();
+    c.textAlign = "center"; c.globalAlpha = 0.9;                // the name, faint, under the object
+    c.fillStyle = o.c; c.font = "8px ui-monospace, Menlo, monospace";
+    const lx = Math.min(W - 62, Math.max(62, x));
+    c.fillText(o.n, lx, y + R + 14);
+    c.globalAlpha = 0.55; c.fillStyle = "rgba(232,226,212,0.9)"; c.font = "7px ui-monospace, Menlo, monospace";
+    c.fillText(o.d, lx, y + R + 23);
+    c.globalAlpha = 1; c.textAlign = "left";
+  }
+  deepCvs = cv;
+}
+function paintDeepSky(shift) {                                  // drawn twice so it wraps with the turning sky
+  if (!S.deep || S.deepA <= 0 || !deepCvs) return;
+  const x = (((shift % W) + W) % W);
+  ctx.globalAlpha = S.deepA;
+  ctx.drawImage(deepCvs, x - W, 0, W, H);
+  ctx.drawImage(deepCvs, x, 0, W, H);
+  ctx.globalAlpha = 1;
+}
 let W = 0, H = 0, DPR = 1, bgStars = [], warpStars = [];
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
@@ -678,6 +807,7 @@ function resize() {
     x: Math.random() * W, y: Math.random() * H,
     r: Math.random() * 1.1 + 0.2, tw: Math.random() * 6.28
   }));
+  buildDeepSky();
 }
 addEventListener("resize", resize); resize();
 
@@ -714,9 +844,10 @@ function dashLine(x1, y1, x2, y2, color, t) {
 }
 
 let chartRot = 0, chartZoom = 1, chartAuto = true, chartLastT = 0, chartResume = 0;
-let chartTgt = null;                                            // where the sky is swinging to after a destination pick
-function chartProject(s) {                                      // the sky as a turntable around Earth at the bottom
-  const a = s.az + chartRot;
+let chartTgt = null, chartDrift = -1, chartLastRot = 0;         // where the sky is swinging to, and which way it last moved
+function spinText(v) { return v <= 0 ? "HELD STILL" : "ONE TURN EVERY " + Math.round(6.283 / v) + "S"; }
+function chartProject(s, rotOff) {                              // the sky as a turntable around Earth at the bottom
+  const a = s.az + chartRot + (rotOff || 0);
   const R = Math.min(W, H) * 0.40 * chartZoom;
   const X = Math.sin(a) * R, Z = Math.cos(a) * R;               // Z > 0 = toward the viewer
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
@@ -729,6 +860,7 @@ function chartProject(s) {                                      // the sky as a 
 function drawChart(t) {
   if (S.chart3d) return drawChart3D(t);
   ctx.clearRect(0, 0, W, H);
+  paintDeepSky(0);
   for (const s of bgStars) {
     ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
     ctx.fillStyle = "#cfd6ff";
@@ -788,7 +920,7 @@ function drawChart(t) {
 
 function drawChart3D(t) {
   const dt = Math.min(0.1, Math.max(0, t - chartLastT)); chartLastT = t;
-  if (chartAuto && !reduced) chartRot += dt * 0.05;             // one turn in about two minutes
+  if (chartAuto && !reduced) chartRot += dt * S.spin;           // his slider: seconds per turn
   if (chartTgt) {                                                // swing the pick to the front and lean in
     let d = chartTgt.rot - chartRot; d = Math.atan2(Math.sin(d), Math.cos(d));   // the short way round
     const e = reduced ? 1 : Math.min(1, dt * 3.5);
@@ -796,6 +928,7 @@ function drawChart3D(t) {
     if (Math.abs(d) < 0.004 && Math.abs(chartTgt.zoom - chartZoom) < 0.004) chartTgt = null;
   }
   ctx.clearRect(0, 0, W, H);
+  paintDeepSky(chartRot * 40);
   for (const s of bgStars) {
     ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
     ctx.fillStyle = "#cfd6ff";
@@ -808,6 +941,24 @@ function drawChart3D(t) {
   ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
   const P = SYSTEMS.map((s) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; return { s, q }; })
     .sort((a, b) => a.q.z - b.q.z);                            // far ones first
+  const spun = chartRot - chartLastRot; chartLastRot = chartRot;
+  if (Math.abs(spun) > 1e-4) chartDrift = spun > 0 ? -1 : 1;   // the tail hangs behind the way it is moving
+  if (S.trails) {                                              // a faint tail in each system's own colour
+    ctx.lineCap = "round";
+    for (const { s } of P) {
+      ctx.strokeStyle = s.c;
+      const depth = Math.min(1, Math.max(0.35, (s.pk - 0.55) / 0.9));
+      let lx = s.px, ly = s.py;
+      for (let i = 1; i <= 13; i++) {
+        const q = chartProject(s, chartDrift * i * 0.052);
+        ctx.globalAlpha = 0.40 * (1 - i / 13) * depth;
+        ctx.lineWidth = Math.max(0.7, 3.4 * s.pk * (1 - i / 13));
+        ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(q.x, q.y); ctx.stroke();
+        lx = q.x; ly = q.y;
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   for (const o of origins) dashLine(o.px, o.py, px, py, o.c, t);
   dashLine(px, py, sx, sy, "#ffe9a6", t);
@@ -2276,7 +2427,9 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
+  chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
+  chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = saveSettings;
@@ -2339,6 +2492,10 @@ $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
 $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
+$("ckDeep").onchange = (e) => (S.deep = e.target.checked);
+$("ckTrails").onchange = (e) => (S.trails = e.target.checked);
+$("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
+$("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
 $("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
 $("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
 $("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
