@@ -4354,7 +4354,7 @@ try {
   let tileFail = false;
   const tiles = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 21, maxNativeZoom: 19, keepBuffer: 8, updateWhenIdle: false,
+    { maxZoom: 21, maxNativeZoom: 19, keepBuffer: 2, updateWhenIdle: false,   // 2 rings, not 8: on a slow link the tiles you can see load first
       errorTileUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
       attribution: "Esri World Imagery" }).addTo(map);
   tiles.on("tileerror", () => {
