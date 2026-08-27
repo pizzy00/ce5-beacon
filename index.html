@@ -595,7 +595,7 @@
       <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
-      <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES AND BETWEEN THE SYSTEMS</label>
+      <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS ON THEIR ORBITS (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
@@ -3003,7 +3003,7 @@ function drawEarthHub(t) {
   }
   label(sx, sy - RZ * 0.80, "EARTH", "", "#8fd0ff", "center");  // on the world itself, clear of the sky
 }
-function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels running the routes, both ways
+function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels running the routes, both ways
   if (!S.traffic) return;
   for (let i = 0; i < SYSTEMS.length; i++) {
     const s = SYSTEMS[i], a = posOf(s);
@@ -3030,6 +3030,28 @@ function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels
         const x = pa.x + (pb.x - pa.x) * u, y = pa.y + (pb.y - pa.y) * u;
         ctx.globalAlpha = 0.45; ctx.fillStyle = k ? b.c : a.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
       }
+    }
+  }
+  if (exoOf && S.exo) {                                         // the habitable worlds get visitors too
+    for (let i = 0; i < EXOPLANETS.length; i++) {
+      const e = EXOPLANETS[i], s = SYSTEMS[i % SYSTEMS.length], pe = exoOf(e), ps = posOf(s);
+      if (!pe || !ps || pe.x === undefined || ps.x === undefined) continue;
+      let u = (t * (0.025 + (i % 4) * 0.008) + i * 0.41) % 1; if (i % 2) u = 1 - u;
+      const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u;
+      ctx.globalAlpha = 0.5; ctx.fillStyle = u > 0.5 ? e.c : s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+    }
+  }
+  const far = Math.max(W, H) * 0.75;                            // and out into open space, in every direction, and back in
+  for (let i = 0; i < SYSTEMS.length; i++) {
+    const s = SYSTEMS[i], a = posOf(s);
+    if (!a || a.x === undefined) continue;
+    for (let k = 0; k < 2; k++) {
+      const ang = i * 1.9 + k * 2.4 + Math.sin(t * 0.05 + i) * 0.3;   // each lane leans a little over time
+      let u = (t * (0.03 + ((i + k) % 3) * 0.008) + i * 0.23 + k * 0.5) % 1;
+      if ((i + k) % 2) u = 1 - u;                                // half of them leave, half arrive
+      const x = a.x + Math.cos(ang) * far * u, y = a.y + Math.sin(ang) * far * u;
+      if (x < -4 || y < -4 || x > W + 4 || y > H + 4) continue;
+      ctx.globalAlpha = 0.55 * (1 - u * 0.6); ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
     }
   }
   ctx.globalAlpha = 1;
@@ -3064,7 +3086,8 @@ function drawChart(t) {
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
   for (const o of origins) dashLine(o.x * W, o.y * H, gate ? px : sx, gate ? py : sy, o.c, t);
   if (gate) dashLine(px, py, sx, sy, "#ffe9a6", t);
-  drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), gate ? px : sx, gate ? py : sy, sx, sy);
+  drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), gate ? px : sx, gate ? py : sy, sx, sy,
+    (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }));
 
   // Polaris gate
   if (gate) {
@@ -3159,9 +3182,10 @@ function drawChart3D(t) {
   }
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
-  for (const o of origins) dashLine(o.px, o.py, gate ? px : sx, gate ? py : sy, o.c, t);
-  if (gate) dashLine(px, py, sx, sy, "#ffe9a6", t);
-  drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : sx, gate ? py : sy, sx, sy);
+  const EG = earthGeom(), ex = EG.cx, ey = EG.cy;               // the routes end BEHIND the world, not at a point above it
+  for (const o of origins) dashLine(o.px, o.py, gate ? px : ex, gate ? py : ey, o.c, t);
+  if (gate) dashLine(px, py, ex, ey, "#ffe9a6", t);
+  drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey, (e) => chartProject(e));
   if (gate) {
     star(px, py, 3.2, POLARIS.c);
     glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
@@ -5041,6 +5065,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("EARTH IS LIVE AT THE HUB — TAP THE TRIANGLE, THE DEEP OR THE MOON", "cy");
   log("LUNA PUSHED OUT · STARLINK HUGS THE WORLD — CLOSER TO TRUE", "cy");
   log("DURING A RUN: TAP THE SCREEN = NEXT STAGE", "cy");
+  log("TRAFFIC ROAMS — SYSTEM TO SYSTEM, TO THE HABITABLE WORLDS, IN AND OUT OF OPEN SPACE", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
