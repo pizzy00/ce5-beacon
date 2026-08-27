@@ -407,8 +407,9 @@
       <label class="setChk"><input type="checkbox" id="ckPolaris" checked />POLARIS — THE NORTH STAR</label>
       <label class="setChk"><input type="checkbox" id="ckSun" checked />SOL</label>
       <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
-      <label class="setChk"><input type="checkbox" id="ckJwst" />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
-      <label class="setChk"><input type="checkbox" id="ckHubble" />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
+      <label class="setChk"><input type="checkbox" id="ckVoyager" checked />VOYAGER 1 — THE FARTHEST THING WE EVER MADE · 25 BILLION KM</label>
+      <label class="setChk"><input type="checkbox" id="ckJwst" checked />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
+      <label class="setChk"><input type="checkbox" id="ckHubble" checked />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
     </div>
     <div class="setRow">
       <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
@@ -603,7 +604,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: true, sun: true, moon: true, jwst: false, hubble: false, nukeAll: true, cache: "normal",
+  polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -845,6 +846,7 @@ function resize() {
     r: Math.random() * 1.1 + 0.2, tw: Math.random() * 6.28
   }));
   buildDeepSky();
+  measureCtl();
 }
 addEventListener("resize", resize); resize();
 
@@ -895,7 +897,15 @@ const PLANETS = [                                               // the family po
   { n: "JUPITER", r: 5.2, c: "#e8c9a0" }, { n: "SATURN", r: 4.3, c: "#f0dfae", ring: true },
   { n: "URANUS", r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", r: 3.0, c: "#7aa8ff" }
 ];
-let earthRot = 0, earthLastT = 0, modeHit = [], sunTex = null;
+let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
+let earthAuto = true, earthResume = 0;
+var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
+function measureCtl() { ctlTop = $("ctl") ? $("ctl").getBoundingClientRect().top : H * 0.72; }
+function earthGeom() {                                          // the globe is half-sunk behind the console
+  const R = Math.min(W, H) * 0.42;
+  return { cx: W * 0.5, cy: (ctlTop || H * 0.72) + R * 0.02, R: R, tilt: 0 };   // equator-on: the Triangle and the trench stay clear of the keys
+}
+function skyBase() { const g = earthGeom(); return Math.max(H * 0.34, g.cy - g.R * 0.66); }
 function buildSunTex() {                                        // granulation cells, baked once
   const N = 128, c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d"), im = g.createImageData(N, N);
@@ -952,18 +962,18 @@ function orthPt(lon, lat, cx, cy, R) {                          // orthographic:
   return { x: cx + R * Math.cos(la) * Math.sin(lo),
     y: cy - R * (Math.cos(p0) * Math.sin(la) - Math.sin(p0) * Math.cos(la) * Math.cos(lo)), v: cosc >= 0 };
 }
-function drawEarthHub(sx, sy, t) {
-  const R = Math.min(W, H) * 0.135;
+function drawEarthHub(t) {
+  const G = earthGeom(), sx = G.cx, sy = G.cy, R = G.R;
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
-  if (!reduced) earthRot += dt * 4.2;                           // one turn in about a minute and a half
+  if (!reduced && earthAuto) earthRot += dt * 2.6;              // its own slow turn
   modeHit = [];
-  const sunX = sx - R * 0.55, sunY = sy - R * 2.55;             // Sol, pushed up above the world
+  const sunX = sx - R * 1.02, sunY = sy - R * 1.20;             // Sol, pushed up above the world
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   if (S.planets) {
     ctx.strokeStyle = "rgba(255,196,107,0.14)"; ctx.setLineDash([2, 6]);
-    ctx.beginPath(); ctx.moveTo(sx - R * 3.1, sy - R * 1.62); ctx.lineTo(sx + R * 3.1, sy - R * 1.62); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(sx - R * 0.86, sy - R * 1.20); ctx.lineTo(sx + R * 0.86, sy - R * 1.20); ctx.stroke(); ctx.setLineDash([]);
     PLANETS.forEach((p, i) => {
-      const x = sx + (i - 3) * R * 0.86, y = sy - R * 1.62;   // one straight line, as he asked
+      const x = sx + (i - 3) * R * 0.24, y = sy - R * 1.20;   // one straight line, as he asked
       glow(x, y, p.r * 3.6, p.c, 0.5);
       ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
       if (p.ring) {
@@ -974,10 +984,10 @@ function drawEarthHub(sx, sy, t) {
       ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
     });
   }
-  drawSunDisc(sunX, sunY, R * 0.20, t);
-  label(sunX + R * 0.36, sunY + 4, "SOL", "", "#ffd34d");
-  const ma = t * 0.20, mx = sx + Math.cos(ma) * R * 1.95, my = sy + Math.sin(ma) * R * 1.15;   // Luna, on its round
-  const mr = R * 0.17;
+  drawSunDisc(sunX, sunY, R * 0.085, t);
+  label(sunX + R * 0.15, sunY + 4, "SOL", "", "#ffd34d");
+  const ma = t * 0.20, mx = sx + Math.cos(ma) * R * 0.98, my = sy - R * 0.86 + Math.sin(ma) * R * 0.16;   // Luna, on its round
+  const mr = R * 0.085;
   glow(mx, my, mr * 2.6, "#d8d8de", 0.22);
   ctx.fillStyle = "#c9c9d2"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.29); ctx.fill();
   ctx.fillStyle = "rgba(90,90,110,0.55)";
@@ -1048,7 +1058,7 @@ function drawEarthHub(sx, sy, t) {
     ctx.globalAlpha = 0.75; ctx.fillStyle = "#ffc46b"; ctx.textAlign = "center";
     ctx.fillText("YOU", you.x, you.y - 7); ctx.textAlign = "left"; ctx.globalAlpha = 1;
   }
-  label(sx, sy + R + 16, "EARTH", "TAP THE TRIANGLE, THE DEEP OR THE MOON", "#8fd0ff", "center");
+  label(sx, sy - R * 0.80, "EARTH", "", "#8fd0ff", "center");   // on the world itself, clear of the sky
 }
 function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels running the routes, both ways
   if (!S.traffic) return;
@@ -1076,10 +1086,9 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const R = Math.min(W, H) * 0.40 * chartZoom;
   const X = Math.sin(a) * R, Z = Math.cos(a) * R;               // Z > 0 = toward the viewer
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
-  const sx = SOL.x * W, sy = SOL.y * H;
+  const sx = SOL.x * W, sy = skyBase();
   const el = (SOL.y - s.y) / (SOL.y - POLARIS.y);               // height above Earth, Polaris = 1
-  const gap = (SOL.y - POLARIS.y) * H;
-  const span = gap * Math.min(1, chartZoom) - R * 0.16;         // the top never rises past Polaris at any depth or zoom
+  const span = (sy - POLARIS.y * H - 26) * Math.min(1, chartZoom) - R * 0.16;
   return { x: sx + X * k, y: sy + Z * 0.16 - el * span, k, z: Z };   // feet on the ring: the near rim sits lower
 }
 function drawChart(t) {
@@ -1131,7 +1140,7 @@ function drawChart(t) {
   }
 
   // Sol
-  drawEarthHub(sx, sy, t);
+  drawEarthHub(t);
   if (modeOf()) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
     ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
@@ -1160,7 +1169,7 @@ function drawChart3D(t) {
     ctx.fillRect((((s.x + chartRot * 40) % W) + W) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
   }
   ctx.globalAlpha = 1;
-  const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = SOL.y * H;
+  const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = skyBase();
   const R = Math.min(W, H) * 0.40 * chartZoom;
   ctx.strokeStyle = "rgba(255,196,107,0.22)"; ctx.setLineDash([2, 7]);   // the turntable ring
   ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
@@ -1214,7 +1223,7 @@ function drawChart3D(t) {
     label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
     ctx.globalAlpha = 1;
   }
-  drawEarthHub(sx, sy, t);
+  drawEarthHub(t);
   if (modeOf()) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
     ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
@@ -1450,6 +1459,45 @@ function drawOceanOrigin(p, t) {
   $("dSig").textContent = Math.round(20 + p * 30) + "%";
 }
 
+function drawVoyager(p, t) {                                    // the farthest thing we ever made, still outbound
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  star(W / 2, H * 0.58, 2.2, "#6be3ff");
+  label(W / 2, H * 0.58 + 20, "SOL AHEAD", "", "#6be3ff", "center");
+  const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
+  const cx = W * (0.76 - grow * 0.26) - drift * W * 0.9, cy = H * 0.34;
+  const D = Math.min(120, Math.min(W, H) * 0.28) * (0.3 + grow * 0.7);   // the high-gain dish
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.22);
+  ctx.strokeStyle = "#8f96a8"; ctx.lineWidth = 1;                // booms: science, magnetometer, RTG stack
+  ctx.beginPath(); ctx.moveTo(0, D * 0.3); ctx.lineTo(-D * 1.05, D * 0.78); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, D * 0.3); ctx.lineTo(D * 1.5, -D * 0.32); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, D * 0.3); ctx.lineTo(D * 0.95, D * 0.7); ctx.stroke();
+  ctx.fillStyle = "#3a3f4c";
+  for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(D * (0.62 + i * 0.16), D * (0.48 + i * 0.11), D * 0.075, D * 0.05, -0.3, 0, 6.29); ctx.fill(); }
+  ctx.fillStyle = "#6f7686"; ctx.beginPath(); ctx.arc(-D * 1.05, D * 0.78, D * 0.07, 0, 6.29); ctx.fill();
+  const dg = ctx.createLinearGradient(-D, -D * 0.5, D, D * 0.5);  // the dish
+  dg.addColorStop(0, "#fbfbff"); dg.addColorStop(0.5, "#d4d8e2"); dg.addColorStop(1, "#8a90a0");
+  ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(0, 0, D, D * 0.94, 0, 0, 6.29); ctx.fill();
+  ctx.strokeStyle = "rgba(90,96,110,0.7)";
+  for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.ellipse(0, 0, D * (i / 4), D * 0.94 * (i / 4), 0, 0, 6.29); ctx.stroke(); }
+  ctx.strokeStyle = "#aab0c0";                                   // feed horn on its tripod
+  for (const a of [-2.2, -0.4, 1.6]) { ctx.beginPath(); ctx.moveTo(Math.cos(a) * D * 0.8, Math.sin(a) * D * 0.75); ctx.lineTo(0, -D * 0.12); ctx.stroke(); }
+  ctx.fillStyle = "#e8ecf6"; ctx.beginPath(); ctx.arc(0, -D * 0.12, D * 0.09, 0, 6.29); ctx.fill();
+  ctx.fillStyle = "#20242e"; ctx.strokeStyle = "#6b7382";        // the bus
+  ctx.beginPath(); ctx.ellipse(0, D * 0.36, D * 0.3, D * 0.16, 0, 0, 6.29); ctx.fill(); ctx.stroke();
+  const rg = ctx.createRadialGradient(-D * 0.06, D * 0.32, 1, 0, D * 0.36, D * 0.14);   // the golden record
+  rg.addColorStop(0, "#fff3c0"); rg.addColorStop(1, "#c9971f");
+  ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(0, D * 0.36, D * 0.115, 0, 6.29); ctx.fill();
+  ctx.fillStyle = "#20242e"; ctx.beginPath(); ctx.arc(0, D * 0.36, D * 0.02, 0, 6.29); ctx.fill();
+  ctx.restore();
+  glow(cx, cy, D * 1.3, "#cfd8ff", 0.10);
+  const bl = 0.35 + 0.45 * Math.abs(Math.sin(t * 1.4));          // the carrier still ticking home
+  ctx.fillStyle = "rgba(107,227,255," + bl.toFixed(2) + ")";
+  ctx.beginPath(); ctx.arc(cx - D * 0.02, cy - D * 0.12, 2.2, 0, 6.29); ctx.fill();
+  label(W / 2, cy + D * 1.05 + 34, "VOYAGER 1 — INTERSTELLAR SPACE",
+    "25 BILLION KM OUT · LAUNCHED 1977 · THE GOLDEN RECORD IS ABOARD", "#cfd8ff", "center");
+  $("dRng").textContent = "25B KM";
+  $("dSig").textContent = "44%";
+}
 function drawJwst(p, t) {                                       // the gold mirror at L2, sunshield toward the Sun
   ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
   star(W / 2, H * 0.55, 2.2, "#6be3ff");
@@ -1804,10 +1852,11 @@ function drawMoonStage(p, t) {
 /* ---------------- sequencer ---------------- */
 let t0 = 0, raf = 0;
 const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
-  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY" };
+  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY", voyager: "VOYAGER 1" };
 function stageAfter(cur) {
-  const order = ["warp", "polaris", "sun", "jwst", "moon", "hubble", "earth"];
-  const on = { warp: true, polaris: S.polaris, sun: S.sun, jwst: S.jwst, moon: S.moon, hubble: S.hubble, earth: true };
+  const order = ["warp", "polaris", "voyager", "sun", "jwst", "moon", "hubble", "earth"];
+  const on = { warp: true, polaris: S.polaris, voyager: S.voyager, sun: S.sun, jwst: S.jwst,
+    moon: S.moon, hubble: S.hubble, earth: true };
   let i = order.indexOf(cur) + 1;
   while (i < order.length - 1 && !on[order[i]]) i++;
   return order[i];
@@ -1820,6 +1869,7 @@ function advance(cur, ts) {
   if (n === "polaris") log("POLARIS FLYBY — PASSING OVERHEAD", "cy");
   else if (n === "sun") log("SOL CONFIRMED — HOME SYSTEM", "cy");
   else if (n === "moon") log("LUNAR FLYBY — PHASE IS LIVE", "cy");
+  else if (n === "voyager") log("VOYAGER 1 — 25 BILLION KM OUT, STILL TALKING TO US", "cy");
   else if (n === "jwst") log("WEBB FLYBY — THE GOLD MIRROR AT L2", "cy");
   else if (n === "hubble") log("HUBBLE FLYBY — 540 KM UP · ON STATION SINCE 1990", "cy");
 }
@@ -1865,6 +1915,10 @@ function loop(ts) {
     const p = seg(4600);
     drawMoonStage(p, t);
     if (p >= 1) { if (modeOf() === "moon" && !S.hubble) return preDive(); advance("moon", ts); }
+  } else if (phase === "voyager") {
+    const p = seg(5600);
+    drawVoyager(p, t);
+    if (p >= 1) advance("voyager", ts);
   } else if (phase === "jwst") {
     const p = seg(5200);
     drawJwst(p, t);
@@ -2391,6 +2445,8 @@ for (const s of [...SYSTEMS, ...MODES]) {
   };
   chipsEl.appendChild(b);
 }
+measureCtl();
+addEventListener("orientationchange", () => setTimeout(measureCtl, 250));
 $("bEngage").onclick = engage;
 $("bAll").onclick = () => {
   allChannels = !allChannels;
@@ -2528,7 +2584,7 @@ $("bTone").onclick = () => {
 };
 
 /* chart tap: select system / skip warp */
-const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false;
+const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false, dragEarth = false;
 function focusChart(s) {                                        // a pick before ENGAGE: bring that sky to the front, lean in
   if (!S.chart3d || phase !== "chart") return;
   chartAuto = false; clearTimeout(chartResume);
@@ -2559,7 +2615,12 @@ function chartTap(cx, cy) {
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (ptrs.size === 1) { dragMoved = 0; wasPinch = false; chartTgt = null; }        // a gesture starts with the first finger only
+  if (ptrs.size === 1) {
+    dragMoved = 0; wasPinch = false; chartTgt = null;
+    const G = earthGeom(), r = cvs.getBoundingClientRect();     // inside the world = turn the world
+    dragEarth = Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * 1.04;
+    if (dragEarth) { earthAuto = false; clearTimeout(earthResume); }
+  }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
@@ -2571,7 +2632,8 @@ cvs.addEventListener("pointermove", (e) => {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * d / pinchD));
     pinchD = d;
-  } else if (S.chart3d) chartRot += dx * 0.006;
+  } else if (dragEarth) earthRot -= dx * 0.30;                  // his finger on the world
+  else if (S.chart3d) chartRot += dx * 0.006;
   dragMoved += Math.hypot(dx, dy);
 });
 const endPtr = (e) => {
@@ -2581,12 +2643,16 @@ const endPtr = (e) => {
   if (phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
     const r = cvs.getBoundingClientRect(); chartTap(e.clientX - r.left, e.clientY - r.top);
   }
-  if (ptrs.size === 0) chartResume = setTimeout(() => (chartAuto = true), 4000);
+  if (ptrs.size === 0) {
+    chartResume = setTimeout(() => (chartAuto = true), 4000);
+    if (dragEarth) { clearTimeout(earthResume); earthResume = setTimeout(() => (earthAuto = true), 6000); }
+    dragEarth = false;
+  }
 };
 cvs.addEventListener("pointerup", endPtr);
 cvs.addEventListener("pointercancel", endPtr);
 cvs.addEventListener("wheel", (e) => {
-  if (phase !== "chart") return;
+  if (phase !== "chart" || dragEarth) return;
   chartTgt = null;
   e.preventDefault(); chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
 }, { passive: false });
@@ -2666,7 +2732,7 @@ function applyS() {                                             // push S into e
   set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckNukeAll", S.nukeAll);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
@@ -2721,6 +2787,7 @@ $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("ckJwst").onchange = (e) => (S.jwst = e.target.checked);
+$("ckVoyager").onchange = (e) => (S.voyager = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
 $("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
