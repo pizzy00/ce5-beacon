@@ -843,7 +843,8 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
   nukeAll: true, cache: "normal",
-  deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true };
+  deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
+  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6 };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -1076,7 +1077,7 @@ let W = 0, H = 0, DPR = 1, bgStars = [], warpStars = [];
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
   W = innerWidth; H = innerHeight;
-  cvs.width = W * DPR; cvs.height = H * DPR;
+  cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR);   // whole device pixels: the layer is never resampled
   cvs.style.width = W + "px"; cvs.style.height = H + "px";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   bgStars = Array.from({ length: 220 }, () => ({
@@ -1672,9 +1673,11 @@ var GLOBE_TERM      = 0.055;   // terminator half-width in sin(angle) ~= 6.3 deg
 var GLOBE_NIGHT_AMT = 1.0;     // city-light strength
 var GLOBE_RIM_AMT   = 1.0;     // atmosphere rim strength
 var GLOBE_SPEC_AMT  = 0.34;    // ocean sheen; set 0 to drop the branch entirely
-var GLOBE_MAXBUF    = 576;     // internal buffer diameter cap, device px
+var GLOBE_MAXBUF    = 576;     // starting buffer diameter cap, device px (adaptive: see glCap)
+var GLOBE_MAXBUF_HI = 1024;    // the cap may grow to this on a device that renders fast
+var GLOBE_MINBUF    = 448;     // and shrink to this on one that does not
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
-var GLOBE_GEOCACHE  = 3;       // how many (size,tilt) geometries to keep
+var GLOBE_GEOCACHE  = 4;       // how many (size,tilt) geometries to keep
 
 /* ---- shading LUTs (built once) ----------------------------------- */
 var GL_N = 1024;
@@ -1750,9 +1753,10 @@ var glGeos = [];      // LRU, newest first
 var glGeo = null;
 var glGeoMs = 0;
 
+var glCap = GLOBE_MAXBUF;      // adaptive cap: the last big render's time moves it a step up or down
 function globeGeoSize(R, dpr, quality) {
   var want = 2 * R * (dpr || 1) * (quality || 1);
-  if (want > GLOBE_MAXBUF) want = GLOBE_MAXBUF;
+  if (want > glCap) want = glCap;
   if (want < GLOBE_STEP) want = GLOBE_STEP;
   return Math.round(want / GLOBE_STEP) * GLOBE_STEP;
 }
@@ -1848,20 +1852,30 @@ function globeNow() {
 /* ---- dirty tracking ---------------------------------------------- */
 var glLast = null, glLastMs = 0;
 
-function globeDirty(opt) {
-  if (!glLast) return true;
+function globeLinear(opt, size) {                             // magnified on screen: sample the maps smoothly
+  if (opt.fast) return false;                                  // (a drag wants frames, not polish)
   var ow = Math.round(2 * opt.R * (opt.dpr || 1));
-  if (glLast.ow !== ow) return true;
+  return ow / size > 1.35;
+}
+function globeDirty(opt, out) {                                 // each sphere remembers its own last render
+  var last = (out && out._gl) || null;
+  if (!last) return true;
+  var ow = Math.round(2 * opt.R * (opt.dpr || 1));
+  if (last.ow !== ow) return true;
   // compare the buffer the options resolve to, not raw quality: a tiny quality
   // nudge that lands on the same ladder step is not a reason to redraw
-  if (glLast.buf !== globeGeoSize(opt.R, opt.dpr, opt.quality)) return true;
-  if (glLast.tex !== opt.tex || glLast.night !== (opt.night || null) || glLast.clouds !== (opt.clouds || null)) return true;
-  if (Math.abs(glLast.tilt - (opt.tilt || 0)) > 0.08) return true;
-  if (Math.abs(globeWrap(glLast.rot - (opt.rot || 0))) > 0.22) return true;
+  var buf = globeGeoSize(opt.R, opt.dpr, opt.quality);
+  if (last.buf !== buf) return true;
+  if (last.lin !== globeLinear(opt, buf)) return true;
+  if (last.tex !== opt.tex || last.night !== (opt.night || null) || last.clouds !== (opt.clouds || null)) return true;
+  if (Math.abs(last.tilt - (opt.tilt || 0)) > 0.08) return true;
+  if (Math.abs(globeWrap(last.rot - (opt.rot || 0))) > 0.22) return true;
   var cr = (opt.cloudRot === undefined) ? (opt.rot || 0) : opt.cloudRot;
-  if (Math.abs(globeWrap(glLast.cloudRot - cr)) > 0.22) return true;
+  if (Math.abs(globeWrap(last.cloudRot - cr)) > 0.22) return true;
+  var ca = (opt.cloudAmt === undefined) ? 1 : opt.cloudAmt;
+  if (Math.abs(last.cloudAmt - ca) > 0.005) return true;
   var s = opt.sun || { x: 0, y: 0, z: 1 };
-  if (Math.abs(glLast.sxr - s.x) > 0.004 || Math.abs(glLast.syr - s.y) > 0.004 || Math.abs(glLast.szr - s.z) > 0.004) return true;
+  if (Math.abs(last.sxr - s.x) > 0.004 || Math.abs(last.syr - s.y) > 0.004 || Math.abs(last.szr - s.z) > 0.004) return true;
   return false;
 }
 function globeWrap(d) { d = d % 360; if (d > 180) d -= 360; if (d < -180) d += 360; return d; }
@@ -1872,9 +1886,9 @@ function globeWrap(d) { d = d % 360; if (d > 180) d -= 360; if (d < -180) d += 3
 var glQ = 1;
 function globeAutoQuality(budgetMs) {
   var b = budgetMs || 6;
-  if (glLastMs > b * 1.25) { glQ -= 0.10; if (glQ < 0.5) glQ = 0.5; }
-  else if (glLastMs < b * 0.55) { glQ += 0.05; if (glQ > 1) glQ = 1; }
-  return glQ;
+  // the buffer cap (glCap) adapts to the measured render time instead: a quality walk-down
+  // only made the upscale coarser on tablets, and that read as square tiling
+  glQ = 1; return glQ;
 }
 function globeStats() {
   return { ms: glLastMs, geoMs: glGeoMs, buf: glGeo ? glGeo.size : 0, px: glGeo ? glGeo.n : 0 };
@@ -1898,11 +1912,14 @@ function renderGlobe(out, opt) {
   var g = globeGetGeo(size, tilt);
   glGeo = g;
 
-  var td = tex.d, tw = tex.w, toff = globeRowOff(g, tex);
+  var td = tex.d, tw = tex.w, th = tex.h, toff = globeRowOff(g, tex);
   var nd = null, nw = 0, noff = null;
   if (night) { nd = night.d; nw = night.w; noff = globeRowOff(g, night); }
-  var cd = null, cw = 0, coff = null;
-  if (cloud) { cd = cloud.d; cw = cloud.w; coff = globeRowOff(g, cloud); }
+  var cd = null, cw = 0, ch = 0, coff = null;
+  if (cloud) { cd = cloud.d; cw = cloud.w; ch = cloud.h; coff = globeRowOff(g, cloud); }
+  var ow = Math.round(2 * R * dpr);
+  var lin = globeLinear(opt, size);                            // magnified on screen: bilinear, no texel steps
+  var gvv = g.v;
 
   var s = opt.sun || { x: -0.55, y: 0.32, z: 0.77 };
   var sl = Math.sqrt(s.x * s.x + s.y * s.y + s.z * s.z) || 1;
@@ -1925,6 +1942,7 @@ function renderGlobe(out, opt) {
   var LS = (GL_N - 1) / 2;
 
   var y, i, k, o, len, x0, ny, lamRow, hRow, nx, nz, lam, li, sh, tx, ti, r, gg, b, ai;
+  var fx, fy, tx0, tx1, ty0, ty1, i00, i01, i10, i11, w00, w01, w10, w11, vv;
 
   px.fill(0);
 
@@ -1945,9 +1963,20 @@ function renderGlobe(out, opt) {
       sh = glShade[li];
 
       var u = gu[k] + rotU; if (u >= 1) u -= 1;
-      tx = (u * tw) | 0; if (tx >= tw) tx = tw - 1;
-      ti = (toff[k] + tx) << 2;
-      r = td[ti]; gg = td[ti + 1]; b = td[ti + 2];
+      if (lin) {                                                // four texels, blended: smooth under magnification
+        fx = u * tw - 0.5; tx0 = Math.floor(fx); fx -= tx0; if (tx0 < 0) tx0 += tw; tx1 = tx0 + 1; if (tx1 >= tw) tx1 -= tw;
+        vv = gvv[k] * th - 0.5; ty0 = Math.floor(vv); fy = vv - ty0; if (ty0 < 0) { ty0 = 0; fy = 0; }
+        ty1 = ty0 + 1; if (ty1 >= th) ty1 = th - 1;
+        i00 = (ty0 * tw + tx0) << 2; i01 = (ty0 * tw + tx1) << 2; i10 = (ty1 * tw + tx0) << 2; i11 = (ty1 * tw + tx1) << 2;
+        w00 = (1 - fx) * (1 - fy); w01 = fx * (1 - fy); w10 = (1 - fx) * fy; w11 = fx * fy;
+        r  = td[i00] * w00 + td[i01] * w01 + td[i10] * w10 + td[i11] * w11;
+        gg = td[i00 + 1] * w00 + td[i01 + 1] * w01 + td[i10 + 1] * w10 + td[i11 + 1] * w11;
+        b  = td[i00 + 2] * w00 + td[i01 + 2] * w01 + td[i10 + 2] * w10 + td[i11 + 2] * w11;
+      } else {
+        tx = (u * tw) | 0; if (tx >= tw) tx = tw - 1;
+        ti = (toff[k] + tx) << 2;
+        r = td[ti]; gg = td[ti + 1]; b = td[ti + 2];
+      }
 
       // ocean sheen: blue-dominant texels only, and only on the lit side
       if (doSpec && b > r + 16 && b > gg + 6 && lam > 0) {
@@ -1974,10 +2003,22 @@ function renderGlobe(out, opt) {
       // clouds, drifting on their own rotation, lit by the same lambert term
       if (cd && cloudAmt > 0) {
         var cu = gu[k] + cldU; if (cu >= 1) cu -= 1;
-        var cx = (cu * cw) | 0; if (cx >= cw) cx = cw - 1;
-        var ci = (coff[k] + cx) << 2;
-        var ca = cd[ci + 3];
-        var caf = (ca === 255 ? cd[ci] / 255 : ca / 255) * cloudAmt;
+        var caf;                                                // coverage: alpha, or red where the map is opaque
+        if (lin) {
+          fx = cu * cw - 0.5; tx0 = Math.floor(fx); fx -= tx0; if (tx0 < 0) tx0 += cw; tx1 = tx0 + 1; if (tx1 >= cw) tx1 -= cw;
+          vv = gvv[k] * ch - 0.5; ty0 = Math.floor(vv); fy = vv - ty0; if (ty0 < 0) { ty0 = 0; fy = 0; }
+          ty1 = ty0 + 1; if (ty1 >= ch) ty1 = ch - 1;
+          i00 = (ty0 * cw + tx0) << 2; i01 = (ty0 * cw + tx1) << 2; i10 = (ty1 * cw + tx0) << 2; i11 = (ty1 * cw + tx1) << 2;
+          caf = ((cd[i00 + 3] === 255 ? cd[i00] : cd[i00 + 3]) * (1 - fx) * (1 - fy)
+               + (cd[i01 + 3] === 255 ? cd[i01] : cd[i01 + 3]) * fx * (1 - fy)
+               + (cd[i10 + 3] === 255 ? cd[i10] : cd[i10 + 3]) * (1 - fx) * fy
+               + (cd[i11 + 3] === 255 ? cd[i11] : cd[i11 + 3]) * fx * fy) / 255 * cloudAmt;
+        } else {
+          var cx = (cu * cw) | 0; if (cx >= cw) cx = cw - 1;
+          var ci = (coff[k] + cx) << 2;
+          var ca = cd[ci + 3];
+          caf = (ca === 255 ? cd[ci] / 255 : ca / 255) * cloudAmt;
+        }
         if (caf > 0.004) {
           var cs = sh * 255, im = 1 - caf;
           r = r * im + cs * caf; gg = gg * im + cs * caf; b = b * im + cs * 1.04 * caf;
@@ -2003,7 +2044,6 @@ function renderGlobe(out, opt) {
 
   g.ctx.putImageData(g.img, 0, 0);
 
-  var ow = Math.round(2 * R * dpr);
   if (out.width !== ow || out.height !== ow) { out.width = ow; out.height = ow; }
   var oc = out.getContext("2d");
   oc.setTransform(1, 0, 0, 1, 0, 0);
@@ -2012,10 +2052,14 @@ function renderGlobe(out, opt) {
   if ("imageSmoothingQuality" in oc) oc.imageSmoothingQuality = "high";
   oc.drawImage(g.buf, 0, 0, size, size, 0, 0, ow, ow);
 
-  glLast = { ow: ow, buf: size, tilt: tilt, rot: rot, cloudRot: cloudRot,
+  glLast = out._gl = { ow: ow, buf: size, lin: lin, cloudAmt: cloudAmt, tilt: tilt, rot: rot, cloudRot: cloudRot,
              sxr: s.x, syr: s.y, szr: s.z,
              tex: opt.tex, night: opt.night || null, clouds: opt.clouds || null };
   glLastMs = globeNow() - t0;
+  if (size >= 320 && !opt.fast) {                              // the big sphere sets the budget for the next one
+    if (glLastMs < 22 && size >= glCap && glCap < GLOBE_MAXBUF_HI) glCap += GLOBE_STEP;
+    else if (glLastMs > 60 && glCap > GLOBE_MINBUF) glCap -= GLOBE_STEP;
+  }
 }
 
 /* optional outer glow, drawn straight onto the scene canvas around the globe */
@@ -2547,18 +2591,21 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
 let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = 1;
-let earthTilt = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99;
+let earthTilt = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
+let procTex = null, procNight = null, procClouds = null;        // the drawn Earth (always built: the fallback)
+let photoTex = null, photoNight = null, photoClouds = null, photoState = 0;   // NASA's pictures: 0 idle 1 loading 2 in 3 failed
 function buildEarthAssets() {                                   // built in stages so nothing locks up
   if (earthAssets) return;
   earthAssets = 1;
   const big = Math.min(W, H) >= 520;
   const steps = [
-    () => { earthTex = buildEarthTexture(LAND_RINGS, 2048, 1024); },   // one size: big tablets ran out of canvas
+    () => { procTex = buildEarthTexture(LAND_RINGS, 2048, 1024); useEarthSource(); },   // one size: big tablets ran out of canvas
     () => { moonTex = buildMoonTexture(1024, 512); },
-    () => { earthNight = buildEarthNight(LAND_RINGS, 1536, 768); },
-    () => { earthClouds = buildCloudTexture(1536, 768, LAND_RINGS); earthAssets = 2;
+    () => { procNight = buildEarthNight(LAND_RINGS, 1536, 768); useEarthSource(); },
+    () => { procClouds = buildCloudTexture(1536, 768, LAND_RINGS); earthAssets = 2; useEarthSource();
       log("SURFACE IMAGERY LOADED — EARTH AND LUNA", "cy"); }
   ];
+  loadEarthPhotos();                                            // NASA's real pictures come in behind the drawn ones
   const run = (i) => {
     if (i >= steps.length) return;
     try { steps[i](); } catch (e) { earthAssets = 3; log("IMAGERY FAILED — FALLING BACK", "alert"); return; }
@@ -2567,14 +2614,55 @@ function buildEarthAssets() {                                   // built in stag
   };
   run(0);
 }
-function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun) {
+function useEarthSource() {                                     // NASA's photo when it is in and wanted, else the drawn one
+  const photo = S.earthSrc !== "procedural" && photoState === 2;
+  const nt = photo && photoTex ? photoTex : procTex;
+  const nn = photo && photoNight ? photoNight : procNight;
+  const nc = photo && photoClouds ? photoClouds : procClouds;
+  if (nt === earthTex && nn === earthNight && nc === earthClouds) return;
+  for (const old of [earthTex, earthNight, earthClouds])         // drop the pixel cache of whatever leaves
+    if (old && old !== nt && old !== nn && old !== nc) globeInvalidateTexture(old);
+  earthTex = nt; earthNight = nn; earthClouds = nc; earthRef.dirty = true;
+}
+function loadEarthPhotos() {                                    // Blue Marble day, Black Marble night, cloud cover
+  if (photoState) return;
+  photoState = 1;
+  const want = [["earth/day.jpg", "day"], ["earth/night.jpg", "night"], ["earth/clouds.jpg", "clouds"]];
+  let left = want.length, ok = 0;
+  const done = () => {
+    if (--left) return;
+    photoState = ok ? 2 : 3;
+    if (ok) { log(ok === 3 ? "NASA IMAGERY IN — BLUE MARBLE · BLACK MARBLE · CLOUD COVER" : "NASA IMAGERY IN (PART)", "cy"); useEarthSource(); }
+    else log("NASA IMAGERY UNAVAILABLE — THE DRAWN EARTH STAYS", "alert");
+  };
+  for (const [src, key] of want) {
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const cv = document.createElement("canvas"); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+        const g = cv.getContext("2d"); g.drawImage(im, 0, 0); g.getImageData(0, 0, 1, 1);   // throws if tainted
+        if (key === "day") photoTex = cv; else if (key === "night") photoNight = cv; else photoClouds = cv;
+        ok++;
+      } catch (e) {}
+      done();
+    };
+    im.onerror = done;
+    im.src = src;
+  }
+}
+function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun, x) {
   const px = Math.max(2, Math.round(2 * R * DPR));
   let cv = cvRef.cv;
   if (!cv) { cv = cvRef.cv = document.createElement("canvas"); }
   if (cv.width !== px) { cv.width = cv.height = px; cvRef.dirty = true; }
+  x = x || {};
   const opt = { tex: tex, night: night, clouds: clouds, R: R, dpr: DPR, rot: rot, tilt: tilt,
-    sun: sun, cloudRot: rot * 1.05, quality: globeAutoQuality(6) };
-  if (cvRef.dirty || globeDirty(opt)) { renderGlobe(cv, opt); cvRef.dirty = false; }
+    sun: sun, cloudRot: rot + (x.cloudRot || 0), cloudAmt: x.cloudAmt === undefined ? 1 : x.cloudAmt,
+    fast: !!x.fast, quality: 1 };
+  const now = globeNow();                                     // a slow device is not asked for more than it can give
+  if (cvRef.dirty || (globeDirty(opt, cv) && (opt.fast || now - (cvRef.t || 0) >= Math.min(400, glLastMs * 3)))) {
+    renderGlobe(cv, opt); cvRef.dirty = false; cvRef.t = globeNow();
+  }
   return cv;
 }
 const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
@@ -2691,7 +2779,7 @@ function drawEarthHub(t) {
   drawSunDisc(sunX, sunY, R * 0.085, t);
   label(sunX + R * 0.14, sunY + 4, "SOL", "", "#ffd34d");
   if (PLANET_FRONT) for (const job of PLANET_FRONT) job();      // the near half passes in front of Sol
-  if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; }   // one lap in about 37 seconds
+  if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
   const mA = RZ * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.52;  // the lane rides high: the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
   const mr = RZ * 0.115, behind = mSin < 0;                     // far side of the orbit: it goes behind the world
@@ -2713,7 +2801,8 @@ function drawEarthHub(t) {
   }
   if (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
-    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTilt, sunV);
+    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTilt, sunV,
+      { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
     ctx.drawImage(gc, sx - RZ, sy - RZ, RZ * 2, RZ * 2);         // no crop: closer means bigger
   } else {
     const og = ctx.createRadialGradient(sx - RZ * 0.35, sy - RZ * 0.4, RZ * 0.1, sx, sy, RZ);
