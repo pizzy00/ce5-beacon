@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#050510" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="CE-5 Beacon" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <title>CE-5 BEACON — CONTACT CONSOLE</title>
 <meta name="description" content="Pick a departure system, ride Polaris to Sol to Luna to Earth, then a slow satellite descent onto your own spot. Set your target, share the link, breathe." />
 <meta property="og:type" content="website" />
@@ -66,7 +73,7 @@
   #log div { animation: typein 0.35s steps(24) both; white-space: nowrap; overflow: hidden;
     text-overflow: ellipsis; }
 
-  #data { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px;
+  #data { position: absolute; top: calc(max(10px, env(safe-area-inset-top)) + 36px); right: 12px;
     text-align: right; font-size: 11px; line-height: 1.7; color: var(--cyan);
     text-shadow: 0 0 6px rgba(107,227,255,0.45); }
   #data b { color: var(--ink); font-weight: 400; }
@@ -156,6 +163,15 @@
 
   #bGear { flex: 0 0 56px; }
   #bGps { flex: 0 0 56px; }
+  #bFull { position: fixed; top: max(8px, env(safe-area-inset-top)); right: 10px; z-index: 9; width: 30px; height: 30px;
+    border: 1px solid var(--amber-dim); border-radius: 3px; background: rgba(10,10,24,0.75); color: var(--amber);
+    display: flex; align-items: center; justify-content: center; padding: 0; }
+  #bFull:active { background: rgba(255,196,107,0.25); }
+  #bFull svg { width: 16px; height: 16px; display: block; }
+  #bFull .comp { display: none; }
+  #bFull.on .exp { display: none; }
+  #bFull.on .comp { display: block; }
+  #bFull.hide { display: none; }
   #bInfo { flex: 0 0 56px; padding: 9px 4px; display: flex; align-items: center;
     justify-content: center; }
   #bInfo svg { width: 22px; height: 14px; display: block; }
@@ -263,6 +279,18 @@
         <button class="btn cy" id="bCopy">Copy</button>
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">SCREEN</div>
+      <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES</label>
+      <label class="setChk"><input type="checkbox" id="ckVig" checked />EDGE VIGNETTE</label>
+      <div class="setLbl">CROSSHAIR RETICLE</div>
+      <select id="selRet">
+        <option value="flight" selected>WHILE TRAVELLING ONLY — GONE ONCE IT LANDS</option>
+        <option value="always">ALWAYS DURING A RUN</option>
+        <option value="off">OFF</option>
+      </select>
+      <div class="setStat">THE CORNER ICON GOES FULL SCREEN WHERE THE BROWSER ALLOWS IT · ON IPHONE USE SHARE → ADD TO HOME SCREEN</div>
     </div>
     <div class="setRow">
       <div class="setLbl">MESSAGE — SENT IN MORSE WHEN THE BEACON LOCKS</div>
@@ -459,6 +487,12 @@
   <div class="archCap">THIS IS WHAT THEY WATCH · TAP = NEXT</div>
   <div id="flashWhite"></div>
 </div>
+<button id="bFull" aria-label="Full screen" title="Full screen">
+  <svg class="exp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+    <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+  <svg class="comp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+    <path d="M6 2v4H2M10 6V2h4M14 10h-4v4M2 10h4v4"/></svg>
+</button>
 <div id="crt"></div>
 <div id="vig"></div>
 
@@ -499,6 +533,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, motion: "auto",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
+  crt: false, vig: true, ret: "flight",
   polaris: true, sun: true, moon: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1147,11 +1182,11 @@ function loop(ts) {
     if (p >= 1) {
       if (mode === "ocean" || mode === "bermuda") return startDive();
       if (mode === "moon") {
-        setPhase("moon", "LUNAR DEPARTURE"); t0 = ts;
+        setPhase("moon", "LUNAR DEPARTURE"); t0 = ts; retShow(true);
         log("LUNAR DEPARTURE — EARTH AHEAD", "cy");
         cueStage("THEY ARE COMING WITH YOU"); cueSub("EARTH AHEAD · 1.3 LIGHT-SECONDS");
       } else {
-        setPhase("galaxy", "MILKY WAY"); t0 = ts;
+        setPhase("galaxy", "MILKY WAY"); t0 = ts; retShow(true);
         log("STAGE 2: MILKY WAY OVERVIEW — FIND SOL", "cy");
         cueStage("FIND SOL TOGETHER"); cueSub("ORION ARM · 26,000 LY FROM THE CORE");
       }
@@ -1219,7 +1254,7 @@ function engage() {
   }
   t0 = performance.now();
   $("bEngage").classList.add("hide"); $("bAll").classList.add("hide");
-  $("chips").classList.add("hide"); $("reticle").classList.add("on");
+  $("chips").classList.add("hide"); retShow(false);
   $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
   document.body.classList.add("run"); document.body.classList.remove("active");
   if (mode === "bermuda") bermudaCall();
@@ -1257,7 +1292,7 @@ function bermudaCall() {
   const orbitFly = reduced ? 1.5 : S.bOrbit;
   const settle = () => {                                        // on the Triangle: name it, hold
     if (token !== bermToken || phase !== "triangle") return;
-    clearTimeout(bermGuard);
+    clearTimeout(bermGuard); retShow(false);
     setPhase("triangle", "THE TRIANGLE");
     cueStage("THE TRIANGLE"); cueSub("MIAMI · BERMUDA · SAN JUAN · " + BERMUDA.depth + " DOWN");
     log("THE TRIANGLE — " + BERMUDA.depth + " OF WATER UNDER IT", "cy");
@@ -1265,6 +1300,7 @@ function bermudaCall() {
   };
   bermHold = setTimeout(() => {
     if (token !== bermToken || phase !== "triangle") return;
+    retShow(true);
     map.flyTo([25.6, -71.5], triZoom, { duration: orbitFly });
     map.once("moveend", settle);
     bermGuard = setTimeout(() => {                              // if the flight never lands, land it
@@ -1298,16 +1334,17 @@ function nukeTour(i, token) {
     html: '<div class="beacon' + (s.now ? " now" : "") + '"><s></s><s></s><s></s><i></i></div>' });
   L.marker([s.lat, s.lon], { icon }).addTo(bermLayer);
   const fly = reduced ? 1.5 : S.bFly;
+  retShow(true);
   map.flyTo([s.lat, s.lon], s.z, { duration: fly });
   map.once("moveend", () => {
     if (token !== bermToken) return;
-    clearTimeout(bermGuard);
+    clearTimeout(bermGuard); retShow(false);
     bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   });
   clearTimeout(bermGuard);                                // if the flight never lands, move on anyway
   bermGuard = setTimeout(() => {
     if (token !== bermToken || bermStep !== i || phase !== "sites") return;
-    map.off("moveend"); map.setView([s.lat, s.lon], s.z, { animate: false });
+    map.off("moveend"); map.setView([s.lat, s.lon], s.z, { animate: false }); retShow(false);
     bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   }, (fly + S.bHold + 4) * 1000);
 }
@@ -1404,7 +1441,7 @@ function bermRise() {
   stopFlash(); closeFlash();
   if (bermLayer) { map.removeLayer(bermLayer); bermLayer = null; }
   usoSite = BERMUDA; wpHit.clear();
-  $("space").classList.remove("gone"); $("reticle").classList.add("on");
+  $("space").classList.remove("gone"); retShow(false);
   setPhase("origin", "THE DEEP"); t0 = performance.now();
   cueStage("PICTURE THEM IN THE DEEP"); cueSub("USO · " + BERMUDA.unit);
   log("THE UNIT ANSWERS — RISING FROM THE TRIANGLE", "cy");
@@ -1543,9 +1580,11 @@ function runStep(i, token) {
   diveStep = i;
   const s = divePlan[i];
   cueStage(s.msg);
+  retShow(true);
   map.flyTo([TARGET.lat, TARGET.lon], s.z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
   map.once("moveend", () => {
     if (token !== diveToken || phase !== "dive") return;
+    retShow(false);
     holdTimer = setTimeout(() => runStep(i + 1, token), (reduced ? 1 : s.hold * S.diveMul) * 1000);
   });
 }
@@ -1684,6 +1723,14 @@ $("bTarget").onclick = () => {
   $("bTarget").classList.toggle("on", retargetMode);
   if (retargetMode) log("RETARGET: TAP YOUR ROOF", "cy");
 };
+let retWant = false;
+function retShow(on) {                                        // on = the camera is travelling
+  retWant = !!on;
+  const inRun = phase !== "chart" && phase !== "active";
+  const show = S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun;
+  $("reticle").classList.toggle("on", show);
+}
+function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); }
 function useGps() {
   if (!navigator.geolocation) { $("addrStatus").textContent = "GPS UNAVAILABLE IN THIS BROWSER"; return log("GPS UNAVAILABLE", "alert"); }
   log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING...";
@@ -1696,6 +1743,28 @@ function useGps() {
 }
 $("bGps").onclick = useGps;
 $("bGps2").onclick = useGps;
+/* full screen: the API where it exists (Android, desktop); iPhone Safari has none, so point at Add to Home Screen */
+const fsEl = document.documentElement;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const fsAvail = () => !!(fsEl.requestFullscreen || fsEl.webkitRequestFullscreen) && document.fullscreenEnabled !== false;
+const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const drawFs = () => $("bFull").classList.toggle("on", fsOn());
+$("bFull").onclick = () => {
+  if (fsOn()) { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
+  if (!fsAvail()) {
+    log(standalone ? "ALREADY FULL SCREEN — HOME SCREEN APP" :
+      "THIS BROWSER CAN'T GO FULL SCREEN — SHARE → ADD TO HOME SCREEN, OPEN IT FROM THERE", "alert");
+    return;
+  }
+  try {
+    const p = (fsEl.requestFullscreen || fsEl.webkitRequestFullscreen).call(fsEl, { navigationUI: "hide" });
+    if (p && p.then) p.then(() => log("FULL SCREEN — TAP THE CORNER ICON TO LEAVE", "cy"),
+      () => log("FULL SCREEN BLOCKED HERE — ADD TO HOME SCREEN INSTEAD", "alert"));
+  } catch (e) { log("FULL SCREEN BLOCKED HERE — ADD TO HOME SCREEN INSTEAD", "alert"); }
+};
+document.addEventListener("fullscreenchange", drawFs);
+document.addEventListener("webkitfullscreenchange", drawFs);
+if (standalone) $("bFull").classList.add("hide");
 
 /* tone: 528 + 432 Hz soft beat */
 /* morse: the message the beacon sends */
@@ -1876,6 +1945,7 @@ function applyS() {                                             // push S into e
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
+  chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
 }
 $("bSave").onclick = saveSettings;
 $("bReset").onclick = resetSettings;
@@ -1929,6 +1999,10 @@ $("rWpm").oninput = (e) => { S.mWpm = +e.target.value; $("vWpm").textContent = S
 $("rMInt").oninput = (e) => { S.mInt = +e.target.value / 100; $("vMInt").textContent = e.target.value; };
 $("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
 $("msgMorse").textContent = morseString(S.msg);
+$("ckCrt").onchange = (e) => { S.crt = e.target.checked; applyScreen(); };
+$("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
+$("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
+applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
 $("selShot").onchange = (e) => (S.nShot = e.target.value);

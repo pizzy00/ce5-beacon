@@ -1,0 +1,16 @@
+{
+  "name": "CE-5 Beacon",
+  "short_name": "CE-5 Beacon",
+  "description": "A contact console: pick a departure, ride the light down to your own spot, and hold the beacon.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050510",
+  "theme_color": "#050510",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
