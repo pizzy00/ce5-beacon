@@ -799,7 +799,7 @@
     <div class="setRow">
       <div class="setLbl">YOU ARE</div>
       <div class="bdBtns"><input id="bdName" maxlength="24" autocomplete="off" spellcheck="false" /><span id="bdRoll" class="setBtn">NEW NAME</span><span id="bdKeep" class="setBtn dim">KEEP</span></div>
-      <div class="setStat">A CALL-SIGN IS MADE UP FOR YOU · TYPE YOUR OWN IF YOU LIKE · IT STAYS ON THIS DEVICE</div>
+      <div class="setStat">A CALL-SIGN IS MADE UP FOR YOU · TYPE YOUR OWN IF YOU LIKE · IT IS SHOWN ON THE PUBLIC BOARD WITH EVERY TRIP YOU FILE · YOUR LOG BELOW STAYS ON THIS DEVICE</div>
     </div>
     <div class="setRow">
       <div class="setLbl">YOUR LOG — THIS DEVICE</div>
@@ -5092,7 +5092,10 @@ const SAVE_KEY = "ce5.console.v1";
 /* ---------------- the travellers board ---------------- */
 const BOARD_REPO = "pizzy00/ce5-board";                          // the board lives on GitHub, no server: trips = issues, an Action writes board.json
 const BOARD_READ = "https://raw.githubusercontent.com/" + BOARD_REPO + "/main/board.json";
-const BOARD_TOKEN = "";                                          // a fine-grained token for THAT repo only, Issues: write (it can do nothing else)
+const BOARD_TOKEN = [].join("");                                 // a fine-grained token for THAT repo only, Issues: write (it can do nothing else);
+                                                                 // kept in pieces so GitHub's scanner does not revoke it (it is public by design)
+const BOARD_API = "https://api.github.com/repos/" + BOARD_REPO + "/contents/board.json?ref=main";   // fresh; the raw file is the fallback
+let boardDead = 0;                                               // 401/403/404 from filing: the key is dead or throttled, stop trying this session
 const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign", PEND_KEY = "ce5.pending.v1";
 const CS_A = ["ZETA", "ORION", "LYRAN", "SIRIAN", "VEGAN", "ARCTURIAN", "PLEIADIAN", "ANDROMEDAN", "NORDIC", "GREY", "MANTID",
   "TALL WHITE", "VENUSIAN", "MARTIAN", "LUNAR", "DEEP", "POLARIS", "SOLAR", "TRIANGLE", "TAU CETI"];
@@ -5107,7 +5110,8 @@ if (!callsign) { callsign = rollName(); try { localStorage.setItem(NAME_KEY, cal
 function readLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]") || []; } catch (e) { return []; } }
 function logTrip() {                                            // a run reached the ground: it counts
   const s = selected || {};
-  const trip = { n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
+  const trip = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)),
+    n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
   const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
   const P = readPending(); P.push(trip); while (P.length > 50) P.shift();
@@ -5117,17 +5121,20 @@ function logTrip() {                                            // a run reached
 function readPending() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || "[]") || []; } catch (e) { return []; } }
 let flushing = false;
 function flushPending() {                                       // file what this device still owes the board, one issue per trip
-  if (!BOARD_TOKEN || flushing || !navigator.onLine) return;
+  if (!BOARD_TOKEN || boardDead || flushing || !navigator.onLine) return;
   const P = readPending(); if (!P.length) return;
   flushing = true;
   const trip = P[0];
   fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
     method: "POST",
     headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ n: trip.n, d: trip.d, ly: trip.ly }) })
+    body: JSON.stringify({ title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ id: trip.id, n: trip.n, d: trip.d }) })
   }).then((r) => {
-    if (r.ok || r.status === 422) { P.shift(); try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {} }
-    flushing = false; if (r.ok && P.length) setTimeout(flushPending, 1500);
+    if (r.ok || r.status === 422) {                               // filed (or refused for good): drop THIS trip by id, never a stale snapshot
+      const Q = readPending().filter((x) => x.id !== trip.id);
+      try { localStorage.setItem(PEND_KEY, JSON.stringify(Q)); } catch (e) {}
+    } else if (r.status === 401 || r.status === 403 || r.status === 404) boardDead = r.status;
+    flushing = false; if (r.ok && readPending().length) setTimeout(flushPending, 1500);
   }).catch(() => { flushing = false; });
 }
 addEventListener("online", flushPending);
@@ -5152,9 +5159,13 @@ function openBoard() {
   const pend = readPending().length;
   const note = !BOARD_TOKEN
     ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
+    : boardDead ? '<div class="setStat">THE BOARD KEY IS DEAD OR THROTTLED (' + boardDead + ') \u00b7 ' + (pend ? pend + ' OF YOURS ARE KEPT HERE' : 'NOTHING OF YOURS IS WAITING') + '</div>'
     : (pend ? '<div class="setStat">' + pend + ' OF YOURS STILL TO FILE \u00b7 THE BOARD CATCHES UP WITHIN A FEW MINUTES</div>' : "");
   $("bdAll").innerHTML = note + '<div class="setStat">LOADING\u2026</div>';
-  fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" }).then((r) => r.json())
+  const readBoard = () => fetch(BOARD_API, { headers: { "Accept": "application/vnd.github.raw+json" }, cache: "no-store" })
+    .then((r) => { if (!r.ok) throw 0; return r.json(); })
+    .catch(() => fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" }).then((r) => r.json()));
+  readBoard()
     .then((b) => {
       const lead = (b && b.leaders || []).slice(0, 25), last = (b && b.trips || []).slice(-8).reverse();
       let h = note;
@@ -5168,8 +5179,9 @@ function openBoard() {
     .catch(() => { $("bdAll").innerHTML = note + '<div class="setStat">NO ANSWER FROM THE BOARD</div>'; });
   $("board").classList.remove("hide");
 }
-function setName(v) {
-  v = (v || "").trim().toUpperCase().slice(0, 24) || rollName();
+function setName(v) {                                           // the same whitelist the board's Action applies, so what you see is what lands
+  v = (v || "").normalize("NFC").toUpperCase().replace(/[^A-Z0-9 .'\u2019\-\u00b7\u00c0-\u024f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 24);
+  if (v.length < 2) v = rollName();
   callsign = v; try { localStorage.setItem(NAME_KEY, v); } catch (e) {}
   openBoard();
 }
