@@ -367,6 +367,8 @@
       <label class="setChk"><input type="checkbox" id="ckPolaris" checked />POLARIS — THE NORTH STAR</label>
       <label class="setChk"><input type="checkbox" id="ckSun" checked />SOL</label>
       <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
+      <label class="setChk"><input type="checkbox" id="ckJwst" />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
+      <label class="setChk"><input type="checkbox" id="ckHubble" />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
     </div>
     <div class="setRow">
       <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
@@ -401,6 +403,7 @@
     </div>
     <div class="setRow">
       <div class="setLbl">THE FLASH — WHICH SHOT'S LIGHT</div>
+      <label class="setChk"><input type="checkbox" id="ckNukeAll" checked />THE FLASH ON EVERY TRIP — CLOSE YOUR EYES BEFORE THE DESCENT (OFF = BERMUDA ONLY)</label>
       <select id="selShot">
         <option value="random">RANDOM EACH RUN</option>
         <option value="nutmeg">NUTMEG · BIKINI 1958 · 25 KT — WHITEOUT, THEN A LONG GLOW</option>
@@ -557,7 +560,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, detail: "full",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: true, sun: true, moon: true, cache: "normal" };
+  polaris: true, sun: true, moon: true, jwst: false, hubble: false, nukeAll: true, cache: "normal" };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -1071,6 +1074,150 @@ function drawOceanOrigin(p, t) {
   $("dSig").textContent = Math.round(20 + p * 30) + "%";
 }
 
+function drawJwst(p, t) {                                       // the gold mirror at L2, sunshield toward the Sun
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  star(W / 2, H * 0.55, 2.2, "#6be3ff");
+  label(W / 2, H * 0.55 + 20, "EARTH AHEAD", "", "#6be3ff", "center");
+  const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
+  const cx = W * (0.78 - grow * 0.28) - drift * W * 0.9, cy = H * 0.3;
+  const s = Math.min(110, Math.min(W, H) * 0.26) * (0.3 + grow * 0.7);   // half-width of the sunshield
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.35);
+  for (let i = 4; i >= 0; i--) {                                // five kite-shaped sunshield layers
+    const dy = i * s * 0.05 + s * 0.35;
+    ctx.fillStyle = i === 0 ? "#e8e4f4" : "rgba(190,184,214," + (0.55 - i * 0.08) + ")";
+    ctx.beginPath(); ctx.moveTo(-s, dy); ctx.lineTo(0, dy - s * 0.42); ctx.lineTo(s, dy); ctx.lineTo(0, dy + s * 0.42); ctx.closePath(); ctx.fill();
+  }
+  const hr = s * 0.13;                                          // 18 gold hexagons, the centre left open
+  ctx.strokeStyle = "#5a4310"; ctx.lineWidth = 1;
+  for (let q = -2; q <= 2; q++) for (let r = -2; r <= 2; r++) {
+    const w = -q - r; if (Math.max(Math.abs(q), Math.abs(r), Math.abs(w)) > 2 || (q === 0 && r === 0)) continue;
+    const hx = hr * 1.732 * (q + r / 2), hy = hr * 1.5 * r;
+    const g = ctx.createLinearGradient(hx - hr, hy - hr, hx + hr, hy + hr);
+    g.addColorStop(0, "#fff0b0"); g.addColorStop(0.5, "#e0b23a"); g.addColorStop(1, "#8c6a18");
+    ctx.fillStyle = g; ctx.beginPath();
+    for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; ctx.lineTo(hx + Math.cos(a) * hr * 0.96, hy + Math.sin(a) * hr * 0.96); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.strokeStyle = "#9a9ab0"; ctx.lineWidth = 1;               // secondary mirror on three struts
+  for (const a of [-0.9, 0, 0.9]) { ctx.beginPath(); ctx.moveTo(Math.sin(a) * hr * 2.6, Math.cos(a) * hr * 1.2 - hr * 1.2); ctx.lineTo(0, -s * 0.9); ctx.stroke(); }
+  ctx.fillStyle = "#c9c9d8"; ctx.beginPath(); ctx.arc(0, -s * 0.9, hr * 0.35, 0, 6.29); ctx.fill();
+  ctx.restore();
+  glow(cx, cy, s * 1.4, "#e0b23a", 0.12 + 0.05 * Math.sin(t * 2));
+  label(W / 2, cy + s * 0.95 + 34, "JAMES WEBB — SUN-EARTH L2",
+    "1.5 MILLION KM OUT · 6.5 M GOLD MIRROR · LOOKING BACK 13 BILLION YEARS", "#e0b23a", "center");
+  $("dRng").textContent = "1.5M KM";
+  $("dSig").textContent = "62%";
+}
+function drawHubble(p, t) {                                     // low Earth orbit: the limb below, the telescope drifting over it
+  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  const limbR = W * 1.6, limbY = H * 0.76 + limbR;             // Earth's limb along the bottom
+  const g = ctx.createRadialGradient(W / 2, limbY, limbR * 0.985, W / 2, limbY, limbR * 1.03);
+  g.addColorStop(0, "#1d5fae"); g.addColorStop(0.5, "rgba(90,170,255,0.55)"); g.addColorStop(1, "rgba(90,170,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#0c2f5c"; ctx.beginPath(); ctx.arc(W / 2, limbY, limbR * 0.985, 0, 6.29); ctx.fill();
+  const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
+  const cx = W * (0.8 - grow * 0.3) - drift * W * 0.9, cy = H * 0.36;
+  const L = Math.min(150, Math.min(W, H) * 0.34) * (0.3 + grow * 0.7), R = L * 0.16;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.5);
+  for (const sgn of [-1, 1]) {                                  // solar wings
+    const top = sgn > 0 ? R * 1.1 : -R * 1.1 - L * 0.62;
+    ctx.fillStyle = "#3a6fc4"; ctx.fillRect(-L * 0.12, top, L * 0.24, L * 0.62);
+    ctx.strokeStyle = "rgba(200,225,255,0.5)"; ctx.lineWidth = 0.6;
+    for (let i = 1; i < 6; i++) { const yy = top + i * L * 0.103; ctx.beginPath(); ctx.moveTo(-L * 0.12, yy); ctx.lineTo(L * 0.12, yy); ctx.stroke(); }
+  }
+  const body = ctx.createLinearGradient(0, -R, 0, R);          // the silver tube
+  body.addColorStop(0, "#f4f4f8"); body.addColorStop(0.5, "#b9bcc8"); body.addColorStop(1, "#5c6070");
+  ctx.fillStyle = body; ctx.fillRect(-L / 2, -R, L, R * 2);
+  ctx.fillStyle = "#7d8290"; ctx.fillRect(-L / 2, -R * 1.25, L * 0.45, R * 2.5);   // the wider aft section
+  ctx.fillStyle = "#e6e6ee"; ctx.fillRect(L * 0.44, -R * 1.15, L * 0.06, R * 2.3);  // aperture door, open
+  ctx.strokeStyle = "#2b2e38"; ctx.lineWidth = 1; ctx.strokeRect(-L / 2, -R, L, R * 2);
+  ctx.fillStyle = "#c9c9d8"; ctx.beginPath(); ctx.arc(-L * 0.05, R * 1.5, R * 0.35, 0, 6.29); ctx.fill();   // antenna dish
+  ctx.restore();
+  glow(cx, cy, L * 0.7, "#cfd8ff", 0.10);
+  label(W / 2, cy + L * 0.55 + 34, "HUBBLE — LOW EARTH ORBIT",
+    "540 KM UP · 27,000 KM/H · ON STATION SINCE 1990", "#cfd8ff", "center");
+  $("dRng").textContent = "540 KM";
+  $("dSig").textContent = "74%";
+}
+function drawUnitBirth(p, t) {                                  // the Triangle's unit answers the flash: it births orbs for your spot
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#06284a"); g.addColorStop(0.5, "#031628"); g.addColorStop(1, "#02060e");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 5; i++) {                                 // light shafts from the surface
+    const x = W * (0.2 + i * 0.15) + Math.sin(t * 0.4 + i) * 20;
+    ctx.fillStyle = "rgba(120,200,230,0.04)";
+    ctx.beginPath(); ctx.moveTo(x - 10, 0); ctx.lineTo(x + 10, 0); ctx.lineTo(x + 90, H); ctx.lineTo(x - 50, H); ctx.fill();
+  }
+  ctx.fillStyle = "#cfe8f0";                                    // marine snow
+  for (const q of bgStars) { ctx.globalAlpha = 0.2 + 0.2 * Math.sin(t * 1.2 + q.tw); ctx.fillRect(q.x, (q.y + t * 6) % H, q.r, q.r); }
+  ctx.globalAlpha = 1;
+  const floorY = H * 0.78;
+  ctx.fillStyle = "#040a14"; ctx.beginPath(); ctx.moveTo(0, floorY + 10);
+  for (let x = 0; x <= W + 40; x += 40) ctx.lineTo(x, floorY + Math.sin(x * 0.05 + 1) * 8);
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  const reveal = easeIO(Math.min(1, p / 0.3));                  // 0-0.3: the unit comes out of the dark
+  const cx = W / 2, cy = H * 0.52, R = W * 0.46, hB = R * 0.34;  // a hamburger: two silver domes and the band between
+  ctx.globalAlpha = 0.15 + reveal * 0.85;
+  glow(cx, cy, R * 1.25, "#9fd8ff", 0.10 + reveal * 0.12);
+  const bun = ctx.createLinearGradient(cx, cy - hB * 1.9, cx, cy + hB * 1.3);
+  bun.addColorStop(0, "#f7f8fc"); bun.addColorStop(0.35, "#b8bcc8"); bun.addColorStop(0.6, "#6c717f"); bun.addColorStop(1, "#3a3e4a");
+  ctx.fillStyle = bun; ctx.strokeStyle = "rgba(220,230,255,0.35)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(cx, cy - hB * 0.55, R, hB * 1.35, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx, cy + hB * 0.55, R * 0.97, hB * 0.75, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#1a1d26"; ctx.fillRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
+  ctx.strokeStyle = "rgba(220,230,255,0.25)"; ctx.strokeRect(cx - R * 0.99, cy - hB * 0.55, R * 1.98, hB * 1.1);
+  ctx.strokeStyle = "rgba(40,44,56,0.5)";                       // panel seams on the top dome
+  for (let i = 0; i < 14; i++) {
+    const a = Math.PI + (i / 13) * Math.PI;
+    ctx.beginPath(); ctx.moveTo(cx, cy - hB * 0.55); ctx.lineTo(cx + Math.cos(a) * R, cy - hB * 0.55 + Math.sin(a) * hB * 1.35); ctx.stroke();
+  }
+  const lit = Math.max(0, Math.min(1, (p - 0.1) / 0.25));       // ports light up along the band
+  for (let i = 0; i < 17; i++) {
+    const x = cx - R * 0.9 + (i / 16) * R * 1.8, on = i / 16 <= lit;
+    ctx.globalAlpha = on ? 0.6 + 0.4 * Math.sin(t * 5 + i) : 0.15; ctx.fillStyle = on ? "#9fefff" : "#2a3340";
+    ctx.beginPath(); ctx.ellipse(x, cy, 6, 3.2, 0, 0, 6.29); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const open = easeIO(Math.max(0, Math.min(1, (p - 0.32) / 0.13)));   // the hatch in the band opens
+  if (open > 0) {
+    ctx.fillStyle = "#031628"; ctx.fillRect(cx - R * 0.22 * open, cy - hB * 0.5, R * 0.44 * open, hB);
+    glow(cx, cy, R * 0.35 * open, "#bffff0", 0.35 * open + 0.1 * Math.sin(t * 8));
+  }
+  const px = W * 0.2, py = floorY - 2, ph = Math.max(16, H * 0.05);   // an offshore platform on the floor, tiny beside it
+  ctx.strokeStyle = "#9aa3b4"; ctx.fillStyle = "#9aa3b4"; ctx.lineWidth = 1.5;
+  for (const dx of [-ph * 0.35, ph * 0.35]) { ctx.beginPath(); ctx.moveTo(px + dx, py); ctx.lineTo(px + dx * 0.8, py - ph); ctx.stroke(); }
+  ctx.fillRect(px - ph * 0.5, py - ph - 4, ph, 4);
+  ctx.beginPath(); ctx.moveTo(px + ph * 0.25, py - ph - 4); ctx.lineTo(px + ph * 0.32, py - ph * 1.9); ctx.stroke();
+  label(px, py - ph * 2 - 8, "OFFSHORE PLATFORM", "FOR SCALE", "#8b93a3", "center");
+  const born = Math.max(0, (p - 0.45) / 0.55);                  // the orbs: born in the hatch, rise, then race off toward your spot
+  for (let i = 0; i < 4; i++) {
+    const q = Math.max(0, Math.min(1, born * 1.25 - i * 0.12));
+    if (q <= 0) continue;
+    const out = easeIO(Math.min(1, q / 0.55)), away = Math.max(0, (q - 0.55) / 0.45);
+    const ox = cx + (i - 1.5) * R * 0.22 * out + away * away * W * 0.75;
+    const oy = cy - out * H * 0.28 + Math.sin(t * 2 + i) * 4 * out - away * away * H * 0.6;
+    const r = Math.max(4, Math.min(W, H) * 0.028) * (0.3 + out * 0.7) * (1 - away * 0.6);
+    if (away > 0) {
+      ctx.strokeStyle = "rgba(220,240,255," + (0.5 * (1 - away)) + ")"; ctx.lineWidth = r * 0.5;
+      ctx.beginPath(); ctx.moveTo(ox - away * W * 0.18, oy + away * H * 0.14); ctx.lineTo(ox, oy); ctx.stroke();
+    }
+    glow(ox, oy, r * 3, "#dff6ff", 0.35);
+    const og = ctx.createRadialGradient(ox - r * 0.35, oy - r * 0.35, r * 0.1, ox, oy, r);
+    og.addColorStop(0, "#ffffff"); og.addColorStop(0.5, "#d4d8e4"); og.addColorStop(1, "#6a7080");
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(ox, oy, r, 0, 6.29); ctx.fill();
+  }
+  const km = Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString();
+  label(cx, Math.max(30, cy - hB * 1.9 - 30), "THE UNIT — " + BERMUDA.unit,
+    "SILVER · BIGGER THAN A PLATFORM · " + BERMUDA.depth + " DOWN · " + km + " KM FROM YOUR SPOT", "#9fd8ff", "center");
+  if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — LIGHTS COMING UP ALONG THE BAND", "cy"); }
+  if (p >= 0.32 && !wpHit.has("u2")) { wpHit.add("u2"); log("HATCH OPEN — SOMETHING IS BEING BORN"); cueSub("HOLD STILL · THE HATCH IS OPEN"); }
+  if (p >= 0.5 && !wpHit.has("u3")) { wpHit.add("u3"); log("ORBS OUT — SILVER, SILENT, FOUR OF THEM", "cy"); cueStage("THE ORBS ARE OUT"); cueSub("SILVER SPHERES · RISING"); }
+  if (p >= 0.78 && !wpHit.has("u4")) { wpHit.add("u4"); log("ORBS AWAY — HEADING FOR YOUR COORDINATES", "alert"); cueStage("THEY ARE COMING TO YOU"); cueSub(km + " KM · FOLLOW THEM DOWN"); }
+  if (p > 0.92) { ctx.fillStyle = "rgba(230,245,255," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  $("dRng").textContent = km + " KM";
+  $("dSig").textContent = Math.round(40 + p * 30) + "%";
+}
+
 /* holo earth */
 function drawEarth(p) {
   ctx.fillStyle = "rgba(5,5,16,0.6)"; ctx.fillRect(0, 0, W, H);
@@ -1261,10 +1408,10 @@ function drawMoonStage(p, t) {
 /* ---------------- sequencer ---------------- */
 let t0 = 0, raf = 0;
 const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPERLUMINAL", polaris: "POLARIS GATE", sun: "SOL FLYBY",
-  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH" };
+  moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY" };
 function stageAfter(cur) {
-  const order = ["warp", "polaris", "sun", "moon", "earth"];
-  const on = { warp: true, polaris: S.polaris, sun: S.sun, moon: S.moon, earth: true };
+  const order = ["warp", "polaris", "sun", "jwst", "moon", "hubble", "earth"];
+  const on = { warp: true, polaris: S.polaris, sun: S.sun, jwst: S.jwst, moon: S.moon, hubble: S.hubble, earth: true };
   let i = order.indexOf(cur) + 1;
   while (i < order.length - 1 && !on[order[i]]) i++;
   return order[i];
@@ -1277,18 +1424,21 @@ function advance(cur, ts) {
   if (n === "polaris") log("POLARIS FLYBY — PASSING OVERHEAD", "cy");
   else if (n === "sun") log("SOL CONFIRMED — HOME SYSTEM", "cy");
   else if (n === "moon") log("LUNAR FLYBY — PHASE IS LIVE", "cy");
+  else if (n === "jwst") log("WEBB FLYBY — THE GOLD MIRROR AT L2", "cy");
+  else if (n === "hubble") log("HUBBLE FLYBY — 540 KM UP · ON STATION SINCE 1990", "cy");
 }
 function loop(ts) {
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   if (phase === "chart") drawChart(t);
   else if (phase === "origin") {
-    const p = seg(12000 * S.originMul), mode = modeOf();
+    const mode = modeOf(), p = seg((mode === "bermuda" ? 17000 : 12000) * S.originMul);
     if (mode === "moon") drawMoonOrigin(p, t);
-    else if (mode === "ocean" || mode === "bermuda") drawOceanOrigin(p, t);
+    else if (mode === "bermuda") drawUnitBirth(p, t);
+    else if (mode === "ocean") drawOceanOrigin(p, t);
     else drawOrigin(p, t);
     if (p >= 1) {
-      if (mode === "ocean" || mode === "bermuda") return startDive();
+      if (mode === "ocean" || mode === "bermuda") return preDive();
       if (mode === "moon") {
         setPhase("moon", "LUNAR DEPARTURE"); t0 = ts; retShow(true);
         log("LUNAR DEPARTURE — EARTH AHEAD", "cy");
@@ -1318,11 +1468,19 @@ function loop(ts) {
   } else if (phase === "moon") {
     const p = seg(4600);
     drawMoonStage(p, t);
-    if (p >= 1) { if (modeOf() === "moon") return startDive(); advance("moon", ts); }
+    if (p >= 1) { if (modeOf() === "moon" && !S.hubble) return preDive(); advance("moon", ts); }
+  } else if (phase === "jwst") {
+    const p = seg(5200);
+    drawJwst(p, t);
+    if (p >= 1) advance("jwst", ts);
+  } else if (phase === "hubble") {
+    const p = seg(5200);
+    drawHubble(p, t);
+    if (p >= 1) { if (modeOf() === "moon") return preDive(); advance("hubble", ts); }
   } else if (phase === "earth") {
     const p = seg(3200);
     drawEarth(p);
-    if (p >= 1) return startDive();
+    if (p >= 1) return preDive();
   }
   raf = requestAnimationFrame(loop);
 }
@@ -1330,7 +1488,7 @@ raf = requestAnimationFrame(loop);
 
 function engage() {
   if (phase !== "chart") return;
-  wpHit.clear(); initWarp();
+  wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
   precacheTiles();
   const mode = modeOf();
   if (mode === "moon") {
@@ -1456,7 +1614,15 @@ function nukeTour(i, token) {
     bermHold = setTimeout(() => bermNext(token), S.bHold * 1000);
   }, (fly + S.bHold + 4) * 1000);
 }
-let flashShot = null, flashRaf = 0, flashT0 = 0, flashRun = 0, flashDone = false, photosDone = false;
+let flashShot = null, flashRaf = 0, flashT0 = 0, flashRun = 0, flashDone = false, photosDone = false, flashAfter = null;
+function preDive() {                                            // eyes closed, the flash, then the descent, on every trip
+  if (S.nukeAll && modeOf() !== "bermuda" && !flashDone && !reduced) {
+    cancelAnimationFrame(raf);
+    tourPlan = []; flashAfter = startDive;
+    return nukeFlash(++bermToken);
+  }
+  startDive();
+}
 function pickShot() {
   if (S.nShot !== "random") { const f = NUKE_CURVES.find((c) => c.id === S.nShot); if (f) return f; }
   return NUKE_CURVES[Math.floor(Math.random() * NUKE_CURVES.length)];
@@ -1466,7 +1632,7 @@ function nukeFlash(token) {
   setPhase("flash", "THE FLASH");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
   flashShot = pickShot(); flashRun = 0;
-  log("STAGE " + (tourPlan.length ? 3 : 2) + ": THE FLASH — " + flashShot.name, "alert");
+  log((flashAfter ? "BEFORE THE DESCENT" : "STAGE " + (tourPlan.length ? 3 : 2)) + ": THE FLASH — " + flashShot.name, "alert");
   log("CLOSE YOUR EYES · COVER THEM · IT COMES THROUGH THE LIDS", "alert");
   $("dSig").textContent = "58%";
   warnThenFlash(token);
@@ -1515,6 +1681,7 @@ function endFlash(token) {
   if (flashRun < S.nRepeat) { bermHold = setTimeout(() => warnThenFlash(token), 2500); return; }
   flashDone = true;
   log("THE LIGHT IS GONE · " + flashShot.name, "cy");
+  if (flashAfter) { const cb = flashAfter; flashAfter = null; bermHold = setTimeout(cb, 1500); return; }
   bermHold = setTimeout(() => bermNext(token), 1500);
 }
 function stopFlash() {
@@ -1551,15 +1718,15 @@ function bermRise() {
   usoSite = BERMUDA; wpHit.clear();
   $("space").classList.remove("gone"); retShow(false);
   setPhase("origin", "THE DEEP"); t0 = performance.now();
-  cueStage("PICTURE THEM IN THE DEEP"); cueSub("USO · " + BERMUDA.unit);
-  log("THE UNIT ANSWERS — RISING FROM THE TRIANGLE", "cy");
+  cueStage("PICTURE THE UNIT IN THE DEEP"); cueSub("USO · " + BERMUDA.unit);
+  log("THE FLASH REACHED THE DEEP — THE UNIT STIRS", "cy");
   raf = requestAnimationFrame(loop);
 }
 function bermSkip() {
   clearTimeout(bermHold); clearTimeout(bermGuard);
   const token = ++bermToken;
   if (map) map.stop();
-  if (phase === "flash") { stopFlash(); flashDone = true; return bermNext(token); }
+  if (phase === "flash") { stopFlash(); flashDone = true; if (flashAfter) { const cb = flashAfter; flashAfter = null; return cb(); } return bermNext(token); }
   if (phase === "photos") return bermRise();
   bermNext(token);
 }
@@ -1727,7 +1894,7 @@ function arrive() {
 
 function replay() {
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
-  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1;
+  ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
   document.body.classList.remove("run", "active");
@@ -2096,7 +2263,7 @@ function applyS() {                                             // push S into e
   set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
@@ -2147,6 +2314,9 @@ $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
 $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
+$("ckJwst").onchange = (e) => (S.jwst = e.target.checked);
+$("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
+$("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
 $("selMotion").onchange = (e) => {
