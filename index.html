@@ -30,6 +30,7 @@
     --cyan: #6be3ff;
     --alert: #ff5c39;
     --ink: #e8e2d4;
+    --phos: #7dfba8;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; background: var(--bg); }
@@ -66,9 +67,21 @@
   /* HUD */
   #hud { position: fixed; inset: 0; z-index: 7; pointer-events: none;
     padding: max(10px, env(safe-area-inset-top)) 12px 12px; }
-  #log { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px;
-    max-width: 62vw; font-size: 11px; line-height: 1.5; color: var(--amber);
+  #head { position: fixed; top: 0; left: 0; right: 0; z-index: 7; pointer-events: none;
+    height: clamp(84px, 15vh, 138px); overflow: hidden;
+    padding: calc(6px + env(safe-area-inset-top)) 46px 8px 12px;
+    display: flex; flex-direction: column; gap: 5px;
+    background: linear-gradient(180deg, rgba(4,17,10,0.94), rgba(3,12,8,0.88) 72%, rgba(3,12,8,0));
+    border-bottom: 1px solid rgba(125,251,168,0.30);
+    box-shadow: inset 0 0 22px rgba(125,251,168,0.09), 0 6px 20px rgba(0,0,0,0.45);
+    transition: opacity 0.5s ease, transform 0.5s ease; }
+  #head::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* the tube's scan lines */
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.26) 0 1px, transparent 1px 3px); }
+  body.run #head, body.active #head { opacity: 0; transform: translateY(-14px); }
+  #log { flex: 1; min-height: 0; font-size: 10.5px; line-height: 1.45; color: var(--amber);
     text-shadow: 0 0 6px rgba(255,196,107,0.5); }
+  #log div:not(:nth-last-child(-n+4)) { display: none; }
+  @media (max-height: 700px) { #log div:not(:nth-last-child(-n+3)) { display: none; } }
   #log .old { opacity: 0.45; }
   #log .alert { color: var(--alert); text-shadow: 0 0 6px rgba(255,92,57,0.6); }
   #log .cy { color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
@@ -76,11 +89,12 @@
   #log div { animation: typein 0.35s steps(24) both; white-space: nowrap; overflow: hidden;
     text-overflow: ellipsis; }
 
-  #data { position: absolute; top: calc(max(10px, env(safe-area-inset-top)) + 36px); right: 12px;
-    text-align: right; font-size: 11px; line-height: 1.7; color: var(--cyan);
-    text-shadow: 0 0 6px rgba(107,227,255,0.45); }
-  #data b { color: var(--ink); font-weight: 400; }
-  #data .lbl { color: var(--amber-dim); font-size: 9px; letter-spacing: 0.18em; }
+  #data { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 10px; letter-spacing: 0.04em;
+    color: var(--phos); text-shadow: 0 0 7px rgba(125,251,168,0.45); }
+  #data span { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+  #data i { font-style: normal; font-size: 8px; letter-spacing: 0.2em; opacity: 0.7; }
+  #data b { font-weight: 400; color: #dcffe8; }
+  @media (max-width: 430px) { #data { font-size: 9px; gap: 3px 9px; } #log { font-size: 9.5px; } }
 
   #phase { position: absolute; left: 50%; bottom: 118px; transform: translateX(-50%);
     font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); }
@@ -104,10 +118,7 @@
   #cue .breath { font-size: 10px; letter-spacing: 0.34em; color: var(--cyan); margin-top: 6px;
     text-shadow: 0 0 6px rgba(107,227,255,0.5); }
   /* during a run: get the chrome out of the way of the scene */
-  body.run #log, body.active #log { font-size: 10px; line-height: 1.35; opacity: 0.85; max-width: 58vw; }
-  body.run #log div:not(:nth-last-child(-n+2)) { display: none; }
-  body.active #log div:not(:nth-last-child(-n+4)) { display: none; }
-  body.run #data, body.active #data { display: flex; flex-wrap: wrap; justify-content: flex-end;
+  body.run #dataX, body.active #dataX { display: flex; flex-wrap: wrap; justify-content: flex-end;
     column-gap: 5px; row-gap: 0; max-width: 40vw; font-size: 9px; line-height: 1.4; }
   body.run #data .lbl, body.active #data .lbl { font-size: 8px; }
   body.run #cue, body.active #cue { top: auto; bottom: calc(150px + env(safe-area-inset-bottom)); width: 94vw; }
@@ -166,8 +177,9 @@
 
   #bGear { flex: 0 0 56px; }
   #bGps { flex: 0 0 56px; }
-  #bFull { position: fixed; top: max(8px, env(safe-area-inset-top)); right: 10px; z-index: 9; width: 30px; height: 30px;
-    border: 1px solid var(--amber-dim); border-radius: 3px; background: rgba(10,10,24,0.75); color: var(--amber);
+  #bFull { position: fixed; top: calc(6px + env(safe-area-inset-top)); right: 10px; z-index: 9; width: 30px; height: 30px;
+    border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; background: rgba(4,17,10,0.85); color: var(--phos);
+    transition: opacity 0.5s ease;
     display: flex; align-items: center; justify-content: center; padding: 0; }
   #bFull:active { background: rgba(255,196,107,0.25); }
   #bFull svg { width: 16px; height: 16px; display: block; }
@@ -175,6 +187,7 @@
   #bFull.on .exp { display: none; }
   #bFull.on .comp { display: block; }
   #bFull.hide { display: none; }
+  body.run #bFull, body.active #bFull { opacity: 0.3; }
   #bInfo { flex: 0 0 56px; padding: 9px 4px; display: flex; align-items: center;
     justify-content: center; }
   #bInfo svg { width: 22px; height: 14px; display: block; }
@@ -528,14 +541,17 @@
 <div id="crt"></div>
 <div id="vig"></div>
 
-<div id="hud">
-  <div id="log"></div>
+<div id="head">
   <div id="data">
-    <div class="lbl">LAT</div><div><b id="dLat">--</b></div>
-    <div class="lbl">LON</div><div><b id="dLon">--</b></div>
-    <div class="lbl">RANGE</div><div><b id="dRng">--</b></div>
-    <div class="lbl">SIG</div><div><b id="dSig">0%</b></div>
+    <span><i>LAT</i><b id="dLat">--</b></span>
+    <span><i>LON</i><b id="dLon">--</b></span>
+    <span><i>RNG</i><b id="dRng">--</b></span>
+    <span><i>SIG</i><b id="dSig">0%</b></span>
   </div>
+  <div id="log"></div>
+</div>
+
+<div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">STAR CHART</span> <span id="blink">▌</span></div>
 </div>
 
@@ -573,16 +589,16 @@ if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
 /* ---------------- lore chart ---------------- */
 const SYSTEMS = [
-  { id: "zeta", az: 0.4, name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.60, c: "#9be8ff" },
-  { id: "plei", az: 1.298, name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.20, c: "#bfd9ff", cluster: true },
-  { id: "siri", az: 2.195, name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.42, c: "#eaf6ff" },
-  { id: "arct", az: 3.093, name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.47, c: "#ffb36b" },
-  { id: "vega", az: 3.99, name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.13, c: "#cff3ff" },
-  { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.66, c: "#ff8e5e" },
-  { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.15, c: "#d9c9ff", galaxy: true }
+  { id: "zeta", az: 0.4, name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.472, c: "#9be8ff" },
+  { id: "plei", az: 1.298, name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.259, c: "#bfd9ff", cluster: true },
+  { id: "siri", az: 2.195, name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.376, c: "#eaf6ff" },
+  { id: "arct", az: 3.093, name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.403, c: "#ffb36b" },
+  { id: "vega", az: 3.99, name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.221, c: "#cff3ff" },
+  { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.504, c: "#ff8e5e" },
+  { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.232, c: "#d9c9ff", galaxy: true }
 ];
-const POLARIS = { x: 0.5, y: 0.09, c: "#ffe9a6" };
-const SOL = { x: 0.5, y: 0.84, c: "#ffd34d" };
+const POLARIS = { x: 0.5, y: 0.20, c: "#ffe9a6" };               /* the sky sits clear of the CRT header */
+const SOL = { x: 0.5, y: 0.60, c: "#ffd34d" };                   /* the hub, high enough to stay off the console */
 const MODES = [
   { id: "luna", name: "LUNA · FAR SIDE", tag: "UAP", dist: "384,400 KM", c: "#d8d8de", mode: "moon" },
   { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" },
