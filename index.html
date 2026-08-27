@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#050510" />
+<meta name="theme-color" content="#000000" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -24,7 +24,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <style>
   :root {
-    --bg: #050510;
+    --bg: #000000;                                             /* true black: OLEDs go dark */
     --amber: #ffc46b;
     --amber-dim: #8a6a3a;
     --cyan: #6be3ff;
@@ -52,7 +52,7 @@
   }
   #space { position: fixed; inset: 0; z-index: 3; background: var(--bg);
     transition: opacity 1.3s ease; touch-action: none; }
-  #fade { position: fixed; inset: 0; z-index: 4; background: #050510; opacity: 0; pointer-events: none; }
+  #fade { position: fixed; inset: 0; z-index: 4; background: #000; opacity: 0; pointer-events: none; }
   .beacon { transition: opacity 0.35s ease, transform 0.35s ease; transform: scale(1); }
   .beacon.gone { opacity: 0; transform: scale(2.6); }
   #space.gone { opacity: 0; pointer-events: none; }
@@ -62,7 +62,7 @@
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
     mix-blend-mode: multiply; }
   #vig { position: fixed; inset: 0; z-index: 6; pointer-events: none;
-    background: radial-gradient(ellipse at center, transparent 55%, rgba(3,3,12,0.55) 100%); }
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%); }
 
   /* HUD */
   #hud { position: fixed; inset: 0; z-index: 7; pointer-events: none;
@@ -515,7 +515,7 @@
     #log div { animation: none; }
   }
 
-  .leaflet-control-attribution { background: rgba(5,5,16,0.6) !important;
+  .leaflet-control-attribution { background: rgba(0,0,0,0.6) !important;
     color: #777 !important; font-size: 8px !important; }
   .leaflet-control-attribution a { color: #999 !important; }
 </style>
@@ -1065,10 +1065,10 @@ function buildDeepSky() {                                       // baked once pe
   }
   deepCvs = cv;
 }
-function paintDeepSky(shift) {                                  // drawn twice so it wraps with the turning sky
+function paintDeepSky(shift, mul) {                             // drawn twice so it wraps with the turning sky
   if (!S.deep || S.deepA <= 0 || !deepCvs) return;
   const x = (((shift % W) + W) % W);
-  ctx.globalAlpha = S.deepA;
+  ctx.globalAlpha = S.deepA * (mul || 1);
   ctx.drawImage(deepCvs, x - W, 0, W, H);
   ctx.drawImage(deepCvs, x, 0, W, H);
   ctx.globalAlpha = 1;
@@ -1115,8 +1115,7 @@ function fmtLy(ly) {
   return ly >= 1e6 ? (ly / 1e6).toFixed(1) + "M LY" : ly + " LY";
 }
 function dashLine(x1, y1, x2, y2, color, t) {
-  ctx.strokeStyle = color; ctx.globalAlpha = 0.8; ctx.lineWidth = 1;
-  ctx.setLineDash([3, 6]); ctx.lineDashOffset = -t * 30;
+  ctx.strokeStyle = color; ctx.globalAlpha = 0.30; ctx.lineWidth = 1;   // solid and quiet: the traffic shows the way
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 }
@@ -1131,10 +1130,11 @@ const EARTH_LAND = [                                            // coarse coastl
   [[-45,60],[-25,70],[-20,78],[-30,83],[-50,82],[-58,76],[-55,66]]
 ];
 const EARTH_CITY = [[-74,40.7],[-118,34],[-87,41.9],[-79,43.7],[-99,19.4],[-74,4.6],[-46,-23.5],[-58,-34.6],[0,51.5],[2.3,48.9],[-3.7,40.4],[13.4,52.5],[37.6,55.8],[31.2,30],[3.4,6.5],[28,-26.2],[55.3,25.2],[72.9,19.1],[77.2,28.6],[100.5,13.8],[106.8,-6.2],[116.4,40],[121.5,31.2],[127,37.6],[139.7,35.7],[151.2,-33.9],[115.9,-32]];
-const PLANETS = [                                               // the family portrait, nowhere near to scale
-  { n: "MERCURY", r: 1.6, c: "#c9b9a6" }, { n: "VENUS", r: 2.6, c: "#ffd9a0" }, { n: "MARS", r: 2.1, c: "#ff8e5e" },
-  { n: "JUPITER", r: 5.2, c: "#e8c9a0" }, { n: "SATURN", r: 4.3, c: "#f0dfae", ring: true },
-  { n: "URANUS", r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", r: 3.0, c: "#7aa8ff" }
+const PLANETS = [                                               // real order out from the Sun; au = orbit in Earth-orbits
+  { n: "MERCURY", au: 0.39, r: 1.6, c: "#c9b9a6" }, { n: "VENUS", au: 0.72, r: 2.6, c: "#ffd9a0" },
+  { n: "MARS", au: 1.52, r: 2.1, c: "#ff8e5e" }, { n: "JUPITER", au: 5.2, r: 5.2, c: "#e8c9a0" },
+  { n: "SATURN", au: 9.54, r: 4.3, c: "#f0dfae", ring: true },
+  { n: "URANUS", au: 19.2, r: 3.2, c: "#a8e8ff" }, { n: "NEPTUNE", au: 30.1, r: 3.0, c: "#7aa8ff" }
 ];
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
 let earthAuto = true, earthResume = 0;
@@ -1179,13 +1179,7 @@ function drawSunDisc(x, y, r, t) {                                  // small, br
   ctx.restore();
   ctx.strokeStyle = "rgba(255,214,140,0.85)"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.stroke();
-  for (let i = 0; i < 3; i++) {                                 // prominences licking off the limb
-    const a = t * 0.35 + i * 2.1, sw = 0.22 + 0.1 * Math.sin(t * 1.7 + i);
-    const hh = r * (0.22 + 0.14 * Math.sin(t * 2.3 + i * 1.7));
-    ctx.strokeStyle = "rgba(255,140,60," + (0.30 + 0.25 * Math.sin(t * 3 + i)).toFixed(2) + ")";
-    ctx.lineWidth = Math.max(1, r * 0.10);
-    ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, hh, a - sw, a + sw); ctx.stroke();
-  }
+  // (no prominences, no rays: he wants the disc as it is)
 }
 function orthPt(lon, lat, cx, cy, R, tiltDeg) {                 // orthographic, matching the sphere renderer
   const la = lat * Math.PI / 180, lo = (lon + earthRot) * Math.PI / 180, p0 = (tiltDeg || 0) * Math.PI / 180;
@@ -2752,16 +2746,20 @@ function drawEarthHub(t) {
     } else if (earthAuto) earthRot += dt * 1.2;                 // its own slow turn
   }
   modeHit = [];
-  const sunX = sx, sunY = sy - R * 1.24;                        // Sol, pushed up above the world
+  const sunX = Math.max(R * 0.13, W * 0.09), sunY = sy - R * 0.62;   // Sol out on the left, where it used to live
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
-  if (S.planets) {                                              // real orbits, seen almost edge-on so they keep their line
-    const front = [];
+  let PLANET_NEAR = null;
+  if (S.planets) {                                              // the real order round the Sun; Earth's own ring runs through the hub
+    const dx = sx - sunX, q = 0.26, front = [];
+    ctx.strokeStyle = "rgba(255,196,107,0.16)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
     PLANETS.forEach((p, i) => {
-      const a = R * (0.18 + i * 0.137), th = t * (0.30 / Math.pow(i + 1, 0.72)) + i * 1.7;
-      const x = sunX + Math.cos(th) * a, y = sunY + Math.sin(th) * a * 0.10;
-      ctx.strokeStyle = "rgba(255,196,107,0.09)"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * 0.10, 0, 0, 6.29); ctx.stroke();
+      const a = dx * (p.au < 1 ? Math.pow(p.au, 0.6) : 1 + 0.32 * Math.log(p.au));   // inner ones honest, outer ones squeezed in
+      const th = t * 0.22 / Math.pow(p.au, 1.5) + i * 0.5 - 1.4;   // Kepler: the far ones crawl; they start on the side you can see
+      const x = sunX + Math.cos(th) * a, y = sunY + Math.sin(th) * a * q;
+      ctx.strokeStyle = "rgba(255,196,107,0.11)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
       const job = () => {
         glow(x, y, p.r * 3.6, p.c, 0.5);
         ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.29); ctx.fill();
@@ -2772,19 +2770,19 @@ function drawEarthHub(t) {
         ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
         ctx.fillText(p.n, x, y + p.r + 9); ctx.textAlign = "left";
       };
-      if (Math.sin(th) >= 0) front.push(job); else job();        // behind the Sun first, in front of it after
+      if (Math.sin(th) >= 0) front.push(job); else job();        // the far half now, the near half after the world
     });
-    PLANET_FRONT = front;
-  } else PLANET_FRONT = null;
+    PLANET_NEAR = front;
+  }
+  PLANET_FRONT = null;
   drawSunDisc(sunX, sunY, R * 0.085, t);
-  label(sunX + R * 0.14, sunY + 4, "SOL", "", "#ffd34d");
-  if (PLANET_FRONT) for (const job of PLANET_FRONT) job();      // the near half passes in front of Sol
+  label(sunX + R * 0.12, sunY - R * 0.12, "SOL", "", "#ffd34d");
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
   const mA = RZ * 1.25, mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.52;  // the lane rides high: the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
   const mr = RZ * 0.115, behind = mSin < 0;                     // far side of the orbit: it goes behind the world
-  ctx.strokeStyle = "rgba(200,214,255,0.13)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = "rgba(200,214,255,0.055)"; ctx.lineWidth = 1;   // his note: fainter, and no dashes
+  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke();
   const drawMoon = () => {
     glow(mx, my, mr * 2.4, "#d8d8de", 0.16);
     if (moonTex) {
@@ -2812,9 +2810,10 @@ function drawEarthHub(t) {
     ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.beginPath(); ctx.arc(sx, sy, RZ, 0, 6.29); ctx.stroke();
   }
   glow(sx, sy, RZ * 1.16, "#6bb7ff", 0.10);
+  if (PLANET_NEAR) for (const job of PLANET_NEAR) job();        // the near half of the rings passes in front of the world
+  ctx.strokeStyle = "rgba(200,214,255,0.07)"; ctx.lineWidth = 1;   // the near half of Luna's lane: faint, solid, under the Moon
+  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke();
   if (!behind) drawMoon();                                      // in front of the world, so it lands on top
-  ctx.strokeStyle = "rgba(200,214,255,0.16)"; ctx.setLineDash([3, 8]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, Math.PI); ctx.stroke(); ctx.setLineDash([]);
   if (S.starlink) {                                             // his option: the shell of little ones
     const inc = [0.34, 0.52, 0.22], scy = sy - RZ * 0.34;        // lifted for the same reason as Luna's lane
     ctx.strokeStyle = "rgba(190,210,255,0.10)"; ctx.lineWidth = 1;
@@ -2879,6 +2878,18 @@ function drawTraffic(t, posOf, px, py, sx, sy) {                // single pixels
       const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (sy - py) * ((d - l1) / l2);
       ctx.globalAlpha = 0.65; ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
       ctx.globalAlpha = 0.22; ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
+    }
+  }
+  for (let i = 0; i < SYSTEMS.length; i++) {                    // and between the systems themselves
+    for (const step of [1, 3]) {
+      const a = SYSTEMS[i], b = SYSTEMS[(i + step) % SYSTEMS.length], pa = posOf(a), pb = posOf(b);
+      if (!pa || !pb || pa.x === undefined || pb.x === undefined) continue;
+      for (let k = 0; k < 2; k++) {
+        let u = (t * (0.03 + ((i + k) % 3) * 0.012) + i * 0.29 + k * 0.5 + step * 0.17) % 1;
+        if ((i + k + step) % 2) u = 1 - u;
+        const x = pa.x + (pb.x - pa.x) * u, y = pa.y + (pb.y - pa.y) * u;
+        ctx.globalAlpha = 0.45; ctx.fillStyle = k ? b.c : a.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+      }
     }
   }
   ctx.globalAlpha = 1;
@@ -2981,8 +2992,8 @@ function drawChart3D(t) {
   ctx.globalAlpha = 1;
   const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = skyBase();
   const R = Math.min(W, H) * 0.40 * chartZoom;
-  ctx.strokeStyle = "rgba(255,196,107,0.22)"; ctx.setLineDash([2, 7]);   // the turntable ring
-  ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = "rgba(255,196,107,0.10)"; ctx.lineWidth = 1;   // the turntable ring, solid and quiet
+  ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke();
   const P = SYSTEMS.map((s) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; return { s, q }; })
     .sort((a, b) => a.q.z - b.q.z);                            // far ones first
   const spun = chartRot - chartLastRot; chartLastRot = chartRot;
@@ -2993,10 +3004,12 @@ function drawChart3D(t) {
       ctx.strokeStyle = s.c;
       const depth = Math.min(1, Math.max(0.35, (s.pk - 0.55) / 0.9));
       let lx = s.px, ly = s.py;
+      const breathe = 1 + 0.10 * Math.sin(t * 0.9 + s.az);       // the tail breathes a little
       for (let i = 1; i <= 13; i++) {
-        const q = chartProject(s, chartDrift * i * 0.052);
-        ctx.globalAlpha = 0.40 * (1 - i / 13) * depth;
-        ctx.lineWidth = Math.max(0.7, 3.4 * s.pk * (1 - i / 13));
+        const q = chartProject(s, chartDrift * i * 0.052 * breathe);
+        const pulse = 0.62 + 0.38 * Math.sin(t * 2.6 - i * 0.55 + s.az * 3);   // and a glint runs down it
+        ctx.globalAlpha = 0.40 * (1 - i / 13) * depth * pulse;
+        ctx.lineWidth = Math.max(0.7, 3.4 * s.pk * (1 - i / 13) * (0.85 + 0.3 * pulse));
         ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(q.x, q.y); ctx.stroke();
         lx = q.x; ly = q.y;
       }
@@ -3061,7 +3074,7 @@ const WAYPOINTS = [
 ];
 let wpHit = new Set();
 function drawWarp(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2, spd = 2.5 + Math.pow(p, 1.6) * 70; // slow out of the system, then build
   ctx.strokeStyle = "#dfe8ff"; ctx.lineWidth = 1.2;
   for (const s of warpStars) {
@@ -3091,7 +3104,7 @@ function drawWarp(p, t) {
 
 /* origin system: sit with them at home, then depart */
 function drawOrigin(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.55)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, W, H);
   const s = selected;
   const dep = Math.max(0, (p - 0.55) / 0.45);            // 0 = at home, 1 = gone
   const arr = Math.min(1, p / 0.12);                      // ease in on arrival
@@ -3150,14 +3163,14 @@ function drawOrigin(p, t) {
     wpHit.add("o3"); log("DEPARTURE \u2014 DRIVE ENGAGED", "cy");
     cueStage("THEY ARE COMING WITH YOU"); cueSub("COURSE SET: POLARIS GATE");
   }
-  if (p > 0.92) { ctx.fillStyle = "rgba(5,5,16," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  if (p > 0.92) { ctx.fillStyle = "rgba(0,0,0," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
   $("dRng").textContent = fmtLy(s.ly);
   $("dSig").textContent = Math.round(6 + p * 8) + "%";
 }
 
 /* lunar origin: the far side, lit live (the phase we never see) */
 function drawMoonOrigin(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.55)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, W, H);
   const dep = Math.max(0, (p - 0.55) / 0.45), arr = Math.min(1, p / 0.12);
   const sc = (0.5 + 0.5 * easeIO(arr)) * (1 - 0.9 * easeIO(dep));
   for (const q of bgStars) {
@@ -3189,7 +3202,7 @@ function drawMoonOrigin(p, t) {
     wpHit.add("o3"); log("DEPARTURE — LIFTING OFF THE FAR SIDE", "cy");
     cueStage("THEY ARE COMING WITH YOU"); cueSub("COURSE SET: EARTH · 384,400 KM");
   }
-  if (p > 0.92) { ctx.fillStyle = "rgba(5,5,16," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
+  if (p > 0.92) { ctx.fillStyle = "rgba(0,0,0," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
   $("dRng").textContent = "384,400 KM";
   $("dSig").textContent = Math.round(20 + p * 30) + "%";
 }
@@ -3273,7 +3286,7 @@ function drawOceanOrigin(p, t) {
 }
 
 function drawVoyager(p, t) {                                    // the farthest thing we ever made, still outbound
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   star(W / 2, H * 0.58, 2.2, "#6be3ff");
   label(W / 2, H * 0.58 + 20, "SOL AHEAD", "", "#6be3ff", "center");
   const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
@@ -3312,7 +3325,7 @@ function drawVoyager(p, t) {                                    // the farthest 
   $("dSig").textContent = "44%";
 }
 function drawJwst(p, t) {                                       // the gold mirror at L2, sunshield toward the Sun
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   star(W / 2, H * 0.55, 2.2, "#6be3ff");
   label(W / 2, H * 0.55 + 20, "EARTH AHEAD", "", "#6be3ff", "center");
   const grow = easeIO(Math.min(1, p / 0.6)), drift = Math.max(0, (p - 0.7) / 0.3);
@@ -3346,7 +3359,7 @@ function drawJwst(p, t) {                                       // the gold mirr
   $("dSig").textContent = "62%";
 }
 function drawIss(p, t) {                                        // the one with people in it
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   const limbR = W * 1.6, limbY = H * 0.74 + limbR;
   const g = ctx.createRadialGradient(W / 2, limbY, limbR * 0.985, W / 2, limbY, limbR * 1.03);
   g.addColorStop(0, "#1d5fae"); g.addColorStop(0.5, "rgba(90,170,255,0.55)"); g.addColorStop(1, "rgba(90,170,255,0)");
@@ -3390,7 +3403,7 @@ function drawIss(p, t) {                                        // the one with 
   $("dSig").textContent = "80%";
 }
 function drawHubble(p, t) {                                     // low Earth orbit: the limb below, the telescope drifting over it
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   const limbR = W * 1.6, limbY = H * 0.76 + limbR;             // Earth's limb along the bottom
   const g = ctx.createRadialGradient(W / 2, limbY, limbR * 0.985, W / 2, limbY, limbR * 1.03);
   g.addColorStop(0, "#1d5fae"); g.addColorStop(0.5, "rgba(90,170,255,0.55)"); g.addColorStop(1, "rgba(90,170,255,0)");
@@ -3521,7 +3534,7 @@ function drawUnitBirth(p, t) {                                  // the Triangle'
 
 /* holo earth */
 function drawEarth(p) {
-  ctx.fillStyle = "rgba(5,5,16,0.6)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2 + H * 0.06;
   const R = 26 + p * p * Math.max(W, H) * 0.8;
   glow(cx, cy, R * 1.25, "rgba(107,227,255,0.7)", 0.25);
@@ -3584,7 +3597,7 @@ function initGalaxy() {
 }
 function drawGalaxy(p, t) {
   if (!galPts) galPts = initGalaxy();
-  ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2, e = easeIO(p);
   const z = Math.min(W, H) * (0.42 + e * 3.4);
   const rot = t * 0.008, cR = Math.cos(rot), sR = Math.sin(rot);
@@ -3613,7 +3626,7 @@ function drawGalaxy(p, t) {
   $("dSig").textContent = Math.round(5 + p * 15) + "%";
 }
 function drawPolaris(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.4)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(0, 0, W, H);
   const cx = W / 2;
   const cy = H * (0.42 - Math.max(0, p - 0.65) * 1.6); // slides overhead — we pass under it
   for (const s of bgStars) {
@@ -3636,18 +3649,11 @@ function drawPolaris(p, t) {
   $("dSig").textContent = "62%";
 }
 function drawSun(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   const drift = Math.max(0, (p - 0.62) / 0.38);
   const cx = W / 2 - drift * W * 0.75, cy = H / 2 - drift * H * 0.2;
   const R = (14 + easeIO(Math.min(1, p / 0.62)) * Math.min(W, H) * 0.3) * (1 - drift * 0.45);
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * 6.29 + t * 0.35;
-    const len = R * (1.25 + 0.18 * Math.sin(t * 6 + i * 2.1));
-    ctx.strokeStyle = "rgba(255,176,58,0.5)";
-    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
-    ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
-  }
-  glow(cx, cy, R * 2.1, "#ffb03a", 0.55);
+  glow(cx, cy, R * 1.9, "#ffb03a", 0.45);                     // the glow only: the spokes are gone
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
   g.addColorStop(0, "#fff7d0"); g.addColorStop(0.75, "#ffcf6b"); g.addColorStop(1, "#ff9b2f");
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
@@ -3669,7 +3675,7 @@ function moonInfo() {
   return { ph: age / syn, illum, name };
 }
 function drawMoonDisc(x, y, r, ph) {
-  ctx.fillStyle = "#141420";
+  ctx.fillStyle = "#08080d";                                    // the dark side is dark
   ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
   const cosT = Math.cos(2 * Math.PI * ph);
   ctx.fillStyle = "#d8d8de";
@@ -3690,7 +3696,7 @@ function drawMoonDisc(x, y, r, ph) {
   ctx.globalAlpha = 1;
 }
 function drawMoonStage(p, t) {
-  ctx.fillStyle = "rgba(5,5,16,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, W, H);
   const m = moonInfo();
   star(W / 2, H * 0.55, 2.2, "#6be3ff");
   label(W / 2, H * 0.55 + 20, "EARTH AHEAD", "", "#6be3ff", "center");
@@ -3732,10 +3738,12 @@ function advance(cur, ts) {
   else if (n === "hubble") log("HUBBLE FLYBY — 540 KM UP · ON STATION SINCE 1990", "cy");
   else if (n === "iss") log("STATION PASS — SOMEBODY IS AWAKE UP THERE", "cy");
 }
+const DEEP_PHASES = { polaris: 1, sun: 1, moon: 1, voyager: 1, jwst: 1, iss: 1, hubble: 1, earth: 1 };
 function loop(ts) {
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   const segF = () => Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.flyby * 1000)));   // his flyby slider, in seconds
+  if (DEEP_PHASES[phase]) paintDeepSky(t * 6, 1.25);           // the real deep sky, faint, drifting behind the flybys
   if (phase === "chart") drawChart(t);
   else if (phase === "origin") {
     const mode = modeOf(), p = seg((mode === "bermuda" ? 17000 : 12000) * S.originMul);
