@@ -1296,11 +1296,38 @@ function measureCtl() {
   const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
-function earthGeom() {                                          // the globe is half-sunk behind the console
-  const R = Math.min(W, H) * 0.42;
-  return { cx: W * 0.5, cy: (ctlTop || H * 0.72) + R * 0.02, R: R, tilt: 0 };   // equator-on: the Triangle and the trench stay clear of the keys
+let globeView = null, lastEarthTap = 0;                          // double-tap the world: it pops up front to be turned and zoomed
+function gvK() {                                                 // 0 = the chart's hub, 1 = the world up front
+  if (!globeView) return 0;
+  const now = performance.now() / 1000;
+  if (globeView.out) {
+    const k = 1 - Math.min(1, (now - globeView.out) / 0.5);
+    if (k <= 0) { globeView = null; return 0; }
+    return easeIO(k);
+  }
+  return easeIO(Math.min(1, (now - globeView.t0) / 0.6));
 }
-function skyBase() { const g = earthGeom(); return Math.max(H * 0.30, g.cy - g.R - 30); }   // clear of the world
+function globeToggle() {
+  if (globeView && !globeView.out) {
+    globeView.out = performance.now() / 1000;
+    earthZoom = Math.min(earthZoom, 1); zoomT = -1e9;             // it eases back to the resting size, no tilt-dive on the way
+    log("BACK TO THE CHART", "cy");
+  } else {
+    globeView = { t0: performance.now() / 1000, out: 0 }; earthAuto = false; earthVel = 0;
+    log("THE WORLD, UP CLOSE \u2014 DRAG TO TURN IT, PINCH TO LEAN IN \u00b7 TAP THE SKY TO PUT IT BACK", "cy");
+  }
+}
+function earthGeomHome() {                                      // the globe is half-sunk behind the console
+  const R = Math.min(W, H) * 0.42;
+  return { cx: W * 0.5, cy: (ctlTop || H * 0.72) + R * 0.02, R: R, tilt: 0, gv: 0 };   // equator-on: the Triangle and the trench stay clear of the keys
+}
+function earthGeom() {                                          // ...unless it has been popped up front
+  const g = earthGeomHome(), gv = gvK();
+  if (gv <= 0) return g;
+  const top = ctlTop || H * 0.72, cyUp = Math.max(g.R * 1.08, top * 0.5), Rup = Math.min(g.R, top * 0.46);
+  return { cx: g.cx, cy: g.cy + (cyUp - g.cy) * gv, R: g.R + (Rup - g.R) * gv, tilt: 0, gv };
+}
+function skyBase() { const g = earthGeomHome(); return Math.max(H * 0.30, g.cy - g.R - 30); }   // clear of the world (the sky stays put when the world pops up)
 function buildSunTex() {                                        // granulation cells, baked once
   const N = 128, c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d"), im = g.createImageData(N, N);
@@ -2758,7 +2785,8 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 }
 
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
-let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = 1;
+const EZ_HOME = 0.85;                                            // at rest the whole world shows: the fully zoomed-out look he liked
+let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = EZ_HOME;
 let earthTilt = 0, earthTiltDraw = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
 let procTex = null, procNight = null, procClouds = null;        // the drawn Earth (always built: the fallback)
 let photoTex = null, photoNight = null, photoClouds = null, photoState = 0;   // NASA's pictures: 0 idle 1 loading 2 in 3 failed
@@ -2921,7 +2949,7 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
 function drawEarthHub(t) {
   const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
-  const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // 0 = the whole world, 1 = down on the Triangle
+  const zt = globeView ? 0 : Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // 0 = the whole world, 1 = down on the Triangle (not in the pop-up)
   if (zt > 0) {                                                 // going in means going to one place only
     earthAuto = false; earthVel = 0;
     let d = -BERMUDA.lon - earthRot; d = ((d + 180) % 360 + 360) % 360 - 180;
@@ -2930,9 +2958,9 @@ function drawEarthHub(t) {
   } else if (Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);
   const tiltTgt = zt > 0 ? BERMUDA.lat * 0.8 : 0;               // while the tilt is still easing, draw it in quarter-degree steps
   earthTiltDraw = Math.abs(tiltTgt - earthTilt) > 0.3 ? Math.round(earthTilt / 0.25) * 0.25 : earthTilt;   // fewer geometry builds, overlays stay registered
-  if (earthZoom > 1.02 && t - zoomT > 14) {                      // after a long look it pulls back by itself
-    earthZoom += (1 - earthZoom) * Math.min(1, dt * 0.8);
-    if (earthZoom < 1.02) { earthZoom = 1; earthAuto = true; }
+  if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
+    earthZoom += (EZ_HOME - earthZoom) * Math.min(1, dt * 0.8);
+    if (earthZoom < EZ_HOME + 0.02) { earthZoom = EZ_HOME; earthAuto = true; }
     earthRef.dirty = true;
   }
   if (!reduced && !dragEarth) {                                 // a flick carries, then it settles back
@@ -2943,6 +2971,8 @@ function drawEarthHub(t) {
   }
   modeHit = [];
   const IK = introK();                                          // the opening: 0 = not yet, 1 = there
+  const gv = G.gv || 0;
+  if (gv > 0) { IK.sun *= 1 - gv; IK.moon *= 1 - gv; IK.planets *= 1 - gv; }   // the pop-up world: the rest of the system steps aside
   const sunX = Math.max(R * 0.13, W * 0.09), sunY = sy - R * 0.62;   // Sol out on the left, where it used to live
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
@@ -2981,8 +3011,8 @@ function drawEarthHub(t) {
   }
   PLANET_FRONT = null;
   if (IK.sun > 0) {                                             // the opening: Sol blooms
-    drawSunDisc(sunX, sunY, R * 0.085 * (0.12 + 0.88 * IK.sun), t);
-    if (IK.sun > 0.7) label(sunX + R * 0.12, sunY - R * 0.12, "SOL", "", "#ffd34d");
+    drawSunDisc(sunX, sunY, R * 0.16 * (0.12 + 0.88 * IK.sun), t);   // bigger than the Moon, at least (his note)
+    if (IK.sun > 0.7) label(sunX + R * 0.19, sunY - R * 0.17, "SOL", "", "#ffd34d");
   }
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
   const mA = Math.min(RZ * 1.6, W / 2 - RZ * 0.10 - 3), mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.62;   // well out (real: 60 radii) but never off a phone screen; the lane rides high, the console eats the rest
@@ -3074,7 +3104,7 @@ function drawEarthHub(t) {
   }
   siteHit = [];
   if (S.sites) {                                                // the old ones' sky-aligned places: gold pyramids, names when you lean in
-    const big = earthZoom > 1.25, r = big ? 4 : 3;
+    const big = earthZoom > 1.25 || gvK() > 0.5, r = big ? 4 : 3;   // names when you lean in, and always on the pop-up world
     ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ffd27a";
     for (const q of SKY_SITES) {
       const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
@@ -3374,7 +3404,8 @@ function drawChart3D(t) {
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
   const IKs = introK();
-  if (IKs.sky < 1) { ctx.fillStyle = "rgba(0,0,0," + (1 - IKs.sky).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }   // the opening: the sky comes last
+  const wash = Math.max(1 - IKs.sky, 0.88 * gvK());              // the opening: the sky comes last; the pop-up world: the sky steps back
+  if (wash > 0) { ctx.fillStyle = "rgba(0,0,0," + wash.toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
   drawEarthHub(t);
   if (intro && !intro.t0) introStatus(t);
   drawSystemView(t);
@@ -5027,7 +5058,7 @@ cvs.addEventListener("pointermove", (e) => {
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
-      if (dragEarth) { earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; }   // the camera moves in
+      if (dragEarth) { earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; }   // the camera moves in
       else {
         chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));           // the sky barely needs it
         if (d > pinchD && chartZoom >= 1.349) sysTry();                               // and past that: into the front system
@@ -5053,7 +5084,14 @@ const endPtr = (e) => {
   const wasSingle = ptrs.size === 1;
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinchD = 0;
   if (phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
-    const r = cvs.getBoundingClientRect(); chartTap(e.clientX - r.left, e.clientY - r.top);
+    const r = cvs.getBoundingClientRect(), G = earthGeom(), px = e.clientX - r.left, py = e.clientY - r.top;
+    const onEarth = Math.hypot(px - G.cx, py - G.cy) < G.R * earthZoom * 1.04, now = performance.now();
+    if (onEarth && now - lastEarthTap < 350) { lastEarthTap = 0; globeToggle(); }   // double-tap the world: up front, or back
+    else {
+      lastEarthTap = onEarth ? now : 0;
+      if (globeView && !globeView.out && !onEarth) globeToggle();   // a tap on the sky puts the world back
+      else chartTap(px, py);
+    }
   }
   if (ptrs.size === 0) {
     chartResume = setTimeout(() => (chartAuto = true), 4000);
@@ -5068,7 +5106,7 @@ cvs.addEventListener("wheel", (e) => {
   e.preventDefault();
   const G = earthGeom(), r = cvs.getBoundingClientRect();
   if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04) {   // over the world
-    earthZoom = Math.min(1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
+    earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
     zoomT = performance.now() / 1000;
     earthRef.dirty = true;
     return;
@@ -5419,6 +5457,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
   log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");
   log("GOLD PYRAMIDS ON THE GLOBE = THE OLD ONES\u2019 SKY-ALIGNED PLACES \u00b7 PINCH IN FOR NAMES, TAP ONE FOR ITS STORY", "cy");
+  log("DOUBLE-TAP THE WORLD TO BRING IT UP FRONT", "cy");
   log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
