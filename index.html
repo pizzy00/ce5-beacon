@@ -480,6 +480,10 @@
   .setBtn.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
   #saveStat { margin: -6px 0 12px; min-height: 12px; }
   .setRow { margin-bottom: 14px; }
+  .setSec { margin: 22px 0 10px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,196,107,0.28);
+    color: var(--amber); font-size: 11px; letter-spacing: 0.24em; font-weight: 700; }
+  .setSec.first { margin-top: 4px; }
+  .setStat + .setLbl, .setChk + .setLbl, input[type="range"] + .setLbl { margin-top: 10px; }
   .setLbl { font-size: 10px; letter-spacing: 0.18em; color: var(--amber-dim); margin-bottom: 6px; }
   .setStat { font-size: 9px; color: var(--cyan); margin-top: 5px; letter-spacing: 0.08em; }
   .setFlex { display: flex; gap: 8px; }
@@ -530,6 +534,7 @@
   <div id="setCard">
     <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></div>
     <div class="setStat" id="saveStat"></div>
+    <div class="setSec first">YOUR SPOT</div>
     <div class="setRow">
       <div class="setLbl">TARGET — ADDRESS OR "LAT, LON"</div>
       <div class="setFlex">
@@ -547,65 +552,21 @@
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
     </div>
+
+    <div class="setSec">SCREEN</div>
     <div class="setRow">
-      <div class="setLbl">SCREEN</div>
-      <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES</label>
-      <label class="setChk"><input type="checkbox" id="ckVig" checked />EDGE VIGNETTE</label>
+      <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
+      <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
+      <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+    </div>
+    <div class="setRow">
       <div class="setLbl">CROSSHAIR RETICLE</div>
       <select id="selRet">
         <option value="flight" selected>WHILE TRAVELLING ONLY — GONE ONCE IT LANDS</option>
         <option value="always">ALWAYS DURING A RUN</option>
         <option value="off">OFF</option>
       </select>
-      <div class="setStat">THE CORNER ICON GOES FULL SCREEN WHERE THE BROWSER ALLOWS IT · ON IPHONE USE SHARE → ADD TO HOME SCREEN</div>
-      <div class="setLbl">STAR CHART</div>
-      <select id="selChart">
-        <option value="3d" selected>3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM</option>
-        <option value="flat">FLAT CHART</option>
-      </select>
-      <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
-      <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
-      <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
-      <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
-      <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE REST OF THE SOLAR SYSTEM ABOVE EARTH — NOWHERE NEAR TO SCALE</label>
-      <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC RUNNING THE ROUTES BOTH WAYS</label>
-      <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
-      <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
-      <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
-      <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
-      <input type="range" id="rBcn" min="0" max="10" step="0.25" value="0.25" />
-      <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
-      <div class="setLbl">FINAL ZOOM</div>
-      <select id="selFinal">
-        <option value="19">19 — SHARPEST THE IMAGERY GOES</option>
-        <option value="20" selected>20 — ALL THE WAY IN, ONE STEP ENLARGED</option>
-        <option value="21">21 — CLOSEST, ENLARGED AND SOFTER</option>
-      </select>
-      <div class="setStat">AFTER TOUCHDOWN YOU CAN STILL PINCH FURTHER · THE IMAGERY ITSELF STOPS AT 19</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">MESSAGE — SENT IN MORSE WHEN THE BEACON LOCKS</div>
-      <input id="msgIn" maxlength="80" autocomplete="off" spellcheck="false" value="ONE HUMAN. ZERO FEAR. NO ORBS." />
-      <div class="setStat" id="msgMorse"></div>
-      <label class="setChk"><input type="checkbox" id="ckMorse" checked />SEND IT — THE SCREEN PULSES THE CODE</label>
-      <label class="setChk"><input type="checkbox" id="ckMorseTone" checked />KEY A 600 HZ TONE WITH THE LIGHT</label>
-      <div class="setLbl">SPEED — <span id="vWpm">12</span> WPM</div>
-      <input type="range" id="rWpm" min="5" max="25" step="1" value="12" />
-      <div class="setLbl">PULSE LIGHT — <span id="vMInt">60</span>%</div>
-      <input type="range" id="rMInt" min="10" max="100" step="5" value="60" />
-      <div class="setStat">A–Z, 0–9 AND . , ? ! / ( ) - + = @ · ANYTHING ELSE IS SKIPPED · SEND AGAIN WITH THE SEND BUTTON</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
-      <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
-      <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · EARTH)</span></div>
-      <input type="range" id="rFly" min="2" max="25" step="0.5" value="5" />
-      <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
-      <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
-      <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
+      <div class="setStat">THE CORNER FS ICON GOES FULL SCREEN WHERE THE BROWSER ALLOWS IT · ON IPHONE USE SHARE → ADD TO HOME SCREEN</div>
     </div>
     <div class="setRow">
       <div class="setLbl">MOTION</div>
@@ -615,26 +576,68 @@
       </select>
       <div class="setStat" id="motionStat">IF EVERY STAGE FLASHES BY IN A SECOND, PICK FULL</div>
     </div>
+
+    <div class="setSec">STAR CHART</div>
     <div class="setRow">
+      <select id="selChart">
+        <option value="3d" selected>3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM</option>
+        <option value="flat">FLAT CHART</option>
+      </select>
+      <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
+      <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
+      <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
+      <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES AND BETWEEN THE SYSTEMS</label>
+      <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS ON THEIR ORBITS (NOT TO SCALE)</label>
+      <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
+      <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
+      <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
+      <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
+      <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
+    </div>
+
+    <div class="setSec">THE EARTH</div>
+    <div class="setRow">
+      <div class="setLbl">THE GLOBE'S SURFACE</div>
+      <select id="selEarth">
+        <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
+        <option value="procedural">DRAWN — THE BUILT-IN MAP, NO DOWNLOAD</option>
+      </select>
+      <div class="setLbl">CLOUD LAYER — <span id="vCloud">15</span>% · SEE-THROUGH, NEVER HIDES THE GROUND</div>
+      <input type="range" id="rCloud" min="0" max="40" step="1" value="15" />
+      <div class="setLbl">CLOUD DRIFT — <span id="vCloudSpd">0.6</span>° PER SECOND ON ITS OWN</div>
+      <input type="range" id="rCloudSpd" min="0" max="20" step="1" value="6" />
+    </div>
+    <div class="setRow">
+      <div class="setLbl">THE UNIT IN THE TRIANGLE — TIME-LAPSE</div>
+      <select id="selUTime">
+        <option value="1">REAL TIME — AT 450 KNOTS IT LOOKS PARKED</option>
+        <option value="60">×60 — A MINUTE A SECOND</option>
+        <option value="300">×300</option>
+        <option value="600" selected>×600 — ROUND THE TRIANGLE IN ABOUT 20 S</option>
+        <option value="1200">×1200</option>
+        <option value="3000">×3000</option>
+      </select>
+      <div class="setStat">PINCH INTO THE EARTH TO FIND IT · DRAWN TOP-DOWN AT ITS TRUE SIZE, ABOUT 1.2 KM, 2-3× AN OFFSHORE PLATFORM</div>
+    </div>
+
+    <div class="setSec">THE JOURNEY</div>
+    <div class="setRow">
+      <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
+      <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
+      <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · ISS · EARTH)</span></div>
+      <input type="range" id="rFly" min="2" max="25" step="0.5" value="5" />
+      <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
+      <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
+      <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
       <div class="setLbl">ORIGIN LEG PACE — <span id="vOrigin">1.0</span>×</div>
       <input type="range" id="rOrigin" min="0.5" max="3" step="0.1" value="1" />
       <div class="setStat">THEIR HOME SYSTEM + THE CROSSING — HIGHER = SLOWER</div>
     </div>
     <div class="setRow">
-      <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
-      <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1" />
-      <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">DESCENT DETAIL</div>
-      <select id="selDetail">
-        <option value="full">FULL — 10 ALTITUDE HOLDS</option>
-        <option value="medium">MEDIUM — 6 HOLDS</option>
-        <option value="quick">QUICK — 4 HOLDS</option>
-      </select>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">FLYBYS</div>
+      <div class="setLbl">FLYBYS ON THE WAY IN</div>
       <label class="setChk"><input type="checkbox" id="ckPolaris" checked />POLARIS — THE NORTH STAR</label>
       <label class="setChk"><input type="checkbox" id="ckSun" checked />SOL</label>
       <label class="setChk"><input type="checkbox" id="ckMoon" checked />LUNA — LIVE PHASE</label>
@@ -642,44 +645,41 @@
       <label class="setChk"><input type="checkbox" id="ckJwst" checked />JAMES WEBB — SUN-EARTH L2 · 1.5 MILLION KM OUT</label>
       <label class="setChk"><input type="checkbox" id="ckHubble" checked />HUBBLE — LOW EARTH ORBIT · 540 KM UP</label>
       <label class="setChk"><input type="checkbox" id="ckIss" checked />INTERNATIONAL SPACE STATION — 420 KM UP · CREWED SINCE 2000</label>
-      <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH ON THE CHART — THOUSANDS OF THEM UP THERE</label>
     </div>
     <div class="setRow">
-      <div class="setLbl">BERMUDA — TRIGGER SEQUENCE</div>
-      <select id="selTrig">
-        <option value="full">FULL — TRIANGLE → NUCLEAR SITES → THE FLASH</option>
-        <option value="sites">TRIANGLE → NUCLEAR SITES ONLY</option>
-        <option value="film">TRIANGLE → THE FLASH ONLY</option>
-        <option value="off">OFF — STRAIGHT TO THE DEEP</option>
+      <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
+      <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1" />
+      <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
+      <div class="setLbl">DESCENT DETAIL</div>
+      <select id="selDetail">
+        <option value="full">FULL — 10 ALTITUDE HOLDS</option>
+        <option value="medium">MEDIUM — 6 HOLDS</option>
+        <option value="quick">QUICK — 4 HOLDS</option>
       </select>
-      <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
+      <div class="setLbl">FINAL ZOOM</div>
+      <select id="selFinal">
+        <option value="19">19 — SHARPEST THE IMAGERY GOES</option>
+        <option value="20" selected>20 — ALL THE WAY IN, ONE STEP ENLARGED</option>
+        <option value="21">21 — CLOSEST, ENLARGED AND SOFTER</option>
+      </select>
+      <div class="setStat">AFTER TOUCHDOWN YOU CAN STILL PINCH FURTHER · THE IMAGERY ITSELF STOPS AT 19</div>
+      <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
+      <input type="range" id="rBcn" min="0" max="10" step="0.25" value="0.25" />
+      <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
+      <div class="setLbl">SATELLITE TILE PRECACHE</div>
+      <select id="selCache">
+        <option value="normal">NORMAL</option>
+        <option value="aggressive">AGGRESSIVE — SHARPEST, MORE DATA</option>
+        <option value="off">OFF</option>
+      </select>
     </div>
+
+    <div class="setSec">THE FLASH</div>
     <div class="setRow">
-      <div class="setLbl">ORBIT APPROACH — <span id="vOrbit">12</span>S</div>
-      <input type="range" id="rOrbit" min="4" max="30" step="1" value="12" />
-      <div class="setStat">ENGAGE STARTS IN ORBIT AND DESCENDS ONTO THE TRIANGLE · THEN THE HOLD BELOW</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
-      <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
-      <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
-      <label class="setChk"><input type="checkbox" id="ckNow" checked />THEN 2 ACTIVE MISSILE BASES — MALMSTROM · F.E. WARREN (MINUTEMAN III)</label>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
-      <input type="range" id="rHold" min="3" max="25" step="1" value="10" />
-      <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · LONGER = TIME TO TAKE IT IN</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">FLIGHT TIME BETWEEN SITES — <span id="vFly">7</span>S</div>
-      <input type="range" id="rFly" min="3" max="15" step="1" value="7" />
-      <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
-    </div>
-    <div class="setRow">
-      <div class="setLbl">THE FLASH — WHICH SHOT'S LIGHT</div>
       <div class="setLbl">HOLD ON YOUR SPOT BEFORE THE FLASH — <span id="vArr">8</span>S</div>
       <input type="range" id="rArr" min="0" max="40" step="1" value="8" />
       <label class="setChk"><input type="checkbox" id="ckNukeAll" checked />THE FLASH ON EVERY TRIP — CLOSE YOUR EYES BEFORE THE DESCENT (OFF = BERMUDA ONLY)</label>
+      <div class="setLbl">WHICH SHOT'S LIGHT</div>
       <select id="selShot">
         <option value="random">RANDOM EACH RUN</option>
         <option value="nutmeg">NUTMEG · BIKINI 1958 · 25 KT — WHITEOUT, THEN A LONG GLOW</option>
@@ -687,38 +687,64 @@
         <option value="fig">FIG · ENEWETAK 1958 — SHARP SPIKE, GONE IN SECONDS</option>
       </select>
       <div class="setStat">THE SCREEN'S BRIGHTNESS FOLLOWS THE REAL FILM FRAME BY FRAME · CLOSE YOUR EYES AND FEEL IT THROUGH THE LIDS</div>
-    </div>
-    <div class="setRow">
       <div class="setLbl">FLASH INTENSITY — <span id="vInt">100</span>%</div>
       <input type="range" id="rInt" min="30" max="100" step="5" value="100" />
       <div class="setStat">TURN IT DOWN IN A DARK ROOM · PHOTOSENSITIVE? TAP THE WARNING TO SKIP THE STAGE</div>
-    </div>
-    <div class="setRow">
       <div class="setLbl">FLASH TIME STRETCH — <span id="vStretch">1.0</span>×</div>
       <input type="range" id="rStretch" min="0.5" max="3" step="0.1" value="1" />
       <div class="setStat">1× = AS FILMED · TEST CAMERAS RAN FAST, SO THE FILM IS ALREADY SLOWER THAN LIFE</div>
-    </div>
-    <div class="setRow">
       <div class="setLbl">FLASHES — <span id="vRepeat">1</span></div>
       <input type="range" id="rRepeat" min="1" max="3" step="1" value="1" />
       <div class="setLbl">EYES-CLOSED COUNTDOWN — <span id="vWarn">6</span>S</div>
       <input type="range" id="rWarn" min="2" max="15" step="1" value="6" />
       <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
     </div>
+
+    <div class="setSec">THE ARSENAL</div>
     <div class="setRow">
-      <div class="setLbl">THE ARSENAL — MISSILE PHOTOS AFTER THE FLASH</div>
-      <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
+      <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS AFTER THE FLASH — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
       <div class="setLbl">SECONDS PER PHOTO — <span id="vPhoto">1.6</span>S</div>
       <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="1.6" />
       <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
     </div>
+
+    <div class="setSec">BERMUDA TRIANGLE</div>
     <div class="setRow">
-      <div class="setLbl">TILE PRECACHE</div>
-      <select id="selCache">
-        <option value="normal">NORMAL</option>
-        <option value="aggressive">AGGRESSIVE — SHARPEST, MORE DATA</option>
-        <option value="off">OFF</option>
+      <div class="setLbl">TRIGGER SEQUENCE</div>
+      <select id="selTrig">
+        <option value="full">FULL — TRIANGLE → NUCLEAR SITES → THE FLASH</option>
+        <option value="sites">TRIANGLE → NUCLEAR SITES ONLY</option>
+        <option value="film">TRIANGLE → THE FLASH ONLY</option>
+        <option value="off">OFF — STRAIGHT TO THE DEEP</option>
       </select>
+      <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
+      <div class="setLbl">ORBIT APPROACH — <span id="vOrbit">12</span>S</div>
+      <input type="range" id="rOrbit" min="4" max="30" step="1" value="12" />
+      <div class="setStat">ENGAGE STARTS IN ORBIT AND DESCENDS ONTO THE TRIANGLE · THEN THE HOLD BELOW</div>
+      <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
+      <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
+      <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
+      <label class="setChk"><input type="checkbox" id="ckNow" checked />THEN 2 ACTIVE MISSILE BASES — MALMSTROM · F.E. WARREN (MINUTEMAN III)</label>
+      <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
+      <input type="range" id="rHold" min="3" max="25" step="1" value="10" />
+      <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · LONGER = TIME TO TAKE IT IN</div>
+      <div class="setLbl">FLIGHT TIME BETWEEN SITES — <span id="vBFly">7</span>S</div>
+      <input type="range" id="rBFly" min="3" max="15" step="1" value="7" />
+      <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
+    </div>
+
+    <div class="setSec">MESSAGE</div>
+    <div class="setRow">
+      <div class="setLbl">SENT IN MORSE WHEN THE BEACON LOCKS</div>
+      <input id="msgIn" maxlength="80" autocomplete="off" spellcheck="false" value="ONE HUMAN. ZERO FEAR. NO ORBS." />
+      <div class="setStat" id="msgMorse"></div>
+      <label class="setChk"><input type="checkbox" id="ckMorse" checked />SEND IT — THE SCREEN PULSES THE CODE</label>
+      <label class="setChk"><input type="checkbox" id="ckMorseTone" checked />KEY A 600 HZ TONE WITH THE LIGHT</label>
+      <div class="setLbl">SPEED — <span id="vWpm">12</span> WPM</div>
+      <input type="range" id="rWpm" min="5" max="25" step="1" value="12" />
+      <div class="setLbl">PULSE LIGHT — <span id="vMInt">60</span>%</div>
+      <input type="range" id="rMInt" min="10" max="100" step="5" value="60" />
+      <div class="setStat">A–Z, 0–9 AND . , ? ! / ( ) - + = @ · ANYTHING ELSE IS SKIPPED · SEND AGAIN WITH THE SEND BUTTON</div>
     </div>
   </div>
 </div>
@@ -844,7 +870,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
-  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6 };
+  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -865,7 +891,37 @@ const MODES = [
   { id: "uso", name: "DEEP OCEAN", tag: "USO", dist: "NEAREST TRENCH", c: "#5ee0c0", mode: "ocean" },
   { id: "berm", name: "BERMUDA TRIANGLE", tag: "USO · UNIT", dist: "THE TRIGGER", c: "#ff8e5e", mode: "bermuda" }
 ];
-const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT", speed: "640 KM/H" };
+/* potentially habitable worlds (in or near their star's habitable zone); ra in hours, dec in degrees, ly light-years */
+const EXOPLANETS = [
+  { n: "PROXIMA B", ra: 14.49, dec: -62.7, ly: 4.2 }, { n: "ROSS 128 B", ra: 11.79, dec: 0.8, ly: 11.0 },
+  { n: "TAU CETI E", ra: 1.73, dec: -15.9, ly: 11.9 }, { n: "LUYTEN B", ra: 7.45, dec: 5.2, ly: 12.2 },
+  { n: "TEEGARDEN B", ra: 2.88, dec: 16.9, ly: 12.5 }, { n: "WOLF 1061 C", ra: 16.50, dec: -12.7, ly: 14.0 },
+  { n: "GLIESE 667 CC", ra: 17.32, dec: -35.0, ly: 23.6 }, { n: "GLIESE 12 B", ra: 0.26, dec: 13.6, ly: 39.7 },
+  { n: "TRAPPIST-1 E", ra: 23.11, dec: -5.0, ly: 40.7 }, { n: "LHS 1140 B", ra: 0.74, dec: -15.3, ly: 48.8 },
+  { n: "TOI-700 D", ra: 6.47, dec: -65.6, ly: 101 }, { n: "K2-18 B", ra: 11.51, dec: 7.6, ly: 124 },
+  { n: "KEPLER-1649 C", ra: 19.50, dec: 41.8, ly: 301 }, { n: "KEPLER-186 F", ra: 19.90, dec: 43.9, ly: 580 },
+  { n: "KEPLER-62 F", ra: 18.88, dec: 45.3, ly: 1200 }, { n: "KEPLER-442 B", ra: 19.02, dec: 39.3, ly: 1206 },
+  { n: "KEPLER-452 B", ra: 19.73, dec: 44.3, ly: 1400 }
+].map((e, i) => ({ n: e.n, ly: e.ly, c: "#8ef0b0", up: i % 2 === 1,
+  az: (e.ra / 24) * 6.2832 + 0.35,                              // where it sits round the ring, by right ascension
+  y: 0.56 - 0.10 * Math.log10(e.ly) }));                        // nearer worlds sit lower, like the systems
+function drawExo(t, posOf) {                                    // small green worlds, labelled, not pickable
+  if (!S.exo) return;
+  ctx.font = "7px ui-monospace, Menlo, monospace";
+  for (const e of EXOPLANETS) {
+    const q = posOf(e); if (!q) continue;
+    const k = q.k || 1, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9));
+    ctx.globalAlpha = 0.85 * depth;
+    glow(q.x, q.y, 5 * k, e.c, 0.35);
+    ctx.fillStyle = e.c; ctx.beginPath(); ctx.arc(q.x, q.y, 1.5 * k, 0, 6.29); ctx.fill();
+    ctx.strokeStyle = e.c; ctx.globalAlpha = 0.45 * depth; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(q.x, q.y, 4.2 * k + Math.sin(t * 2 + e.az) * 0.6, 0, 6.29); ctx.stroke();
+    ctx.globalAlpha = 0.7 * depth; ctx.fillStyle = e.c; ctx.textAlign = "left";
+    ctx.fillText(e.n + " · " + fmtLy(e.ly), q.x + 6 * k, q.y + (e.up ? -5 : 8));
+  }
+  ctx.globalAlpha = 1;
+}
+const BERMUDA = { name: "BERMUDA TRIANGLE", lat: 25.5, lon: -70.4, depth: "5,000 M", unit: "MOBILE CONSTRUCTION UNIT", speed: "450 KNOTS" };
 const TRIANGLE = [[25.76, -80.19], [32.30, -64.78], [18.47, -66.10]]; // Miami · Bermuda · San Juan
 const NUKE_SITES = [ // order = how visible the scar is from orbit
   { name: "SEDAN CRATER · NEVADA TEST SITE", sub: "1962 · 104 KT · 928 TESTS ON THIS RANGE", lat: 37.1767, lon: -116.0466, z: 13 },
@@ -2660,6 +2716,30 @@ function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun, x) {
   return cv;
 }
 const earthRef = { cv: null, dirty: true }, moonRef = { cv: null, dirty: true };
+const UNIT_KM = 1.2;                                            // 2-3x the biggest offshore platform (Prelude FLNG is 488 m long)
+const UNIT_KN = 450;                                            // the reported cruise, underwater
+const UNIT_PATH = [[26.6, -75.6], [29.4, -70.2], [27.2, -66.6], [23.2, -67.8], [21.6, -72.4], [24.4, -77.0]];   // a loop inside the Triangle
+let unitLegs = null;
+function unitPos(t) {                                           // along the loop at 450 knots, time-lapsed by S.uTime
+  if (!unitLegs) {
+    unitLegs = []; let tot = 0;
+    for (let i = 0; i < UNIT_PATH.length; i++) {
+      const a = UNIT_PATH[i], b = UNIT_PATH[(i + 1) % UNIT_PATH.length], d = kmBetween({ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] });
+      unitLegs.push({ a: a, b: b, d: d, s0: tot }); tot += d;
+    }
+    unitLegs.total = tot;
+  }
+  const v = UNIT_KN * 1.852 / 3600 * (S.uTime || 1);            // km per second of wall clock
+  const at = (s) => {
+    s = ((s % unitLegs.total) + unitLegs.total) % unitLegs.total;
+    let L = unitLegs[0];
+    for (const l of unitLegs) if (s >= l.s0) L = l;
+    const f = L.d > 0 ? (s - L.s0) / L.d : 0;
+    return { lat: L.a[0] + (L.b[0] - L.a[0]) * f, lon: L.a[1] + (L.b[1] - L.a[1]) * f };
+  };
+  const p = at(t * v), q = at(t * v - 3);                        // and a point 3 km back, for the heading
+  return { lat: p.lat, lon: p.lon, plat: q.lat, plon: q.lon };
+}
 function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the water, the unit, the drones it lets go
   const P3 = TRIANGLE.map((c) => orthPt(c[1], c[0], sx, sy, RZ, earthTilt));
   if (!P3.every((p) => p.v)) return;
@@ -2677,38 +2757,34 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
     ctx.fillText(corner[i], p.x, p.y - 6);
   });
   ctx.textAlign = "left";
-  const a = t * 0.16;                                           // it never stops moving down there
-  const uLat = BERMUDA.lat + Math.sin(a) * 2.1, uLon = BERMUDA.lon + Math.cos(a * 0.83) * 3.4;
-  const u = orthPt(uLon, uLat, sx, sy, RZ, earthTilt);
-  const uPrev = orthPt(BERMUDA.lon + Math.cos((a - 0.12) * 0.83) * 3.4,
-    BERMUDA.lat + Math.sin(a - 0.12) * 2.1, sx, sy, RZ, earthTilt);
+  const up = unitPos(t);                                        // where it is right now, at its real speed, time-lapsed
+  const u = orthPt(up.lon, up.lat, sx, sy, RZ, earthTilt);
+  const uPrev = orthPt(up.plon, up.plat, sx, sy, RZ, earthTilt);
   if (u.v) {
     const hd = Math.atan2(u.y - uPrev.y, u.x - uPrev.x);
-    const L = Math.max(7, RZ * 0.055), hB = L * 0.30;            // the hull: bigger than any rig, and dark
+    const kmPx = RZ / 6371;                                      // screen px per kilometre at this zoom
+    const L = Math.max(2.2, UNIT_KM * 0.5 * kmPx);               // its true size on the map, but never under a 4-px dot
     ctx.globalAlpha = zt * 0.5;                                  // its wake
-    ctx.strokeStyle = "rgba(190,230,255,0.7)"; ctx.lineWidth = Math.max(1, L * 0.12);
-    ctx.beginPath(); ctx.moveTo(u.x - Math.cos(hd) * L * 4.5, u.y - Math.sin(hd) * L * 4.5);
-    ctx.lineTo(u.x - Math.cos(hd) * L, u.y - Math.sin(hd) * L); ctx.stroke();
+    ctx.strokeStyle = "rgba(190,230,255,0.7)"; ctx.lineWidth = Math.max(1, L * 0.5);
+    ctx.beginPath(); ctx.moveTo(u.x - Math.cos(hd) * L * 9, u.y - Math.sin(hd) * L * 9);
+    ctx.lineTo(u.x - Math.cos(hd) * L * 1.2, u.y - Math.sin(hd) * L * 1.2); ctx.stroke();
     ctx.globalAlpha = zt;
     for (let i = 0; i < 2; i++) {                                // gravity leans the water in around it
-      const rr = 2.4 - ((t * 0.3 + i / 2) % 1) * 1.1;
+      const rr = 4.5 - ((t * 0.3 + i / 2) % 1) * 2.2;
       ctx.strokeStyle = "rgba(150,190,255," + (0.22 * zt).toFixed(2) + ")"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.ellipse(u.x, u.y, L * rr, L * rr * 0.5, hd, 0, 6.29); ctx.stroke();
+      ctx.beginPath(); ctx.arc(u.x, u.y, L * rr, 0, 6.29); ctx.stroke();
     }
-    ctx.save(); ctx.translate(u.x, u.y); ctx.rotate(hd);
-    const bun = ctx.createLinearGradient(0, -hB * 1.6, 0, hB * 1.2);
-    bun.addColorStop(0, "#3d434f"); bun.addColorStop(0.45, "#1d222c"); bun.addColorStop(1, "#080b11");
-    ctx.fillStyle = bun; ctx.strokeStyle = "rgba(150,175,210,0.35)"; ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.ellipse(0, -hB * 0.35, L, hB * 1.1, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, hB * 0.35, L * 0.96, hB * 0.65, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#05070b"; ctx.fillRect(-L * 0.98, -hB * 0.35, L * 1.96, hB * 0.7);
-    ctx.restore();
+    const top = ctx.createRadialGradient(u.x - L * 0.3, u.y - L * 0.3, 0, u.x, u.y, L);   // seen from above: a dark disc
+    top.addColorStop(0, "#3a414c"); top.addColorStop(0.7, "#171b22"); top.addColorStop(1, "#05070b");
+    ctx.fillStyle = top; ctx.strokeStyle = "rgba(150,175,210,0.45)"; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(u.x, u.y, L, 0, 6.29); ctx.fill(); ctx.stroke();
     ctx.globalAlpha = Math.min(1, zt * 1.4);
     ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+    const cxT = (P3[0].x + P3[1].x + P3[2].x) / 3, topY = Math.min(P3[0].y, P3[1].y, P3[2].y);   // captions clear of the pins
     ctx.fillStyle = "#9fd8ff";
-    ctx.fillText("MOBILE CONSTRUCTION UNIT", u.x, u.y + L * 2.1);
+    ctx.fillText("MOBILE CONSTRUCTION UNIT · " + UNIT_KM.toFixed(1) + " KM ACROSS · 2-3× AN OFFSHORE PLATFORM", cxT, topY - 27);
     ctx.fillStyle = "rgba(232,226,212,0.75)";
-    ctx.fillText("450 KNOTS · DARK · BIGGER THAN AN OIL RIG", u.x, u.y + L * 2.1 + 9);
+    ctx.fillText(UNIT_KN + " KNOTS · TIME ×" + (S.uTime || 1) + " · DARK · THE DOT IS IT", cxT, topY - 18);
     ctx.textAlign = "left";
     if (unitOrbs.length < 3 && Math.sin(t * 0.55) > 0.995) unitOrbs.push({ t0: t, x: u.x, y: u.y });
     for (let i = unitOrbs.length - 1; i >= 0; i--) {             // and what it lets go of
@@ -2750,7 +2826,7 @@ function drawEarthHub(t) {
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
   let PLANET_NEAR = null;
-  if (S.planets) {                                              // the real order round the Sun; Earth's own ring runs through the hub
+  if (S.planets && zt < 0.15) {                                 // the real order round the Sun; Earth's own ring runs through the hub (not in the close-up)
     const dx = sx - sunX, q = 0.26, front = [];
     ctx.strokeStyle = "rgba(255,196,107,0.16)"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
@@ -2957,6 +3033,7 @@ function drawChart(t) {
       fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
   }
 
+  drawExo(t, (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }));
   // Sol
   drawEarthHub(t);
   if (modeOf()) {
@@ -3049,6 +3126,7 @@ function drawChart3D(t) {
     label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
     ctx.globalAlpha = 1;
   }
+  drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
   drawEarthHub(t);
   if (modeOf()) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
@@ -4665,6 +4743,9 @@ function applyS() {                                             // push S into e
   set("rBreath", S.breath); txt("vBreath", S.breath.toFixed(1));
   set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
   set("rFly", S.flyby); txt("vFly", S.flyby.toFixed(1));
+  set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
+  set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
+  set("selUTime", S.uTime); chk("ckExo", S.exo);
   set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager);
@@ -4672,7 +4753,7 @@ function applyS() {                                             // push S into e
   set("selCache", S.cache); set("selMotion", S.motion); reduced = S.motion === "full" ? false : reducedPref;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
-  set("rHold", S.bHold); txt("vHold", S.bHold); set("rFly", S.bFly); txt("vFly", S.bFly);
+  set("rHold", S.bHold); txt("vHold", S.bHold); set("rBFly", S.bFly); txt("vBFly", S.bFly);
   set("selShot", S.nShot); set("rInt", Math.round(S.nInt * 100)); txt("vInt", Math.round(S.nInt * 100));
   set("rStretch", S.nStretch); txt("vStretch", S.nStretch.toFixed(1));
   set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
@@ -4739,7 +4820,7 @@ $("selMotion").onchange = (e) => {
 };
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
 $("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
-$("rFly").oninput = (e) => { S.bFly = +e.target.value; $("vFly").textContent = S.bFly; };
+$("rBFly").oninput = (e) => { S.bFly = +e.target.value; $("vBFly").textContent = S.bFly; };
 $("rOrbit").oninput = (e) => { S.bOrbit = +e.target.value; $("vOrbit").textContent = S.bOrbit; };
 $("msgIn").oninput = (e) => { S.msg = e.target.value; $("msgMorse").textContent = morseString(S.msg) || "—"; };
 $("ckMorse").onchange = (e) => (S.mOn = e.target.checked);
@@ -4762,6 +4843,11 @@ $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textCo
 $("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
 $("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
 $("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
+$("selEarth").onchange = (e) => { S.earthSrc = e.target.value; useEarthSource(); log(S.earthSrc === "photo" ? "EARTH: NASA IMAGERY" : "EARTH: THE DRAWN MAP", "cy"); };
+$("rCloud").oninput = (e) => { S.cloudA = +e.target.value / 100; $("vCloud").textContent = e.target.value; };
+$("rCloudSpd").oninput = (e) => { S.cloudSpd = +e.target.value / 10; $("vCloudSpd").textContent = S.cloudSpd.toFixed(1); };
+$("selUTime").onchange = (e) => (S.uTime = +e.target.value);
+$("ckExo").onchange = (e) => (S.exo = e.target.checked);
 applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
