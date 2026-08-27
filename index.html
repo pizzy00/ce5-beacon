@@ -54,8 +54,6 @@
   #fade { position: fixed; inset: 0; z-index: 4; background: #050510; opacity: 0; pointer-events: none; }
   .beacon { transition: opacity 0.35s ease, transform 0.35s ease; transform: scale(1); }
   .beacon.gone { opacity: 0; transform: scale(2.6); }
-  #reticle { transition: opacity 0.35s ease, transform 0.35s ease; transform: translate(-50%, -50%) scale(2); }
-  #reticle.on { transform: translate(-50%, -50%) scale(1); }
   #space.gone { opacity: 0; pointer-events: none; }
 
   /* scanlines + vignette */
@@ -90,8 +88,9 @@
   @keyframes bl { 50% { opacity: 0; } }
 
   #reticle { position: fixed; left: 50%; top: 50%; width: 66px; height: 66px; z-index: 5;
-    transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.4s; }
-  #reticle.on { opacity: 0.9; }
+    transform: translate(-50%, -50%) scale(2); pointer-events: none; opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease; }              /* shrinks in, blooms out */
+  #reticle.on { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
   #reticle::before, #reticle::after { content: ""; position: absolute; inset: 0;
     border: 1px solid var(--amber); border-radius: 50%; }
   #reticle::after { inset: 26px; border-color: var(--cyan); }
@@ -118,10 +117,9 @@
   #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
     padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
     background: linear-gradient(transparent, rgba(5,5,16,0.92) 40%); }
-  #chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
-    scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #chips { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 8px; }   /* every destination visible, nothing hidden off to the right */
   #chips::-webkit-scrollbar { display: none; }
-  .chip { flex: 0 0 auto; border: 1px solid var(--amber-dim); background: rgba(10,10,24,0.8);
+  .chip { flex: 1 1 auto; border: 1px solid var(--amber-dim); background: rgba(10,10,24,0.8);
     color: var(--ink); border-radius: 3px; padding: 7px 10px; font: inherit; font-size: 10px;
     line-height: 1.4; text-align: left; }
   .chip small { display: block; color: var(--amber-dim); font-size: 9px; }
@@ -185,6 +183,9 @@
     #bGear, #bInfo, #bGps { flex-basis: 42px; }
     #btns { gap: 6px; }
     #ctl { padding-left: 6px; padding-right: 6px; }
+    #chips { gap: 5px; }
+    .chip { padding: 5px 7px; font-size: 9.5px; }
+    .chip small { font-size: 8px; }
     .long { display: none; }
   }
   #info { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
@@ -657,7 +658,7 @@ function stageFade() {                                          // a soft dip to
   fadeTimer = setTimeout(() => { f.style.transition = "opacity 0.8s ease"; f.style.opacity = "0"; }, 40);
 }
 function setPhase(p, label) {
-  if (p !== phase && S.fades && !reduced && p !== "chart" && p !== "active") stageFade();
+  if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
 }
@@ -710,6 +711,7 @@ function dashLine(x1, y1, x2, y2, color, t) {
 }
 
 let chartRot = 0, chartZoom = 1, chartAuto = true, chartLastT = 0, chartResume = 0;
+let chartTgt = null;                                            // where the sky is swinging to after a destination pick
 function chartProject(s) {                                      // the sky as a turntable around Earth at the bottom
   const a = s.az + chartRot;
   const R = Math.min(W, H) * 0.40 * chartZoom;
@@ -717,8 +719,9 @@ function chartProject(s) {                                      // the sky as a 
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
   const sx = SOL.x * W, sy = SOL.y * H;
   const el = (SOL.y - s.y) / (SOL.y - POLARIS.y);               // height above Earth, Polaris = 1
-  const span = (SOL.y - POLARIS.y) * H * Math.min(1.15, chartZoom);
-  return { x: sx + X * k, y: sy - el * span * k, k, z: Z };
+  const gap = (SOL.y - POLARIS.y) * H;
+  const span = gap * Math.min(1, chartZoom) - R * 0.16;         // the top never rises past Polaris at any depth or zoom
+  return { x: sx + X * k, y: sy + Z * 0.16 - el * span, k, z: Z };   // feet on the ring: the near rim sits lower
 }
 function drawChart(t) {
   if (S.chart3d) return drawChart3D(t);
@@ -783,11 +786,17 @@ function drawChart(t) {
 function drawChart3D(t) {
   const dt = Math.min(0.1, Math.max(0, t - chartLastT)); chartLastT = t;
   if (chartAuto && !reduced) chartRot += dt * 0.05;             // one turn in about two minutes
+  if (chartTgt) {                                                // swing the pick to the front and lean in
+    let d = chartTgt.rot - chartRot; d = Math.atan2(Math.sin(d), Math.cos(d));   // the short way round
+    const e = reduced ? 1 : Math.min(1, dt * 3.5);
+    chartRot += d * e; chartZoom += (chartTgt.zoom - chartZoom) * e;
+    if (Math.abs(d) < 0.004 && Math.abs(chartTgt.zoom - chartZoom) < 0.004) chartTgt = null;
+  }
   ctx.clearRect(0, 0, W, H);
   for (const s of bgStars) {
     ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
     ctx.fillStyle = "#cfd6ff";
-    ctx.fillRect((s.x + chartRot * 40) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
+    ctx.fillRect((((s.x + chartRot * 40) % W) + W) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
   }
   ctx.globalAlpha = 1;
   const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = SOL.y * H;
@@ -1689,7 +1698,7 @@ function runStep(i, token) {
   });
 }
 function skipStep() {
-  if (phase !== "dive") return;
+  if (phase !== "dive" || !map) return;
   clearTimeout(holdTimer);
   const token = ++diveToken;
   map.stop();
@@ -1813,6 +1822,7 @@ for (const s of [...SYSTEMS, ...MODES]) {
     selected = s; allChannels = false; $("bAll").classList.remove("on");
     [...chipsEl.children].forEach((c) => c.classList.remove("sel"));
     b.classList.add("sel");
+    focusChart(s);
     log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
   };
   chipsEl.appendChild(b);
@@ -1954,40 +1964,51 @@ $("bTone").onclick = () => {
 };
 
 /* chart tap: select system / skip warp */
-const ptrs = new Map(); let pinchD = 0, dragMoved = 0;
+const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false;
+function focusChart(s) {                                        // a pick before ENGAGE: bring that sky to the front, lean in
+  if (!S.chart3d || phase !== "chart") return;
+  chartAuto = false; clearTimeout(chartResume);
+  chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.5 };   // modes depart from Earth itself
+  chartResume = setTimeout(() => (chartAuto = true), 8000);
+}
 function chartTap(cx, cy) {
+  let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
     const hx = S.chart3d ? s.px : s.x * W, hy = S.chart3d ? s.py : s.y * H;
-    if (hx === undefined || Math.hypot(cx - hx, cy - hy) >= 34) continue;
-    selected = s; allChannels = false; $("bAll").classList.remove("on");
-    [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
-    log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
-    return;
+    if (hx === undefined) continue;
+    const d = Math.hypot(cx - hx, cy - hy) - (S.chart3d ? (s.pk || 1) * 3 : 0);
+    if (d < bd) { bd = d; best = s; }
   }
+  if (!best) return;
+  const s = best;
+  selected = s; allChannels = false; $("bAll").classList.remove("on");
+  [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === s.id));
+  focusChart(s);
+  log("DEPARTURE SET: " + s.name + " (" + s.tag + ")");
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  dragMoved = 0;
-  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
+  if (ptrs.size === 1) { dragMoved = 0; wasPinch = false; chartTgt = null; }        // a gesture starts with the first finger only
+  if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
 });
 cvs.addEventListener("pointermove", (e) => {
   if (phase !== "chart" || !ptrs.has(e.pointerId)) return;
-  const p = ptrs.get(e.pointerId), dx = e.clientX - p.x; p.x = e.clientX; p.y = e.clientY;
+  const p = ptrs.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * d / pinchD));
     pinchD = d;
   } else if (S.chart3d) chartRot += dx * 0.006;
-  dragMoved += Math.abs(dx);
+  dragMoved += Math.hypot(dx, dy);
 });
 const endPtr = (e) => {
   if (!ptrs.has(e.pointerId)) return;
   const wasSingle = ptrs.size === 1;
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinchD = 0;
-  if (phase === "chart" && wasSingle && dragMoved < 8) {
+  if (phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
     const r = cvs.getBoundingClientRect(); chartTap(e.clientX - r.left, e.clientY - r.top);
   }
   if (ptrs.size === 0) chartResume = setTimeout(() => (chartAuto = true), 4000);
@@ -1996,6 +2017,7 @@ cvs.addEventListener("pointerup", endPtr);
 cvs.addEventListener("pointercancel", endPtr);
 cvs.addEventListener("wheel", (e) => {
   if (phase !== "chart") return;
+  chartTgt = null;
   e.preventDefault(); chartZoom = Math.min(2.2, Math.max(0.6, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
 }, { passive: false });
 
@@ -2087,7 +2109,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); set("rBcn", S.bcnHold); txt("vBcn", S.bcnHold.toFixed(1));
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = saveSettings;
@@ -2147,7 +2169,7 @@ $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
 $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
-$("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = S.bcnHold.toFixed(1); };
+$("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
 $("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
 $("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
 applyScreen();
@@ -2170,7 +2192,7 @@ if (savedTarget) $("addrStatus").textContent = "LOCKED: " + fmtLL(TARGET.lat, TA
 log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
 log("SELECT DEPARTURE SYSTEM, THEN ENGAGE");
-if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH OR SCROLL TO ZOOM", "cy");
+if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE TO LEAN IN", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
