@@ -101,6 +101,7 @@
   #loc .lc.on { background: var(--phos); color: #04140a; text-shadow: none; }   /* the picked one: a block cursor */
   #loc .lc.on i { color: #04140a; }
   #loc u { text-decoration: none; opacity: 0.55; }
+  #loc u.cap { opacity: 0.8; color: var(--amber); letter-spacing: 0.16em; font-size: 0.86em; }   /* the caption: POSSIBLE CONTACTS */
   body.run #loc, body.active #loc { opacity: 0.45; }
 
   #phase { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 4px); transform: translateX(-50%);   /* just above the console, whatever its height */
@@ -322,6 +323,10 @@
   #keys .key.cy, #keys .key.rd { color: #efe4c8; }
   #keys .key svg { display: block; }
   #bGear { font-size: 15px; letter-spacing: 0; }
+  #bGps { margin-left: auto; }                                     /* the arrows sit left, the three tools sit right */
+  #bInfo .ico { display: inline-block; width: 15px; height: 15px; line-height: 14px; border: 1px solid currentColor;
+    border-radius: 50%; font: italic 700 11px Georgia, "Times New Roman", serif; text-transform: none; letter-spacing: 0;
+    text-align: center; }
   @media (min-width: 600px) {                                    /* tablets: a bigger tube, the same short keys */
     #head { height: 82px; padding: 10px 14px; gap: 2px; }
     #data { font-size: 10px; gap: 0 12px; }
@@ -329,7 +334,13 @@
     #loc { font-size: 12px; height: 15px; line-height: 15px; }
     #keys .key { min-width: 54px; }
   }
-  #bLocL svg, #bLocR svg { width: 9px; height: 11px; }
+  #bLocL, #bLocR { color: #a9ffc6; }                                /* phosphor legends: these two are the ones to press */
+  #bLocL svg, #bLocR svg { width: 9px; height: 11px; animation: arrowGlow 2.4s ease-in-out infinite; }
+  @keyframes arrowGlow { 0%, 100% { filter: drop-shadow(0 0 1px rgba(125,251,168,0.35)); }
+    50% { filter: drop-shadow(0 0 5px rgba(125,251,168,0.95)); } }
+  @media (prefers-reduced-motion: reduce) {
+    #bLocL svg, #bLocR svg { animation: none; filter: drop-shadow(0 0 3px rgba(125,251,168,0.7)); }
+  }
   body.run #bLocL, body.run #bLocR, body.active #bLocL, body.active #bLocR { display: none; }   /* nothing to step through mid-run */
   .btn { flex: 1;
     color: #241d12; font: inherit; font-size: 11px; letter-spacing: 0.18em; font-weight: 700;
@@ -419,7 +430,6 @@
   #bFull.on .comp { display: block; }
   #bFull.hide { display: none; }
   body.run #bFull, body.active #bFull { opacity: 0.3; }
-  #bInfo svg { width: 20px; height: 13px; }
   @media (max-width: 430px) {
     .btn { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 0.12em; padding-left: 2px; padding-right: 2px; }
     #keys { gap: 5px; }
@@ -429,7 +439,7 @@
     .chip { width: 140px; padding: 5px 7px; font-size: 9.5px; }
     #keys .btn { min-width: 44px; }
     #keys .key { padding: 0 8px; }
-    #keys #bLocL, #keys #bLocR { min-width: 40px; padding: 0 6px; }
+    #keys #bLocL, #keys #bLocR { min-width: 36px; padding: 0 5px; }
     #bEngage { --cs: 82px; width: 108px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
@@ -466,6 +476,9 @@
   .setBtn.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
   #saveStat { margin: -6px 0 12px; min-height: 12px; }
   .setRow { margin-bottom: 14px; }
+  .setBox { border: 1px solid rgba(255,196,107,0.22); border-radius: 6px; padding: 10px 12px 2px; margin: 0 0 14px;
+    background: rgba(255,196,107,0.025); }                    /* one card per section: easier to read down the page */
+  .setBox .setSec, .setBox .setSec.first { margin: 0 0 10px; }
   .setSec { margin: 22px 0 10px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,196,107,0.28);
     color: var(--amber); font-size: 11px; letter-spacing: 0.24em; font-weight: 700; }
   .setSec.first { margin-top: 4px; }
@@ -518,8 +531,9 @@
 <div id="cue" class="display"><div class="stage"></div><div class="breath"></div></div>
 <div id="settings" class="hide">
   <div id="setCard">
-    <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></div>
+    <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
     <div class="setStat" id="saveStat"></div>
+    <div class="setBox">
     <div class="setSec first">YOUR SPOT</div>
     <div class="setRow">
       <div class="setLbl">TARGET — ADDRESS OR "LAT, LON"</div>
@@ -538,7 +552,9 @@
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">SCREEN</div>
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
@@ -562,7 +578,9 @@
       </select>
       <div class="setStat" id="motionStat">IF EVERY STAGE FLASHES BY IN A SECOND, PICK FULL</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">STAR CHART</div>
     <div class="setRow">
       <select id="selChart">
@@ -572,6 +590,7 @@
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
       <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
+      <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES AND BETWEEN THE SYSTEMS</label>
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS ON THEIR ORBITS (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
@@ -580,7 +599,9 @@
       <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
       <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">THE EARTH</div>
     <div class="setRow">
       <div class="setLbl">THE GLOBE'S SURFACE</div>
@@ -605,7 +626,9 @@
       </select>
       <div class="setStat">PINCH INTO THE EARTH TO FIND IT · DRAWN TOP-DOWN AT ITS TRUE SIZE, ABOUT 1.2 KM, 2-3× AN OFFSHORE PLATFORM</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">THE JOURNEY</div>
     <div class="setRow">
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
@@ -659,7 +682,9 @@
         <option value="off">OFF</option>
       </select>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">THE FLASH</div>
     <div class="setRow">
       <div class="setLbl">HOLD ON YOUR SPOT BEFORE THE FLASH — <span id="vArr">8</span>S</div>
@@ -685,7 +710,9 @@
       <input type="range" id="rWarn" min="2" max="15" step="1" value="6" />
       <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">THE ARSENAL</div>
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS AFTER THE FLASH — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
@@ -693,7 +720,9 @@
       <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="1.6" />
       <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">BERMUDA TRIANGLE</div>
     <div class="setRow">
       <div class="setLbl">TRIGGER SEQUENCE</div>
@@ -718,7 +747,9 @@
       <input type="range" id="rBFly" min="3" max="15" step="1" value="7" />
       <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
     </div>
+    </div>
 
+    <div class="setBox">
     <div class="setSec">MESSAGE</div>
     <div class="setRow">
       <div class="setLbl">SENT IN MORSE WHEN THE BEACON LOCKS</div>
@@ -731,6 +762,7 @@
       <div class="setLbl">PULSE LIGHT — <span id="vMInt">60</span>%</div>
       <input type="range" id="rMInt" min="10" max="100" step="5" value="60" />
       <div class="setStat">A–Z, 0–9 AND . , ? ! / ( ) - + = @ · ANYTHING ELSE IS SKIPPED · SEND AGAIN WITH THE SEND BUTTON</div>
+    </div>
     </div>
   </div>
 </div>
@@ -830,17 +862,17 @@
       <div id="loc" aria-label="Departures"><span id="locIn"></span></div>
     </div>
     <div id="keys">
-    <button class="btn key" id="bLocL" aria-label="Previous departure" title="Previous departure"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M8.5 0.5v10L0.5 5.5z" fill="currentColor"/></svg></button>
+    <button class="btn key" id="bLocL" aria-label="Previous contact" title="Previous contact"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M8.5 0.5v10L0.5 5.5z" fill="currentColor"/></svg></button>
+    <button class="btn key" id="bLocR" aria-label="Next contact" title="Next contact"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M0.5 0.5v10L8.5 5.5z" fill="currentColor"/></svg></button>
     <button class="btn cy key" id="bAll">All Channels</button>
-    <button class="btn key" id="bGear">⚙</button>
-    <button class="btn cy key" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 7 C4 2 8 1 11 1 C14 1 18 2 21 7 C18 12 14 13 11 13 C8 13 4 12 1 7 Z"/><circle cx="11" cy="7" r="3"/><circle cx="11" cy="7" r="1" fill="currentColor"/></svg></button>
     <button class="btn rd hide key" id="bStop">Abort</button>
     <button class="btn hide key" id="bReplay">Replay</button>
     <button class="btn cy hide key" id="bTone">Tone</button>
     <button class="btn hide key" id="bSend">Send</button>
     <button class="btn hide key" id="bTarget">Retarget</button>
     <button class="btn cy key" id="bGps">GPS</button>
-    <button class="btn key" id="bLocR" aria-label="Next departure" title="Next departure"><svg viewBox="0 0 9 11" aria-hidden="true"><path d="M0.5 0.5v10L8.5 5.5z" fill="currentColor"/></svg></button>
+    <button class="btn cy key" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><span class="ico">i</span></button>
+    <button class="btn key" id="bGear" aria-label="Settings" title="Settings">⚙</button>
     </div>
     </div>
   </div>
@@ -860,7 +892,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   polaris: true, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false,
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
-  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false };
+  earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -4462,8 +4494,9 @@ setInterval(() => {                                             // a slow drift,
 /* ---------------- the CRT marquee: the departures, drifting across the phosphor ---------------- */
 const locEl = $("loc"), locIn = $("locIn");
 let locW = 0, locX = 0, locAuto = true, locResume = 0, locDrag = null;
+let lastUserPick = 0, lastAttract = 0, locGoal = null;         // attract mode: the marquee glides to each contact in turn
 function locBuild() {                                           // three copies: the seam is never on screen
-  let h = "";
+  let h = '<u class="cap">POSSIBLE CONTACTS \u00b7 </u>';       // the caption leads each lap
   for (const s of CHIP_SRC) h += '<b class="lc" data-id="' + s.id + '"><i style="color:' + s.c + '">\u25cf</i>' +
     s.name + " " + (s.dist || fmtLy(s.ly)) + "</b><u> \u00b7 </u>";
   locIn.innerHTML = h + h + h;
@@ -4488,13 +4521,19 @@ function locCenter() {                                          // bring the pic
   if (!b || !locW) return;
   locX = locWrap(b.offsetLeft + b.offsetWidth / 2 - locEl.clientWidth / 2); locDraw();
 }
+function locGlide() {                                           // slide the picked name to the middle instead of jumping
+  if (!locW) locMeasure();
+  const b = locIn.querySelector('.lc[data-id="' + selected.id + '"]');
+  locGoal = (b && locW) ? locWrap(b.offsetLeft + b.offsetWidth / 2 - locEl.clientWidth / 2) : null;
+}
 function locStep(d) {                                           // the arrow keys walk the list
   if (chipsEl.classList.contains("hide")) return;
   const n = CHIP_SRC.length, i = CHIP_SRC.indexOf(selected);
-  pickDeparture(CHIP_SRC[(i + d + n) % n]); locPause(); locCenter();
+  pickDeparture(CHIP_SRC[(i + d + n) % n]); locPause(); locGlide();
 }
 locEl.addEventListener("pointerdown", (e) => {
-  locPause(); locDrag = { id: e.pointerId, x0: e.clientX, from: locX, moved: 0 };
+  locPause(); lastUserPick = performance.now(); locGoal = null;
+  locDrag = { id: e.pointerId, x0: e.clientX, from: locX, moved: 0 };
   try { locEl.setPointerCapture(e.pointerId); } catch (err) {}
 });
 locEl.addEventListener("pointermove", (e) => {
@@ -4514,10 +4553,23 @@ const locUp = (e) => {
 locEl.addEventListener("pointerup", locUp);
 locEl.addEventListener("pointercancel", locUp);
 setInterval(() => {                                             // the slow drift: 12 px a second, leftward
-  if (!locAuto || !locW || locDrag || phase !== "chart" || document.hidden) return;
-  if (chipsEl.classList.contains("hide") || reduced) return;
+  if (!locW || locDrag || phase !== "chart" || document.hidden) return;
+  if (chipsEl.classList.contains("hide")) return;
+  if (locGoal !== null) {                                       // gliding to a contact: the shortest way round the loop
+    let d = ((locGoal - locX) % locW + locW) % locW; if (d > locW / 2) d -= locW;
+    if (reduced || Math.abs(d) < 1) { locX = locGoal; locGoal = null; } else locX = locWrap(locX + d * 0.18);
+    locDraw(); return;
+  }
+  if (!locAuto || reduced) return;
   locX = locWrap(locX + 0.4); locDraw();
 }, 33);
+setInterval(() => {                                             // attract mode: the contacts take turns until he picks one
+  const now = performance.now();
+  if (!S.attract || phase !== "chart" || document.hidden || reduced || !chartAuto || locDrag || allChannels) return;
+  if (chipsEl.classList.contains("hide") || now - lastUserPick < 45000 || now - lastAttract < 6000) return;
+  const n = CHIP_SRC.length, i = CHIP_SRC.indexOf(selected);
+  pickDeparture(CHIP_SRC[(i + 1 + n) % n], true); lastAttract = now;
+}, 1000);
 locBuild();
 setTimeout(() => { locMeasure(); locCenter(); }, 120);           // once the font is in, start on the picked one
 addEventListener("resize", () => setTimeout(locMeasure, 120));
@@ -4678,12 +4730,13 @@ function focusChart(s) {                                        // a pick before
   chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.25 };  // modes depart from Earth itself
   chartResume = setTimeout(() => (chartAuto = true), 8000);
 }
-function pickDeparture(o) {
+function pickDeparture(o, auto) {                               // auto: attract mode picked it, not his hand
   selected = o; allChannels = false; $("bAll").classList.remove("on");
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === o.id));
   focusChart(o);
-  log("DEPARTURE SET: " + o.name + " (" + o.tag + ")");
+  if (!auto) { log("DEPARTURE SET: " + o.name + " (" + o.tag + ")"); lastUserPick = performance.now(); }
   locSync();
+  if (auto) locGlide();
 }
 function chartTap(cx, cy) {
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
@@ -4703,6 +4756,7 @@ function chartTap(cx, cy) {
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") { t0 = -1e9; return; } // skip to next stage
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  lastUserPick = performance.now();                             // his hand is on the sky: attract mode waits
   if (ptrs.size === 1) {
     dragMoved = 0; wasPinch = false; chartTgt = null;
     const G = earthGeom(), r = cvs.getBoundingClientRect();     // inside the world = turn the world
@@ -4863,7 +4917,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
-  chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin));
+  chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic);
   set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
@@ -4935,6 +4989,7 @@ $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
+$("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
 $("ckPlanets").onchange = (e) => (S.planets = e.target.checked);
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
