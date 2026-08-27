@@ -327,7 +327,7 @@
   #keys .key svg { display: block; }
   #bGear { font-size: 15px; letter-spacing: 0; }
   #bGps { margin-left: auto; }                                     /* the arrows sit left, the three tools sit right */
-  #bGps.hide + #bInfo { margin-left: auto; }                       /* mid-run GPS is gone: the i and the gear still sit right */
+  #bGps.hide + #bBoard { margin-left: auto; }                      /* mid-run GPS is gone: LOG, the i and the gear still sit right */
   #bInfo .ico { display: inline-block; width: 15px; height: 15px; line-height: 14px; border: 1px solid currentColor;
     border-radius: 50%; font: italic 700 11px Georgia, "Times New Roman", serif; text-transform: none; letter-spacing: 0;
     text-align: center; }
@@ -441,21 +441,35 @@
     #ctl { padding-left: 6px; padding-right: 6px; }
     #chips { gap: 5px; }
     .chip { width: 140px; padding: 5px 7px; font-size: 9.5px; }
-    #keys .btn { min-width: 44px; }
-    #keys .key { padding: 0 8px; }
-    #keys #bLocL, #keys #bLocR { min-width: 36px; padding: 0 5px; }
+    #keys .btn { min-width: 40px; }
+    #keys .key { padding: 0 6px; }
+    #keys #bLocL, #keys #bLocR { min-width: 34px; padding: 0 5px; }
     #bEngage { --cs: 82px; width: 108px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
   }
-  #info { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
+  @media (max-width: 380px) {                                    /* six keys on a small phone */
+    #keys { gap: 4px; }
+    #keys .btn { min-width: 36px; }
+    #keys #bLocL, #keys #bLocR { min-width: 32px; }
+  }
+  #info, #board { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
-  #info.hide { display: none; }
-  #infoCard { width: 100%; max-width: 460px; max-height: 84vh; max-height: 84dvh; overflow-y: auto;
+  #info.hide, #board.hide { display: none; }
+  #infoCard, #boardCard { width: 100%; max-width: 460px; max-height: 84vh; max-height: 84dvh; overflow-y: auto;
     background: #0a0a18; border: 1px solid var(--cyan); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(107,227,255,0.15); -webkit-user-select: text; user-select: text; }
-  #infoCard .setHead { color: var(--cyan); }
-  #bInfoClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  #infoCard .setHead, #boardCard .setHead { color: var(--cyan); }
+  #bInfoClose, #bBoardClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  .bdRow { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; line-height: 1.6; color: var(--ink);
+    border-bottom: 1px solid rgba(138,106,58,0.25); padding: 3px 0; }
+  .bdRow b { color: var(--amber); font-weight: 400; }
+  .bdRow.me b { color: var(--cyan); }
+  .bdRow i { font-style: normal; color: var(--amber-dim); font-size: 9px; letter-spacing: 0.08em; }
+  .bdRow span:last-child { white-space: nowrap; }
+  .bdBtns { display: flex; gap: 8px; align-items: center; margin: 6px 0 6px; }
+  #bdName { flex: 1; min-width: 0; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: inherit;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 8px; border-radius: 3px; }
   .infoP { font-size: 11px; line-height: 1.55; color: var(--ink); margin-bottom: 10px; }
   .infoP b { color: var(--amber); font-weight: 400; }
   .infoStep { display: flex; gap: 10px; margin-bottom: 9px; font-size: 11px; line-height: 1.5; }
@@ -779,6 +793,25 @@
     </div>
   </div>
 </div>
+<div id="board" class="hide">
+  <div id="boardCard">
+    <div class="setHead display">TRAVELLERS — WHO WENT WHERE <span id="bBoardClose">✕</span></div>
+    <div class="setRow">
+      <div class="setLbl">YOU ARE</div>
+      <div class="bdBtns"><input id="bdName" maxlength="24" autocomplete="off" spellcheck="false" /><span id="bdRoll" class="setBtn">NEW NAME</span><span id="bdKeep" class="setBtn dim">KEEP</span></div>
+      <div class="setStat">A CALL-SIGN IS MADE UP FOR YOU · TYPE YOUR OWN IF YOU LIKE · IT STAYS ON THIS DEVICE</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">YOUR LOG — THIS DEVICE</div>
+      <div id="bdMine"></div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">THE BOARD — EVERYONE</div>
+      <div id="bdAll"></div>
+    </div>
+    <div class="infoFoot">LIGHT-YEARS COUNT THE DISTANCE TO THE SYSTEM YOU INVITED · LUNA, THE DEEP AND THE TRIANGLE COUNT AS EARTH TRIPS</div>
+  </div>
+</div>
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
@@ -885,6 +918,7 @@
     <button class="btn hide key" id="bSend">Send</button>
     <button class="btn hide key" id="bTarget">Retarget</button>
     <button class="btn cy key" id="bGps">GPS</button>
+    <button class="btn cy key" id="bBoard" aria-label="Travellers board" title="Travellers board">LOG</button>
     <button class="btn cy key" id="bInfo" aria-label="CE-5 protocol field card" title="CE-5 protocol"><span class="ico">i</span></button>
     <button class="btn key" id="bGear" aria-label="Settings" title="Settings">⚙</button>
     </div>
@@ -4508,6 +4542,7 @@ function arrive() {
   placeBeacon();
   log("BEACON ACTIVE — " + fmtLL(TARGET.lat, TARGET.lon), "alert");
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
+  logTrip();                                                    // it counts on the travellers board
   log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN"
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
   $("bStop").classList.add("hide");
@@ -5013,7 +5048,7 @@ function skipCurrent() {                                        // a tap anywher
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#flash")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash")) return;
   skipCurrent();
 });
 $("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
@@ -5054,6 +5089,64 @@ function locate() {
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
 $("bClose").onclick = () => $("settings").classList.add("hide");
 const SAVE_KEY = "ce5.console.v1";
+/* ---------------- the travellers board ---------------- */
+const BOARD_URL = "";                                            // the shared board's endpoint; empty = this device only (needs a stable public host)
+const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign";
+const CS_A = ["ZETA", "ORION", "LYRAN", "SIRIAN", "VEGAN", "ARCTURIAN", "PLEIADIAN", "ANDROMEDAN", "NORDIC", "GREY", "MANTID",
+  "TALL WHITE", "VENUSIAN", "MARTIAN", "LUNAR", "DEEP", "POLARIS", "SOLAR", "TRIANGLE", "TAU CETI"];
+const CS_B = ["PILOT", "WATCHER", "SIGNAL", "BEACON", "DRIFTER", "ENVOY", "NAVIGATOR", "LANTERN", "WANDERER", "ORBITER", "SCOUT",
+  "LISTENER", "CARRIER", "COURIER", "GHOST", "PROBE", "RELAY", "VOYAGER", "SEEKER", "STARGAZER"];
+function rollName() {
+  return CS_A[Math.floor(Math.random() * CS_A.length)] + " " + CS_B[Math.floor(Math.random() * CS_B.length)] + " " + (10 + Math.floor(Math.random() * 90));
+}
+let callsign = "";
+try { callsign = localStorage.getItem(NAME_KEY) || ""; } catch (e) {}
+if (!callsign) { callsign = rollName(); try { localStorage.setItem(NAME_KEY, callsign); } catch (e) {} }
+function readLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]") || []; } catch (e) { return []; } }
+function logTrip() {                                            // a run reached the ground: it counts
+  const s = selected || {};
+  const trip = { n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
+  const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+  if (BOARD_URL) fetch(BOARD_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(trip) }).catch(() => {});
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function bdWhen(t) {
+  const m = Math.round((Date.now() - t) / 60000);
+  return m < 1 ? "JUST NOW" : m < 60 ? m + " MIN AGO" : m < 1440 ? Math.round(m / 60) + " H AGO" : Math.round(m / 1440) + " D AGO";
+}
+function bdRows(list, mine) {
+  if (!list.length) return '<div class="setStat">NOTHING YET \u00b7 PRESS START AND FLY ONE</div>';
+  return list.map((r) => '<div class="bdRow' + (mine || r.n === callsign ? " me" : "") + '"><span><b>' + esc(r.n) + '</b> \u2192 ' + esc(r.d) +
+    '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.t) + '</i></span></div>').join("");
+}
+function openBoard() {
+  $("settings").classList.add("hide"); $("info").classList.add("hide");
+  $("bdName").value = callsign;
+  const L = readLog().slice().reverse();
+  const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
+  $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
+    " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + bdRows(L.slice(0, 12), true);
+  if (!BOARD_URL) {
+    $("bdAll").innerHTML = '<div class="setStat">THE SHARED BOARD IS NOT CONNECTED YET \u00b7 WHEN IT IS, EVERY TRAVELLER SHOWS UP HERE, MOST LIGHT-YEARS FIRST</div>';
+  } else {
+    $("bdAll").innerHTML = '<div class="setStat">LOADING\u2026</div>';
+    fetch(BOARD_URL).then((r) => r.json())
+      .then((rows) => { $("bdAll").innerHTML = bdRows((rows || []).sort((a, b) => (b.ly || 0) - (a.ly || 0)).slice(0, 25)); })
+      .catch(() => { $("bdAll").innerHTML = '<div class="setStat">NO ANSWER FROM THE BOARD</div>'; });
+  }
+  $("board").classList.remove("hide");
+}
+function setName(v) {
+  v = (v || "").trim().toUpperCase().slice(0, 24) || rollName();
+  callsign = v; try { localStorage.setItem(NAME_KEY, v); } catch (e) {}
+  openBoard();
+}
+$("bBoard").onclick = openBoard;
+$("bBoardClose").onclick = () => $("board").classList.add("hide");
+$("bdRoll").onclick = () => setName(rollName());
+$("bdKeep").onclick = () => setName($("bdName").value);
+$("bdName").addEventListener("keydown", (e) => { if (e.key === "Enter") setName(e.target.value); });
 let savedTarget = false;
 function saveSettings() {
   try {
@@ -5229,6 +5322,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
   log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");
   log("GOLD PYRAMIDS ON THE GLOBE = THE OLD ONES\u2019 SKY-ALIGNED PLACES \u00b7 PINCH IN FOR NAMES, TAP ONE FOR ITS STORY", "cy");
+  log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
 if (reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
