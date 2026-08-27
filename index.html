@@ -473,14 +473,17 @@
     #keys .btn { min-width: 36px; }
     #keys #bLocL, #keys #bLocR { min-width: 32px; }
   }
-  #info, #board { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
+  #sysPick { z-index: 12; }                                        /* above the settings it opens from */
+  .sysPre { flex-wrap: wrap; }
+  #sysList .setChk small { display: block; font-size: 9px; color: var(--amber-dim); margin: 1px 0 0 22px; letter-spacing: 0.06em; }
+  #info, #board, #sysPick { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
-  #info.hide, #board.hide { display: none; }
-  #infoCard, #boardCard { width: 100%; max-width: 460px; max-height: 84vh; max-height: 84dvh; overflow-y: auto;
+  #info.hide, #board.hide, #sysPick.hide { display: none; }
+  #infoCard, #boardCard, #sysCard { width: 100%; max-width: 460px; max-height: 84vh; max-height: 84dvh; overflow-y: auto;
     background: #0a0a18; border: 1px solid var(--cyan); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(107,227,255,0.15); -webkit-user-select: text; user-select: text; }
-  #infoCard .setHead, #boardCard .setHead { color: var(--cyan); }
-  #bInfoClose, #bBoardClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
+  #infoCard .setHead, #boardCard .setHead, #sysCard .setHead { color: var(--cyan); }
+  #bInfoClose, #bBoardClose, #bSysClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
   .bdRow { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; line-height: 1.6; color: var(--ink);
     border-bottom: 1px solid rgba(138,106,58,0.25); padding: 3px 0; }
   .bdRow b { color: var(--amber); font-weight: 400; }
@@ -627,6 +630,9 @@
         <option value="3d" selected>3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM</option>
         <option value="flat">FLAT CHART</option>
       </select>
+      <div class="setLbl">WHICH SYSTEMS SHOW</div>
+      <div class="bdBtns"><span class="setBtn" id="bSysPick">PICK THE SYSTEMS…</span></div>
+      <div class="setStat" id="sysStat"></div>
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
       <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
       <div class="setLbl">PINCH INTO A SYSTEM AT THE FRONT — HOLD THEIR HOME FOR <span id="vSys">7.5</span>S</div>
@@ -679,6 +685,8 @@
     <div class="setSec">THE JOURNEY</div>
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — A FIELD SKETCH OF THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT A PHOTOGRAPH)</label>
+      <label class="setChk"><input type="checkbox" id="ckTapLook" checked />A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)</label>
+      <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
       <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
@@ -869,6 +877,14 @@
         with gratitude and a clear goodbye.</span></div>
     </div>
     <div class="setRow">
+      <div class="setLbl">THE LORE ON THIS CONSOLE</div>
+      <div class="infoP">The star systems, the beings and the unit in the Triangle come from what people have
+        <b>claimed</b>: Bob Lazar (1989 onward), John Lear (1987&#8211;90), later lists that grew out of Lear&#39;s
+        circle, and an anonymous 2023 poster on /x/. Each line on the tube says who said it. Lazar and Lear both
+        name only Zeta Reticuli; the rest is later material. The astronomy (distances, star types) is real.
+        Nothing here is presented as fact.</div>
+    </div>
+    <div class="setRow">
       <div class="setLbl">GROUND RULES</div>
       <div class="infoRule">Consent and peaceful intent are the whole point. No fear, no demands.</div>
       <div class="infoRule">One shared intention on the same timing beats a big headcount.</div>
@@ -883,7 +899,21 @@
         TONE = step 04 · The beacon = we are here. LUNA and DEEP OCEAN run the same steps from a closer origin (UAP / USO). BERMUDA runs the trigger sequence: the Triangle, the places we detonated, the flash (close your eyes; the screen becomes the light of a real shot, measured from the film), the arsenal, then the unit rises.</div>
     </div>
     <div class="infoFoot">CE-5 AND CSETI ARE TERMS ASSOCIATED WITH DR. STEVEN GREER. THIS CARD IS AN
-      INDEPENDENT SUMMARY, NOT AFFILIATED. USE AT YOUR OWN DISCRETION.</div>
+      INDEPENDENT SUMMARY, NOT AFFILIATED. WE ARE NOT AFFILIATED WITH BOB LAZAR, JOHN LEAR, OR ANYONE ELSE QUOTED OR NAMED HERE; THEIR CLAIMS ARE REPORTED, NOT ENDORSED. USE AT YOUR OWN DISCRETION.</div>
+  </div>
+</div>
+<div id="sysPick" class="hide">
+  <div id="sysCard">
+    <div class="setHead display">WHICH SYSTEMS SHOW <span id="bSysClose">✕</span></div>
+    <div class="setRow">
+      <div class="setLbl">QUICK PICKS</div>
+      <div class="bdBtns sysPre"><span class="setBtn" data-pre="all">ALL NINE</span><span class="setBtn" data-pre="seven">THE FIRST SEVEN</span><span class="setBtn" data-pre="lazar">ONLY WHAT LAZAR NAMED</span><span class="setBtn" data-pre="lear">LEAR AND HIS CIRCLE</span></div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">ONE BY ONE</div>
+      <div id="sysList"></div>
+    </div>
+    <div class="infoFoot">THE CHART, THE CONTACTS LINE, THE TRAFFIC AND ALL CHANNELS FOLLOW THIS · AT LEAST ONE STAYS ON · BESIDE EACH: WHO PUT IT ON THE MAP · SAVED WITH YOUR SETTINGS</div>
   </div>
 </div>
 <div id="nukeWarn" class="hide">
@@ -965,20 +995,38 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true };
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, lore: true, tapLook: true,
+  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
 /* ---------------- lore chart ---------------- */
-const SYSTEMS = [
+const SYSTEMS_ALL = [                                             // every system the console knows; SYSTEMS = the ones switched on
   { id: "zeta", az: 0.4, name: "ZETA RETICULI", ly: 39.3, tag: "GREYS", x: 0.16, y: 0.472, c: "#9be8ff" },
   { id: "plei", az: 1.298, name: "PLEIADES · TAYGETA", ly: 444, tag: "NORDICS", x: 0.79, y: 0.259, c: "#bfd9ff", cluster: true },
   { id: "siri", az: 2.195, name: "SIRIUS", ly: 8.6, tag: "SIRIANS", x: 0.30, y: 0.376, c: "#eaf6ff" },
   { id: "arct", az: 3.093, name: "ARCTURUS", ly: 36.7, tag: "ARCTURIANS", x: 0.86, y: 0.403, c: "#ffb36b" },
   { id: "vega", az: 3.99, name: "VEGA · LYRA", ly: 25, tag: "LYRANS", x: 0.62, y: 0.221, c: "#cff3ff" },
   { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.504, c: "#ff8e5e" },
-  { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.232, c: "#d9c9ff", galaxy: true }
+  { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.232, c: "#d9c9ff", galaxy: true },
+  { id: "proc", az: 1.75, name: "PROCYON", ly: 11.5, tag: "NORDICS \u00b7 PROCYON", x: 0.45, y: 0.33, c: "#fff3d6", opt: 1 },        // from the package: the Lear circle's "Swedes"
+  { id: "drac", az: 4.44, name: "THUBAN \u00b7 DRACO", ly: 303, tag: "REPTILIANS", x: 0.40, y: 0.27, c: "#9cff8a", opt: 1 }             // and the 1990s Draco story
 ];
+const NAMED_BY = { zeta: "LAZAR AND LEAR, BOTH OUTRIGHT", plei: "LATER LISTS (LEAR CIRCLE)", siri: "THE KRILL PAPERS (LEAR CIRCLE)", arct: "LATER CHANNELLED BOOKS",
+  vega: "LATER CONTACTEE MATERIAL", orio: "LEAR CIRCLE, SECOND-HAND", andr: "1990S CONTACTEE MATERIAL", proc: "ANDREWS 1993 (LEAR CIRCLE)", drac: "BRANTON AND COLLIER, 1990S" };
+const SYS_PRESETS = { all: SYSTEMS_ALL.map((s) => s.id), seven: SYSTEMS_ALL.filter((s) => !s.opt).map((s) => s.id), lazar: ["zeta"], lear: ["zeta", "plei", "siri", "orio", "proc", "drac"] };
+let SYSTEMS = [];
+function applySystems(boot) {                                    // S.sysOn -> SYSTEMS; the contacts line and the pick follow
+  const on = S.sysOn || (S.sysOn = {});
+  SYSTEMS = SYSTEMS_ALL.filter((s) => (s.id in on ? !!on[s.id] : !s.opt));
+  if (!SYSTEMS.length) { SYSTEMS = [SYSTEMS_ALL[0]]; on.zeta = true; }   // at least one stays on
+  if (boot) return;
+  if (selected && !selected.mode && !SYSTEMS.includes(selected)) { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }
+  CHIP_SRC.length = 0; CHIP_SRC.push(...SYSTEMS, ...MODES);
+  locBuild();
+  const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", ");
+}
+applySystems(true);
 const POLARIS = { x: 0.5, y: 0.12, c: "#ffe9a6" };               /* the CRT lives in the console now: the sky has the top */
 const SOL = { x: 0.5, y: 0.60, c: "#ffd34d" };                   /* the hub, high enough to stay off the console */
 const MODES = [
@@ -1307,7 +1355,9 @@ const SKY_SITES = [                                              // where the ol
   { n: "ABU SIMBEL", lat: 22.337, lon: 31.626, s: "TWICE A YEAR THE SUN REACHES 60 M INTO THE ROCK AND LIGHTS THE SEATED GODS" },
   { n: "CARNAC", lat: 47.593, lon: -3.079, s: "3,000 STANDING STONES IN ROWS \u00b7 SOLSTICE SIGHTLINES CLAIMED ACROSS THEM" },
   { n: "MNAJDRA", lat: 35.827, lon: 14.436, s: "MALTA, 5,500 YEARS \u00b7 THE EQUINOX SUN COMES STRAIGHT THROUGH THE DOOR" },
-  { n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" }
+  { n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" },
+  { n: "S-4 \u00b7 PAPOOSE LAKE", lat: 37.09, lon: -115.79, claim: 1, s: "BOB LAZAR, 1989: NINE CRAFT IN HANGARS CUT INTO THE MOUNTAIN SOUTH OF AREA 51 \u00b7 HIS CLAIM, NEVER SHOWN" },
+  { n: "FUKUSHIMA", lat: 37.42, lon: 141.03, claim: 1, s: "MARCH 2011 \u00b7 A 2023 /X/ ANON SAID THE UNIT SENT CRAFT HERE FOR WEEKS, DRAWN TO THE RADIATION \u00b7 A CLAIM" }
 ];
 let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
@@ -3127,10 +3177,14 @@ function drawEarthHub(t) {
     const big = earthZoom > 1.25 || gvK() > 0.5, r = big ? 4 : 3;   // names when you lean in, and always on the pop-up world
     ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ffd27a";
     for (const q of SKY_SITES) {
+      if (q.claim && !S.lore) continue;                            // the claim pins go with the lore setting
       const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
       siteHit.push({ q, x: p.x, y: p.y });
-      ctx.globalAlpha = 0.9;
-      ctx.beginPath(); ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y + r * 0.8); ctx.lineTo(p.x - r, p.y + r * 0.8); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 0.9; ctx.fillStyle = q.claim ? "#ff9b5e" : "#ffd27a";
+      ctx.beginPath();
+      if (q.claim) { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); }   // orange diamond = a claim, not an alignment
+      else { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y + r * 0.8); ctx.lineTo(p.x - r, p.y + r * 0.8); }
+      ctx.closePath(); ctx.fill();
       if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.n, p.x + (p.x > sx ? 7 : -7), p.y + 2.5); }
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
@@ -3207,6 +3261,7 @@ function sysEnter(s) {
   sysView = { s, t0: performance.now() / 1000, zoom: chartZoom, out: 0 };
   chartVel = 0; chartTgt = null; chartAuto = false; clearTimeout(chartResume); wasPinch = true;
   log("LEANING IN \u2014 " + s.name + " HOME SYSTEM", "cy");
+  if (S.lore && CLAIMS[s.id]) log(CLAIMS[s.id][0], "cy");        // the first claim goes on the tube too
 }
 function sysLeave() { if (sysView && !sysView.out) sysView.out = performance.now() / 1000; }
 function sysTry() {                                             // pinch (or wheel) past full zoom: look into the system at the front
@@ -3215,6 +3270,48 @@ function sysTry() {                                             // pinch (or whe
   if (!s) for (const q of SYSTEMS) if ((q.pk || 0) > 1.3 && (!s || q.pk > s.pk)) s = q;
   if (s) sysEnter(s);
 }
+const CLAIMS = {                                                 // who said what about each system (the package in cc-handoff/): claims, never facts
+  zeta: ["BOB LAZAR, 1989 AND 1991: \u2018RETICULUM 4\u2019, THE 4TH PLANET OUT FROM ZETA 2 \u00b7 IN 2019 HE SAID \u2018ZR3\u2019, THE 3RD",
+         "JOHN LEAR, 1987: \u2018ABOUT 38 LIGHT YEARS, SPECTRAL CLASS G2\u2019 \u00b7 THE ONLY SYSTEM BOTH MEN NAME OUTRIGHT",
+         "THE STARS: TWO SUN-LIKE G DWARFS, 39.3 LY, FAR SOUTHERN SKY \u00b7 NO CONFIRMED PLANETS \u00b7 FROM BETTY HILL\u2019S 1964 STAR MAP"],
+  plei: ["THE \u2018PLEIADIAN\u2019 HOME IN UFOLOGY SINCE BILLY MEIER (1975) \u00b7 LEAR NEVER NAMED IT; LATER LISTS DID",
+         "THE STARS: AN OPEN CLUSTER OF 1,000+ STARS, 444 LY, ONLY 100 MILLION YEARS OLD \u00b7 YOUNG FOR A CIVILISATION"],
+  siri: ["THE KRILL PAPERS (LEAR CIRCLE, 1988): \u2018SIRIUS AND THE MEN IN BLACK\u2019 \u00b7 SECOND-HAND, NOT LEAR\u2019S OWN WORDS",
+         "THE STAR: THE BRIGHTEST IN OUR NIGHT SKY, 8.6 LY, WITH A WHITE-DWARF COMPANION"],
+  arct: ["NOT NAMED BY LAZAR OR LEAR \u00b7 THE ARCTURIAN STORY COMES FROM LATER CHANNELLED BOOKS",
+         "THE STAR: AN ORANGE GIANT, 36.7 LY, THE BRIGHTEST OF THE NORTHERN SKY"],
+  vega: ["NOT NAMED BY LAZAR OR LEAR \u00b7 LYRAN LORE IS LATER CONTACTEE MATERIAL",
+         "THE STAR: A WHITE STAR 25 LY OUT WITH A DUST DISC \u00b7 THE POLE STAR AGAIN IN 12,000 YEARS"],
+  orio: ["LEAR-CIRCLE LISTS (DERIVATIVE): \u2018TALL GREYS FROM BELLATRIX AND RIGEL\u2019 \u00b7 LEAR HIMSELF NEVER SAID IT",
+         "THE STAR: RIGEL IS A BLUE SUPERGIANT ABOUT 8 MILLION YEARS OLD, 860 LY \u00b7 A HARD PLACE FOR A CIVILISATION"],
+  andr: ["NOT NAMED BY LAZAR OR LEAR \u00b7 ANDROMEDAN LORE IS 1990S CONTACTEE MATERIAL (COLLIER)",
+         "THE PLACE: A WHOLE GALAXY, 2.5 MILLION LY, ABOUT A TRILLION STARS"],
+  proc: ["GEORGE ANDREWS, 1993: \u2018THE PROCYON NORDICS, THE SWEDES\u2019 \u00b7 GREW FROM ONE LINE IN THE KRILL PAPERS \u00b7 LEAR CIRCLE, SECOND-HAND",
+         "THE STAR: AN F-TYPE STAR 11.5 LY OUT WITH A WHITE-DWARF COMPANION \u00b7 THE LITTLE DOG STAR"],
+  drac: ["BRANTON AND ALEX COLLIER, 1990S: REPTILIANS FROM ALPHA DRACONIS \u00b7 NOT LAZAR, NOT LEAR",
+         "THE STAR: THUBAN, 303 LY \u00b7 THE POLE STAR WHEN THE PYRAMIDS WENT UP, 2700 BC \u00b7 GIZA\u2019S SHAFT POINTS AT IT"]
+};
+function wrapLines(str, maxCh) {                                 // word-wrap for the small type
+  const out = []; let line = "";
+  for (const w of String(str).split(" ")) {
+    if (line && (line + " " + w).length > maxCh) { out.push(line); line = w; } else line = line ? line + " " + w : w;
+  }
+  if (line) out.push(line); return out;
+}
+function drawClaims(cx, y, s, alpha) {                           // the claims under the home-system look
+  const rows = CLAIMS[s.id]; if (!rows || !S.lore) return 0;
+  const maxCh = Math.max(40, Math.floor((W - 24) / 4.0)), lines = [];
+  rows.forEach((r, i) => { wrapLines(r, maxCh).forEach((l, j) => lines.push({ l, head: j === 0 })); });
+  ctx.globalAlpha = alpha; ctx.textAlign = "center"; ctx.font = "6.5px ui-monospace, Menlo, monospace";
+  let yy = y;
+  for (const q of lines) {
+    if (yy > (ctlTop || H * 0.72) - 24) break;                    // never under the console
+    ctx.fillStyle = q.head ? s.c : "rgba(240,236,226,0.72)"; ctx.fillText(q.l, cx, yy); yy += 9;
+  }
+  ctx.fillStyle = "rgba(240,236,226,0.45)";
+  if (yy <= (ctlTop || H * 0.72) - 24) { ctx.fillText("WHAT THEY CLAIMED \u00b7 NOT WHAT IS KNOWN", cx, yy + 2); yy += 9; }
+  ctx.globalAlpha = 1; ctx.textAlign = "left"; return yy - y;
+}
 function drawSystemView(t) {
   if (!sysView) return;
   const v = sysView, now = performance.now() / 1000, IN = 0.6, OUT = 0.6, hold = reduced ? 3 : (S.sysHold || 7.5);
@@ -3222,7 +3319,8 @@ function drawSystemView(t) {
   if (!v.out && now - v.t0 >= IN + hold) v.out = now;          // time is up: back out
   const fout = v.out ? (reduced ? 1 : Math.min(1, (now - v.out) / OUT)) : 0;
   if (v.out && fout >= 1) {                                    // done: the sky gets its zoom back and turns again
-    sysView = null; chartTgt = { rot: chartRot, zoom: 1 };
+    sysView = null;                                            // back out to that system at the front, leaning in as a pick does
+    chartTgt = selected && !selected.mode ? { rot: -selected.az, zoom: 1.25 } : { rot: chartRot, zoom: 1 };
     if (!ptrs.size) { clearTimeout(chartResume); chartResume = setTimeout(() => (chartAuto = true), 1500); }
     return;
   }
@@ -3235,6 +3333,7 @@ function drawSystemView(t) {
     ctx.globalAlpha = (a - 0.6) / 0.4;
     label(cx, Math.max(30, cy - R * 3.4 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center");
     label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center");
+    drawClaims(cx, cy + R * 3.4 + 54, s, (a - 0.6) / 0.4);
     if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, (a - 0.6) / 0.4);
     ctx.globalAlpha = 1;
   }
@@ -3249,7 +3348,9 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const el0 = (SOL.y - s.y) / (SOL.y - POLARIS.y);              // height above Earth, Polaris = 1
   const el = Math.min(1, 0.5 + (el0 - 0.5) * 1.22);            // a little more vertical spread between the systems
   const span = (sy - POLARIS.y * H - 20) * Math.min(1, chartZoom) - R * 0.16;
-  return { x: sx + X * k, y: sy + Z * 0.16 - el * span, k, z: Z };   // feet on the ring: the near rim sits lower
+  const ey = earthGeomHome().cy, y0 = sy + Z * 0.16 - el * span;   // feet on the ring: the near rim sits lower
+  const y = Math.max(POLARIS.y * H + 58, ey + (y0 - ey) * k);       // the perspective centre is the centre of the Earth: far ones sink toward it, near ones rise
+  return { x: sx + X * k, y, k, z: Z };
 }
 function drawChart(t) {
   if (S.chart3d) return drawChart3D(t);
@@ -3473,7 +3574,7 @@ function drawWarp(p, t) {
   ctx.globalAlpha = 1;
 
   // range countdown
-  label(W / 2, H * 0.17, allChannels ? "ALL CHANNELS \u2014 7 SYSTEMS" : "FROM " + selected.name,
+  label(W / 2, H * 0.17, allChannels ? "ALL CHANNELS \u2014 " + SYSTEMS.length + " SYSTEMS" : "FROM " + selected.name,
     "\u2192 POLARIS GATE \u2192 SOL", selected.c, "center");
   const rem = selected.ly * Math.pow(1 - p, 3.2);
   let txt;
@@ -3494,7 +3595,8 @@ const SPECIES = {                                                // the field sk
   ARCTURIANS:  { hw: 30, hh: 34, top: 10, eye: [10, 6, 0.4, "dark"], neck: 7,  sh: 24, skin: "#9fd6c0", ht: "1.0\u20131.2 M", note: "SMALL \u00b7 GREEN-BLUE SKIN \u00b7 LARGE DARK EYES" },
   LYRANS:      { hw: 26, hh: 30, top: 12, eye: [8, 4, 0.2, "cat"], neck: 9,  sh: 40, skin: "#d8c4a0", ears: 1, ht: "ABOUT 1.8 M", note: "FELINE FEATURES \u00b7 POINTED EARS \u00b7 THE OLD LINE, THEY SAY" },
   ORION:       { hw: 24, hh: 36, top: 6,  eye: [5, 7, 0, "slit"], neck: 10, sh: 44, skin: "#8fb08a", ridge: 1, ht: "2.0\u20132.5 M", note: "ANGULAR HEAD \u00b7 VERTICAL PUPILS \u00b7 RIDGED BROW" },
-  ANDROMEDANS: { hw: 24, hh: 34, top: 8,  eye: [9, 6, 0.3, "glow"], neck: 7,  sh: 28, skin: "#bcd0ff", ht: "1.8\u20132.2 M", note: "SLENDER \u00b7 BLUE-WHITE SKIN \u00b7 LUMINOUS EYES" }
+  ANDROMEDANS: { hw: 24, hh: 34, top: 8,  eye: [9, 6, 0.3, "glow"], neck: 7,  sh: 28, skin: "#bcd0ff", ht: "1.8\u20132.2 M", note: "SLENDER \u00b7 BLUE-WHITE SKIN \u00b7 LUMINOUS EYES" },
+  REPTILIANS:  { hw: 27, hh: 36, top: 5,  eye: [6, 7, 0, "slit"], neck: 12, sh: 46, skin: "#7da874", ridge: 1, ht: "2.0\u20132.7 M", note: "SCALED SKIN \u00b7 VERTICAL PUPILS \u00b7 THE DRACO STORY OF THE 1990S" }
 };
 function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketch beside their star: as reported, not a photograph
   const kind = (s.tag || "").split(" ")[0], P = SPECIES[kind]; if (!P) return;
@@ -3597,7 +3699,7 @@ function drawOrigin(p, t) {
   const base = Math.min(W, H) * 0.11, R = Math.max(1.5, base * sc);
   paintSystemArt(cx, cy, R, s, t, sc > 0.3);
   label(cx, Math.max(30, cy - R * 1.9 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
-    (allChannels ? " \u00b7 +6 SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
+    (allChannels && SYSTEMS.length > 1 ? " \u00b7 +" + (SYSTEMS.length - 1) + " SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
   if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, easeIO(arr) * (1 - easeIO(dep)));   // who you are calling
   if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
   if (p >= 0.3 && !wpHit.has("o2")) {
@@ -3999,8 +4101,10 @@ function drawUnitBirth(p, t) {                                  // the Triangle'
   label(cx, Math.max(30, cy - hB * 1.9 - 30), "THE UNIT — " + BERMUDA.unit,
     (run > 0.05 ? "RUNNING DARK · " + BERMUDA.speed : "HOLDING STATION · DARK") +
     " · " + BERMUDA.depth + " DOWN", "#9fd8ff", "center");
-  if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — RUNNING DARK AT " + BERMUDA.speed + ", NO LIGHTS ON IT", "cy"); }
-  if (p >= 0.2 && !wpHit.has("u0")) { wpHit.add("u0"); log("GRAVITY BENDS AROUND THE HULL — THE WATER LEANS IN", "cy"); }
+  if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — RUNNING DARK AT " + BERMUDA.speed + ", NO LIGHTS ON IT", "cy");
+    if (S.lore) log("AS TOLD ON /X/ IN 2023: \u2018BURGER\u2019-SHAPED, NO LIGHTS, NO VISIBLE WEAPONS \u00b7 IT SITS THROUGH HURRICANES \u00b7 THE NAVY CANNOT FIND IT \u00b7 A CLAIM, NOT A FACT", "cy"); }
+  if (p >= 0.2 && !wpHit.has("u0")) { wpHit.add("u0"); log("GRAVITY BENDS AROUND THE HULL — THE WATER LEANS IN", "cy");
+    if (S.lore) log("THE ANON SAID IT IS TRACKED BY THE GRAVITY IT MAKES, AND THAT IT DESTROYS WHAT COMES TOO CLOSE: FIGHTERS AND A SUB WENT OUT ONCE, ONLY THE SUB CAME BACK", "cy"); }
   if (p >= 0.34 && !wpHit.has("uS")) { wpHit.add("uS"); log("IT STOPS DEAD — NO WAKE, NO SOUND", "cy"); cueStage("IT HAS STOPPED"); }
   if (p >= 0.32 && !wpHit.has("u2")) { wpHit.add("u2"); log("HATCH OPEN — SOMETHING IS BEING BORN"); cueSub("HOLD STILL · THE HATCH IS OPEN"); }
   if (p >= 0.5 && !wpHit.has("u3")) { wpHit.add("u3"); log("ORBS OUT — SILVER, SILENT, FOUR OF THEM", "cy"); cueStage("THE ORBS ARE OUT"); cueSub("SILVER SPHERES · RISING"); }
@@ -4319,7 +4423,7 @@ function engage() {
       Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM TO YOU");
   } else {
     log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
-    log("ROUTE: " + (allChannels ? "7 SYSTEMS" : selected.name) + " → POLARIS → SOL");
+    log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + " → POLARIS → SOL");
     log("STAGE 1: ORIGIN — " + selected.name, "cy");
     setPhase("origin", "ORIGIN SYSTEM");
     cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
@@ -4961,7 +5065,7 @@ $("bAll").onclick = () => {
     locSync();
   }
   $("bAll").classList.toggle("on", allChannels);
-  log(allChannels ? "ALL CHANNELS OPEN — 7 SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
+  log(allChannels ? "ALL CHANNELS OPEN — " + SYSTEMS.length + " SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
 };
 $("bReplay").onclick = replay;
 $("bStop").onclick = () => { log("ABORTED — BACK TO THE CHART", "alert"); replay(); };
@@ -5138,7 +5242,9 @@ function chartTap(cx, cy) {
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
     if (Math.hypot(cx - m.x, cy - m.y) > 22) continue;
     const o = MODES.find((q) => q.id === m.id);
-    if (o) { pickDeparture(o); return; }
+    if (o) { pickDeparture(o);
+      if (o.id === "berm" && S.lore) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
+      return; }
   }
   for (const h of siteHit) if (Math.hypot(cx - h.x, cy - h.y) < 12) {   // a tap on an old place: its story on the tube
     log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
@@ -5150,7 +5256,7 @@ function chartTap(cx, cy) {
     const d = Math.hypot(cx - hx, cy - hy) - (S.chart3d ? (s.pk || 1) * 3 : 0);
     if (d < bd) { bd = d; best = s; }
   }
-  if (best) pickDeparture(best);
+  if (best) { pickDeparture(best); if (S.chart3d && S.tapLook !== false) sysEnter(best); }   // a tap on a star: pick it and lean straight in
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") return;                                // a tap mid-run is skipCurrent()'s job (document handler)
@@ -5383,6 +5489,24 @@ function setName(v) {                                           // the same whit
 }
 $("bBoard").onclick = openBoard;
 $("bBoardClose").onclick = () => $("board").classList.add("hide");
+function sysListBuild() {                                        // the one-by-one list in the pop-up
+  const on = S.sysOn || {};
+  $("sysList").innerHTML = SYSTEMS_ALL.map((s) => '<label class="setChk"><input type="checkbox" data-sys="' + s.id + '"' +
+    ((s.id in on ? on[s.id] : !s.opt) ? " checked" : "") + ' /><i style="color:' + s.c + '">\u25cf</i> ' + s.name + " \u00b7 " + fmtLy(s.ly) + " \u00b7 " + s.tag +
+    "<small>ON THE MAP BY: " + (NAMED_BY[s.id] || "LATER LISTS") + "</small></label>").join("");
+  $("sysList").querySelectorAll("input").forEach((el) => (el.onchange = () => {
+    S.sysOn[el.dataset.sys] = el.checked;
+    if (!SYSTEMS_ALL.some((s) => S.sysOn[s.id])) { S.sysOn[el.dataset.sys] = true; el.checked = true; log("ONE SYSTEM AT LEAST STAYS ON", "alert"); }
+    applySystems(); sysListBuild();
+  }));
+}
+$("bSysPick").onclick = () => { sysListBuild(); $("sysPick").classList.remove("hide"); };
+$("bSysClose").onclick = () => $("sysPick").classList.add("hide");
+$("sysPick").addEventListener("click", (e) => { if (e.target === $("sysPick")) $("sysPick").classList.add("hide"); });
+document.querySelectorAll(".sysPre .setBtn").forEach((b) => (b.onclick = () => {
+  const ids = SYS_PRESETS[b.dataset.pre] || []; SYSTEMS_ALL.forEach((s) => (S.sysOn[s.id] = ids.includes(s.id)));
+  applySystems(); sysListBuild(); log("SYSTEMS ON THE CHART: " + SYSTEMS.map((s) => s.name).join(" \u00b7 "), "cy");
+}));
 $("bdRoll").onclick = () => setName(rollName());
 $("bdKeep").onclick = () => setName($("bdName").value);
 $("bdName").addEventListener("keydown", (e) => { if (e.key === "Enter") setName(e.target.value); });
@@ -5419,6 +5543,7 @@ function loadSettings() {
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
+  applySystems();
   if (d.sel) { const s = [...SYSTEMS, ...MODES].find((x) => x.id === d.sel); if (s) selected = s; }
   return true;
 }
@@ -5449,7 +5574,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); chk("ckSfx", S.sfx);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckSfx", S.sfx);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5526,6 +5651,8 @@ $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckFaces").onchange = (e) => (S.faces = e.target.checked);
+$("ckTapLook").onchange = (e) => (S.tapLook = e.target.checked);
+$("ckLore").onchange = (e) => (S.lore = e.target.checked);
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
