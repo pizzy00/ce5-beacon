@@ -3436,13 +3436,14 @@ function sysEnter(s) {
   if (sysView || !s || s.mode) return;
   sysView = { s, t0: performance.now() / 1000, zoom: chartZoom, out: 0 };
   chartVel = 0; chartTgt = null; chartAuto = false; clearTimeout(chartResume); wasPinch = true;
+  gvFx(true);                                                    // the lean-in rises like the pop-up world
   log("LEANING IN \u2014 " + s.name + " HOME SYSTEM", "cy");
   if (S.lore && CLAIMS[s.id]) log(CLAIMS[s.id][0], "cy");        // the first claim goes on the tube too
   const qq = S.lore ? quoteFor(s) : null;
   if (qq) logLink("IN THEIR WORDS: \u201c" + qq[0] + "\u201d \u2014 " + qq[1] + ", " + qq[2], qq[3], "cy", "[THE SOURCE]");
   else if (S.lore) log("NO FIRST-HAND QUOTE FOR THIS SYSTEM: NEITHER LAZAR NOR LEAR NAMED IT", "cy");
 }
-function sysLeave() { if (sysView && !sysView.out) sysView.out = performance.now() / 1000; }
+function sysLeave() { if (sysView && !sysView.out) { gvFx(false); sysView.out = performance.now() / 1000; } }
 function sysTry() {                                             // pinch (or wheel) past full zoom: look into the system at the front
   if (sysView || !S.chart3d || phase !== "chart" || allChannels) return;
   let s = selected && !selected.mode && (selected.pk || 0) > 1.3 ? selected : null;
@@ -3491,16 +3492,16 @@ function wrapLines(str, maxCh) {                                 // word-wrap fo
 }
 function drawClaims(cx, y, s, alpha) {                           // the claims under the home-system look
   const rows = CLAIMS[s.id]; if (!rows || !S.lore) return 0;
-  const maxCh = Math.max(40, Math.floor((W - 24) / 4.0)), lines = [];
+  const maxCh = Math.max(30, Math.floor((W - 24) / 5.8)), lines = [];
   rows.forEach((r, i) => { wrapLines(r, maxCh).forEach((l, j) => lines.push({ l, head: j === 0 })); });
-  ctx.globalAlpha = alpha; ctx.textAlign = "center"; ctx.font = "6.5px ui-monospace, Menlo, monospace";
+  ctx.globalAlpha = alpha; ctx.textAlign = "center"; ctx.font = "9.5px ui-monospace, Menlo, monospace";
   let yy = y;
   for (const q of lines) {
     if (yy > (ctlTop || H * 0.72) - 24) break;                    // never under the console
-    ctx.fillStyle = q.head ? s.c : "rgba(240,236,226,0.72)"; ctx.fillText(q.l, cx, yy); yy += 9;
+    ctx.fillStyle = q.head ? s.c : "rgba(240,236,226,0.78)"; ctx.fillText(q.l, cx, yy); yy += 13;
   }
   ctx.fillStyle = "rgba(240,236,226,0.45)";
-  if (yy <= (ctlTop || H * 0.72) - 24) { ctx.fillText("WHAT THEY CLAIMED \u00b7 NOT WHAT IS KNOWN", cx, yy + 2); yy += 9; }
+  if (yy <= (ctlTop || H * 0.72) - 24) { ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillText("WHAT THEY CLAIMED \u00b7 NOT WHAT IS KNOWN", cx, yy + 3); yy += 12; }
   ctx.globalAlpha = 1; ctx.textAlign = "left"; return yy - y;
 }
 function drawSystemView(t) {
@@ -3522,17 +3523,17 @@ function drawSystemView(t) {
   paintSystemArt(cx, cy, R, s, t, a > 0.5);
   if (a > 0.6) {
     ctx.globalAlpha = (a - 0.6) / 0.4;
-    label(cx, Math.max(30, cy - R * 3.4 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center");
-    label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center");
+    label(cx, cy - R * 2.15, s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center", 13);   // between the portrait and the star
+    label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center", 12);
     const used = drawClaims(cx, cy + R * 3.4 + 54, s, (a - 0.6) / 0.4), qq = quoteFor(s);
     if (S.lore && qq && cy + R * 3.4 + 54 + used + 20 < (ctlTop || H * 0.72) - 24) {   // a line in their own words, when there is one
-      ctx.globalAlpha = (a - 0.6) / 0.4; ctx.textAlign = "center"; ctx.font = "italic 7px Georgia, serif"; ctx.fillStyle = "rgba(255,240,200,0.85)";
-      for (const [k, l] of wrapLines("\u201c" + qq[0] + "\u201d", Math.max(40, Math.floor((W - 24) / 4.2))).entries()) ctx.fillText(l, cx, cy + R * 3.4 + 54 + used + 12 + k * 9);
-      ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
-      ctx.fillText("\u2014 " + qq[1] + ", " + qq[2], cx, cy + R * 3.4 + 54 + used + 12 + 9 * wrapLines("\u201c" + qq[0] + "\u201d", Math.max(40, Math.floor((W - 24) / 4.2))).length + 2);
+      ctx.globalAlpha = (a - 0.6) / 0.4; ctx.textAlign = "center"; ctx.font = "italic 11px Georgia, serif"; ctx.fillStyle = "rgba(255,240,200,0.9)";
+      for (const [k, l] of wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))).entries()) ctx.fillText(l, cx, cy + R * 3.4 + 54 + used + 14 + k * 14);
+      ctx.font = "9px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
+      ctx.fillText("\u2014 " + qq[1] + ", " + qq[2], cx, cy + R * 3.4 + 54 + used + 14 + 14 * wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))).length + 4);
       ctx.globalAlpha = 1; ctx.textAlign = "left";
     }
-    if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, (a - 0.6) / 0.4);
+    if (S.faces) drawSpecies(W * 0.5, Math.max(80, H * 0.115), Math.min(W, H) * 0.24, s, t, (a - 0.6) / 0.4);   // the portrait sits centred over their star
     ctx.globalAlpha = 1;
   }
 }
@@ -3939,9 +3940,9 @@ function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketc
   ctx.beginPath(); ctx.moveTo(-hw * 0.18, hy + hh * 0.55); ctx.lineTo(hw * 0.18, hy + hh * 0.55); ctx.stroke();
   ctx.restore();
   ctx.globalAlpha = a; ctx.textAlign = "center";
-  ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
-  ctx.fillText(s.tag + " \u00b7 " + P.ht, cx, cy + size * 0.68 + 12);
-  ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.7)";
+  ctx.font = "10px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
+  ctx.fillText(s.tag + " \u00b7 " + P.ht, cx, cy + size * 0.68 + 13);
+  ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.75)";
   ctx.fillText(P.note, cx, cy + size * 0.68 + 22);
   ctx.fillText("A FIELD SKETCH FROM WITNESS ACCOUNTS \u00b7 NOT A PHOTOGRAPH", cx, cy + size * 0.68 + 31);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
@@ -4854,6 +4855,7 @@ function warnThenFlash(token) {
   const tick = () => {
     if (token !== bermToken || phase !== "flash") return;
     left--;
+    blip(300, 255, 0.1, 0.08);                                  // the countdown has a pulse
     if (left <= 0) { $("nukeWarn").classList.add("hide"); return runFlash(token); }
     $("nukeCount").textContent = left;
     bermHold = setTimeout(tick, 1000);
@@ -5108,6 +5110,7 @@ function arrive() {
   ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
   const callOut = () => {                                        // the message goes out last
     flyStop();                                                  // on the ground: the wind dies
+    blip(523, 523, 0.4, 0.05); setTimeout(() => blip(659, 659, 0.5, 0.045), 200);   // touchdown: two notes
     setPhase("active", "BEACON ACTIVE"); document.body.classList.remove("holding");
     log('TX: "' + S.msg + '"', "alert");
     log("AWAITING RESPONSE...");
@@ -5532,6 +5535,17 @@ function dragFx(kind, speed) {
     ch.timer = setTimeout(() => { try { ch.g.gain.setTargetAtTime(0, ac.currentTime, 0.09); } catch (e) {} }, 150);
   } catch (e) {}
 }
+function blip(f0, f1, dur, vol) {                               // one small honest tone
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    const t = ac.currentTime, o = ac.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.05);
+  } catch (e) {}
+}
 function gvFx(up) {                                              // the world pops up front (rising) or settles back (falling)
   if (!S.sfx) return;
   try {
@@ -5755,7 +5769,7 @@ function pickDeparture(o, auto) {                               // auto: attract
   }
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === o.id));
   focusChart(o);
-  if (!auto) { log("DEPARTURE SET: " + o.name + " (" + o.tag + ")"); lastUserPick = performance.now(); }
+  if (!auto) { blip(620, 900, 0.12, 0.05); log("DEPARTURE SET: " + o.name + " (" + o.tag + ")"); lastUserPick = performance.now(); }
   locSync();
   if (auto) locGlide();
 }
@@ -5768,12 +5782,12 @@ function chartTap(cx, cy) {
       if (o.id === "berm" && S.lore) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
       return; }
   }
-  for (const h of pursueHit) if (Math.hypot(cx - h.x, cy - h.y) < 11) { pursueRead(h.q); return; }   // a tap on a cyan square: a released file
+  for (const h of pursueHit) if (Math.hypot(cx - h.x, cy - h.y) < 11) { blip(980, 980, 0.07, 0.04); pursueRead(h.q); return; }   // a tap on a cyan square: a released file
   let ub = null, ud = 9;                                         // a tap on a teal dot: the nearest water sighting
   for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < ud) { ud = d; ub = h; } }
-  if (ub) { usoRead(ub.r); return; }
+  if (ub) { blip(980, 980, 0.07, 0.04); usoRead(ub.r); return; }
   for (const h of siteHit) if (Math.hypot(cx - h.x, cy - h.y) < 12) {   // a tap on an old place: its story on the tube
-    log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
+    blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
   }
   let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
@@ -6077,7 +6091,7 @@ function setName(v) {                                           // the same whit
 }
 $("gvX").onclick = () => { if (globeView && !globeView.out) globeToggle(); };
 $("bBoard").onclick = openBoard;
-$("bBoardClose").onclick = () => $("board").classList.add("hide");
+$("bBoardClose").onclick = () => { sfx("cover"); $("board").classList.add("hide"); };
 function sysListBuild() {                                        // the one-by-one list in the pop-up
   const on = S.sysOn || {};
   $("sysList").innerHTML = SYSTEMS_ALL.map((s) => '<label class="setChk"><input type="checkbox" data-sys="' + s.id + '"' +
@@ -6177,7 +6191,7 @@ $("bDefaults").onclick = saveSettings;                                          
 $("bReset").onclick = resetSettings;
 $("setCard").addEventListener("contextmenu", (e) => e.preventDefault());   // no long-press menu on the sliders
 $("bInfo").onclick = () => { $("settings").classList.add("hide"); $("info").classList.remove("hide"); };
-$("bInfoClose").onclick = () => $("info").classList.add("hide");
+$("bInfoClose").onclick = () => { sfx("cover"); $("info").classList.add("hide"); };
 $("info").addEventListener("pointerdown", (e) => {
   if (e.target === $("info")) $("info").classList.add("hide");
 });
