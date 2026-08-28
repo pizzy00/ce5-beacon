@@ -1424,6 +1424,7 @@ function dashLine(x1, y1, x2, y2, color, t) {
 }
 
 let chartRot = 0, chartZoom = 0.85, chartAuto = true, chartLastT = 0, chartResume = 0;   // at rest the sky sits pinched out: his preferred framing
+let skyPanY = 0;                                                 // no up or down in space: the sky slides vertically too, then drifts home
 const EARTH_LAND = [                                            // coarse coastlines: enough to read as Earth at this size
   [[-168,65],[-158,71],[-130,70],[-110,68],[-95,72],[-80,73],[-62,60],[-55,50],[-70,42],[-75,35],[-81,25],[-97,26],[-105,20],[-114,28],[-124,40],[-124,48],[-135,58],[-152,58],[-165,60]],
   [[-79,9],[-70,11],[-60,10],[-50,0],[-35,-6],[-39,-16],[-48,-25],[-58,-35],[-63,-42],[-70,-53],[-75,-46],[-73,-33],[-71,-18],[-76,-6],[-80,2]],
@@ -3543,7 +3544,7 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const top = S.polaris ? POLARIS.y * H + 20 : H * 0.055;         // no gate = the crown is free, climb into it
   const span = (sy - top) * Math.min(1, chartZoom) - R * 0.16;
   const ey = earthGeomHome().cy, y0 = sy + Z * 0.16 - el * span;   // feet on the ring: the near rim sits lower
-  const y = Math.max(S.polaris ? POLARIS.y * H + 58 : H * 0.055, ey + (y0 - ey) * k);   // the perspective centre is the centre of the Earth
+  const y = Math.max(S.polaris ? POLARIS.y * H + 58 : H * 0.055, ey + (y0 - ey) * k) + skyPanY;   // the perspective centre is the centre of the Earth; the pan rides on top
   return { x: sx + X * k, y, k, z: Z };
 }
 function drawChart(t) {
@@ -3732,6 +3733,7 @@ function drawChart3D(t) {
     chartRot += chartVel * dt; chartVel *= Math.exp(-dt * 1.05);
     if (Math.abs(chartVel) <= 0.012) { chartVel = 0; chartAuto = true; }
   } else if (chartAuto && !reduced && !sysView) chartRot += dt * S.spin;    // his slider: seconds per turn
+  if (chartAuto && Math.abs(skyPanY) > 0.5) skyPanY *= Math.exp(-dt * 0.8);   // left alone, the sky settles back to eye level
   if (chartTgt) {                                                // swing the pick to the front and lean in
     let d = chartTgt.rot - chartRot; d = Math.atan2(Math.sin(d), Math.cos(d));   // the short way round
     const e = reduced ? 1 : Math.min(1, dt * 3.5);
@@ -3747,7 +3749,7 @@ function drawChart3D(t) {
     ctx.fillRect((((s.x + chartRot * 40) % W) + W) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
   }
   ctx.globalAlpha = 1;
-  const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = skyBase();
+  const px = POLARIS.x * W, py = POLARIS.y * H + skyPanY, sx = SOL.x * W, sy = skyBase();
   const R = Math.min(W, H) * 0.40 * chartZoom;
   // (the turntable ring is gone: it read as a stray oval in an empty sky)
   const P = SYSTEMS.map((s, si) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; s.ik = introSysK(si);
@@ -5822,8 +5824,9 @@ cvs.addEventListener("pointermove", (e) => {
   }
   else if (S.chart3d) {                                         // a flick of the sky carries on turning
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (skyMoveT || now - 16)));
-    dragFx("sky", dx);
+    dragFx("sky", Math.abs(dx) + Math.abs(dy));
     chartRot += dx * 0.006;
+    skyPanY = Math.max(-H * 0.35, Math.min(H * 0.35, skyPanY + dy));   // and up and down as well
     chartVel = Math.max(-4, Math.min(4, (dx * 0.006 * 1000) / dtm));
     skyMoveT = now;
   }
