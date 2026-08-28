@@ -34,6 +34,8 @@
   <div id="setCard">
     <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
     <div class="setStat">EVERY CHANGE SAVES ITSELF ON THIS DEVICE · CLEARING BROWSER DATA CLEARS IT · NOTHING IS SENT ANYWHERE</div>
+      <div class="setLbl">MASTER VOLUME — <span id="vVol">70</span>%</div>
+      <input type="range" id="rVol" min="0" max="100" step="5" value="70" />
     <div class="bdBtns"><span id="bDefaults" class="setBtn">SET AS NEW DEFAULTS</span></div>
     <div class="setStat" id="saveStat"></div>
     <div class="setBox">
@@ -543,7 +545,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false, starman: true,
-  nukeAll: true, cache: "normal",
+  nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
@@ -4938,7 +4940,7 @@ function morseKey(on) {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (!morseOsc) {
-      morseGain = ac.createGain(); morseGain.gain.value = 0; morseGain.connect(ac.destination);
+      morseGain = ac.createGain(); morseGain.gain.value = 0; morseGain.connect(master());
       morseOsc = ac.createOscillator(); morseOsc.type = "sine"; morseOsc.frequency.value = 600;
       morseOsc.connect(morseGain); morseOsc.start();
     }
@@ -4988,16 +4990,21 @@ function sendMorse(text) {
 }
 let ac = null, toneOn = false, oscs = [];
 let muted = false; try { muted = localStorage.getItem("ce5.mute") === "1"; } catch (e) {}
+let masterG = null;
+function master() {                                              // one hand on the big volume knob
+  if (!masterG) { masterG = ac.createGain(); masterG.gain.value = (S && S.vol !== undefined) ? S.vol : 0.7; masterG.connect(ac.destination); }
+  return masterG;
+}
 let keepAlive = null, sndTold = false;
 function audioUnlock() {                                         // the first touch wakes the sound chip for good
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state !== "running" && !muted) ac.resume();
     const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050);
-    b.connect(ac.destination); b.start(0);                       // the silent tick some phones demand
+    b.connect(master()); b.start(0);                       // the silent tick some phones demand
     if (!keepAlive) {                                            // a silent line held open so the hardware never spins down
       const o = ac.createOscillator(), g = ac.createGain();
-      g.gain.value = 0.0001; o.frequency.value = 30; o.connect(g); g.connect(ac.destination); o.start();
+      g.gain.value = 0.0001; o.frequency.value = 30; o.connect(g); g.connect(master()); o.start();
       keepAlive = o;
     }
     if (!sndTold && ac.state === "running") { sndTold = true;
@@ -5022,7 +5029,7 @@ function zoomFx(v, lo, hi) {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
-    if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(ac.destination); zO.start(); }
+    if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(master()); zO.start(); }
     const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
     zO.frequency.setTargetAtTime(130 + n * 390, ac.currentTime, 0.03);   // in = higher, out = lower
     zG.gain.setTargetAtTime(0.03, ac.currentTime, 0.04);
@@ -5044,7 +5051,7 @@ function dragFx(kind, speed) {
       const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
       const f = ac.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 0.7;
       const g = ac.createGain(); g.gain.value = 0;
-      src.connect(f); f.connect(g); g.connect(ac.destination); src.start();
+      src.connect(f); f.connect(g); g.connect(master()); src.start();
       ch = dragCh[kind] = { f, g, timer: 0 };
     }
     const cfg = { earth: [130, 420, 0.045, 0.7], sky: [1100, 2600, 0.02, 2.8], scroll: [2900, 4100, 0.022, 1.1] }[kind];
@@ -5064,7 +5071,7 @@ function blip(f0, f1, dur, vol) {                               // one small hon
     const t = ac.currentTime, o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.05);
+    o.connect(g); g.connect(master()); o.start(t); o.stop(t + dur + 0.05);
   } catch (e) {}
 }
 function gvFx(up) {                                              // the world pops up front (rising) or settles back (falling)
@@ -5077,10 +5084,10 @@ function gvFx(up) {                                              // the world po
     o.frequency.setValueAtTime(up ? 240 : 560, t); o.frequency.exponentialRampToValueAtTime(up ? 560 : 240, t + 0.45);
     const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 0.06);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.6);
+    o.connect(g); g.connect(master()); o.start(t); o.stop(t + 0.6);
     const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.setValueAtTime(up ? 120 : 90, t);
     const g2 = ac.createGain(); g2.gain.setValueAtTime(0.05, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-    o2.connect(g2); g2.connect(ac.destination); o2.start(t); o2.stop(t + 0.35);
+    o2.connect(g2); g2.connect(master()); o2.start(t); o2.stop(t + 0.35);
   } catch (e) {}
 }
 function zoomLand() {                                            // the zoom settles: a soft touch-down
@@ -5089,10 +5096,10 @@ function zoomLand() {                                            // the zoom set
     const t = ac.currentTime;
     const o = ac.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(390, t + 0.07);
     const g = ac.createGain(); g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.12);
+    o.connect(g); g.connect(master()); o.start(t); o.stop(t + 0.12);
     const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.setValueAtTime(95, t); o2.frequency.exponentialRampToValueAtTime(60, t + 0.09);
     const g2 = ac.createGain(); g2.gain.setValueAtTime(0.06, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
-    o2.connect(g2); g2.connect(ac.destination); o2.start(t); o2.stop(t + 0.14);
+    o2.connect(g2); g2.connect(master()); o2.start(t); o2.stop(t + 0.14);
   } catch (e) {}
 }
 function openFx(kind, i) {                                       // the opening's own little orchestra
@@ -5100,7 +5107,7 @@ function openFx(kind, i) {                                       // the opening'
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
-    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(ac.destination);
+    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(master());
     const tone = (type, f0, f1, dur, vol, at) => {
       const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
       if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
@@ -5154,12 +5161,12 @@ function sfxBlast(farK) {                                        // the blast: a
     const g = ac.createGain();
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.02);                    // it breaks with the light
     g.gain.exponentialRampToValueAtTime(0.001, t + 3.8);
-    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); src.stop(t + 4);
+    src.connect(f); f.connect(g); g.connect(master()); src.start(t); src.stop(t + 4);
     const sub = ac.createOscillator(); sub.type = "sine"; sub.frequency.setValueAtTime(48, t);      // the ground note
     sub.frequency.exponentialRampToValueAtTime(30, t + 3.5);
     const sg = ac.createGain(); sg.gain.setValueAtTime(0, t); sg.gain.linearRampToValueAtTime(vol * 0.7, t + 0.04);
     sg.gain.exponentialRampToValueAtTime(0.001, t + 4);
-    sub.connect(sg); sg.connect(ac.destination); sub.start(t); sub.stop(t + 4.2);
+    sub.connect(sg); sg.connect(master()); sub.start(t); sub.stop(t + 4.2);
   } catch (e) {}
 }
 let ambG = null, ambOsc = [], ambTimer = 0;                      // the quiet drift before START
@@ -5168,7 +5175,7 @@ function ambStart() {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
-    ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(ac.destination);
+    ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(master());
     const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
     for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
       const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = fr; o.detune.value = det;
@@ -5207,7 +5214,7 @@ function flyStart() {
     flyN = ac.createBufferSource(); flyN.buffer = buf; flyN.loop = true;
     flyF = ac.createBiquadFilter(); flyF.type = "lowpass"; flyF.frequency.value = 260; flyF.Q.value = 0.4;
     flyG = ac.createGain(); flyG.gain.value = 0;
-    flyN.connect(flyF); flyF.connect(flyG); flyG.connect(ac.destination);
+    flyN.connect(flyF); flyF.connect(flyG); flyG.connect(master());
     flyN.start();
     flyG.gain.setTargetAtTime(0.05, ac.currentTime, 1.2);        // it breathes in slowly
   } catch (e) {}
@@ -5228,7 +5235,7 @@ function sfx(kind) {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();
-    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 0.9; out.connect(ac.destination);
+    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 0.9; out.connect(master());
     const noise = (dur, hp, vol, at) => {
       const n = ac.createBufferSource(), b = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
@@ -5259,7 +5266,7 @@ $("bTone").onclick = () => {
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (!toneOn) {
-      const g = ac.createGain(); g.gain.value = 0.045; g.connect(ac.destination);
+      const g = ac.createGain(); g.gain.value = 0.045; g.connect(master());
       oscs = [528, 432].map((f) => {
         const o = ac.createOscillator(); o.frequency.value = f; o.type = "sine";
         o.connect(g); o.start(); return o;
@@ -5645,6 +5652,10 @@ function applyMute() {
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
   if (muted) ambStop(); else ambStart();
 }
+$("rVol").oninput = (e) => {
+  S.vol = +e.target.value / 100; $("vVol").textContent = e.target.value;
+  try { if (masterG) masterG.gain.setTargetAtTime(S.vol, ac.currentTime, 0.03); } catch (e2) {}
+};
 $("bMute").onclick = () => {
   muted = !muted; try { localStorage.setItem("ce5.mute", muted ? "1" : "0"); } catch (e) {}
   applyMute(); log(muted ? "ALL SOUND OFF" : "ALL SOUND ON", "cy");
@@ -5910,6 +5921,7 @@ function applyS() {                                             // push S into e
   set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
   set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
+  set("rVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100)); txt("vVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100));
 }
 $("bSave").onclick = () => { saveSettings(); $("settings").classList.add("hide"); };   // save and the pane closes
 $("bDefaults").onclick = saveSettings;                                                 // save and stay: from now on it opens this way
