@@ -50,7 +50,7 @@
 <div id="cue" class="display"><div class="stage"></div><div class="breath"></div></div>
 <div id="settings" class="hide">
   <div id="setCard">
-    <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
+    <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bFresh" class="setBtn">FRESH COPY</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
     <div class="setStat">EVERY CHANGE SAVES ITSELF ON THIS DEVICE · CLEARING BROWSER DATA CLEARS IT · NOTHING IS SENT ANYWHERE</div>
       <div class="setLbl">MASTER VOLUME — <span id="vVol">70</span>%</div>
       <input type="range" id="rVol" min="0" max="100" step="5" value="70" />
@@ -74,6 +74,13 @@
         <button class="btn cy" id="bCopy">Copy</button>
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
+      <div class="setLbl">SHARE YOUR WHOLE SETUP</div>
+      <div class="setFlex">
+        <input id="setupIn" placeholder="PASTE A SETUP CODE HERE" />
+        <button class="btn cy" id="bSetupGet">COPY MINE</button>
+        <button class="btn cy" id="bSetupUse">USE IT</button>
+      </div>
+      <div class="setStat" id="setupStat">EVERY SLIDER AND SWITCH TRAVELS AS ONE CODE · PASTE SOMEONE ELSE'S AND THE CONSOLE RETUNES ITSELF</div>
       <div class="setLbl">SHARE IT STRAIGHT TO</div>
       <div id="shareRow">
         <button class="shBtn" data-sh="native" aria-label="Share" title="Share"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12.5" cy="3" r="1.8"/><circle cx="3.5" cy="8" r="1.8"/><circle cx="12.5" cy="13" r="1.8"/><path d="M5.1 7.1l5.8-3.2M5.1 8.9l5.8 3.2"/></svg></button>
@@ -218,6 +225,8 @@
         <option value="full">FULL — 10 ALTITUDE HOLDS</option>
         <option value="medium">MEDIUM — 6 HOLDS</option>
         <option value="quick">QUICK — 4 HOLDS</option>
+        <option value="rapid">RAPID — 3 HOLDS</option>
+        <option value="direct">DIRECT — 2 HOLDS</option>
       </select>
       <div class="setLbl">FINAL ZOOM</div>
       <select id="selFinal">
@@ -4550,6 +4559,8 @@ function precacheSites(plan) {
   });
 }
 function activeDescent() {
+  if (S.detail === "direct") return DESCENT.filter((s) => [4, 18].includes(s.z));       // the whole continent, then your roof
+  if (S.detail === "rapid") return DESCENT.filter((s) => [4, 14, 18].includes(s.z));    // continent, town, roof
   if (S.detail === "quick") return DESCENT.filter((s) => [4, 10, 15, 18].includes(s.z));
   if (S.detail === "medium") return DESCENT.filter((s) => [4, 8, 12, 15, 17, 18].includes(s.z));
   return DESCENT;
@@ -5526,6 +5537,7 @@ function locate() {
 }
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
 $("bClose").onclick = () => $("settings").classList.add("hide");
+const S_FACTORY = JSON.parse(JSON.stringify(S));   // the console as it leaves the bench: what a shared code is measured against
 const SAVE_KEY = "ce5.console.v1";
 /* ---------------- the travellers board ---------------- */
 const BOARD_REPO = "pizzy00/ce5-board";                          // the board lives on GitHub, no server: trips = issues, an Action writes board.json
@@ -5708,8 +5720,71 @@ function applyMute() {
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
   if (muted) ambStop(); else ambStart();
 }
+/* ---------------- a whole tuning, carried as one code ---------------- */
+function setupPack() {                                           // only what he changed: a light tune makes a short code
+  const d = {};
+  for (const k of Object.keys(S)) {
+    const a = S[k], b = S_FACTORY[k];
+    if (a === b) continue;
+    if (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i])) continue;
+    d[k] = a;
+  }
+  const body = { v: 1, s: d };
+  if (TARGET && TARGET.exact) body.t = [+TARGET.lat.toFixed(5), +TARGET.lon.toFixed(5)];
+  if (selected && selected.id) body.d = selected.id;
+  try {
+    const j = JSON.stringify(body);
+    return btoa(unescape(encodeURIComponent(j))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  } catch (e) { return ""; }
+}
+function setupUnpack(code) {
+  try {
+    const b = code.trim().replace(/^.*[?&]c=/, "").replace(/[-]/g, "+").replace(/_/g, "/");
+    const j = decodeURIComponent(escape(atob(b)));
+    const o = JSON.parse(j);
+    return o && o.s ? o : null;
+  } catch (e) { return null; }
+}
+function setupApply(o, quiet) {                                  // types must match the factory, so a bad code cannot bend the console
+  if (!o || !o.s) return false;
+  let n = 0;
+  for (const k of Object.keys(o.s)) {
+    if (!(k in S_FACTORY)) continue;
+    const v = o.s[k], f = S_FACTORY[k];
+    if (Array.isArray(f)) { if (Array.isArray(v)) { S[k] = v.slice(); n++; } continue; }
+    if (typeof v !== typeof f) continue;
+    if (typeof v === "number" && !isFinite(v)) continue;
+    S[k] = v; n++;
+  }
+  if (o.t && isFinite(+o.t[0]) && isFinite(+o.t[1]) && Math.abs(+o.t[0]) <= 90 && Math.abs(+o.t[1]) <= 180)
+    TARGET = { lat: +o.t[0], lon: +o.t[1], exact: true };
+  applySystems(); applySky();
+  if (o.d) { const pick = [...SYSTEMS, ...MODES].find((x) => x.id === o.d); if (pick) selected = pick; }
+  applyS(); applyScreen();
+  if (typeof locBuild === "function") locBuild();
+  if (!quiet) log("SETUP RECEIVED \u00b7 " + n + " SETTINGS RETUNED", "cy");
+  return n > 0;
+}
 function shareLink() { const v = ($("shareIn") && $("shareIn").value) || ""; return v || location.href.split("#")[0]; }
 const SHARE_TEXT = "CE-5 Beacon: a free retro console for inviting a close encounter. Pick a system, press START, ride the route to your own roof.";
+$("bFresh").onclick = () => { sfx("cover"); freshCopy(); };
+$("bSetupGet").onclick = () => {
+  sfx("key");
+  const code = setupPack();
+  if (!code) { $("setupStat").textContent = "COULD NOT READ THE CONSOLE"; return; }
+  const link = location.href.split("#")[0].split("?")[0] + "?c=" + code;
+  $("setupIn").value = code;
+  try { navigator.clipboard.writeText(link); $("setupStat").textContent = "LINK COPIED \u00b7 " + code.length + " CHARACTERS \u00b7 SEND IT TO ANYONE"; }
+  catch (e) { $("setupStat").textContent = "CODE IS IN THE BOX \u00b7 COPY IT BY HAND"; }
+  log("SETUP PACKED \u00b7 " + code.length + " CHARACTERS", "cy");
+};
+$("bSetupUse").onclick = () => {
+  sfx("key");
+  const o = setupUnpack($("setupIn").value || "");
+  if (!o) { $("setupStat").textContent = "THAT CODE DID NOT READ \u2014 PASTE THE WHOLE THING"; return; }
+  if (setupApply(o)) { $("setupStat").textContent = "CONSOLE RETUNED \u00b7 TAP SAVE TO KEEP IT ON THIS DEVICE"; saveSettings(); }
+  else $("setupStat").textContent = "THAT CODE HELD NOTHING THIS CONSOLE UNDERSTANDS";
+};
 document.querySelectorAll("#shareRow .shBtn").forEach((b) => (b.onclick = () => {
   sfx("key");
   const u = encodeURIComponent(shareLink()), t = encodeURIComponent(SHARE_TEXT), k = b.dataset.sh;
@@ -5942,6 +6017,24 @@ function saveSettings() {
     log("SETTINGS SAVED ON THIS DEVICE", "cy");
   } catch (e) { $("saveStat").textContent = "COULD NOT SAVE — STORAGE IS BLOCKED IN THIS BROWSER"; }
 }
+async function freshCopy() {                                     // the newest build, without hunting through browser tabs
+  $("saveStat").textContent = "FETCHING THE NEWEST BUILD…";
+  log("CLEARING THE CACHE · YOUR SETTINGS STAY", "cy");
+  try {
+    if (window.caches && caches.keys) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch (e) {}
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+  } catch (e) {}
+  const u = location.href.split("#")[0].replace(/[?&]fresh=\d+/, "");
+  location.replace(u + (u.indexOf("?") < 0 ? "?" : "&") + "fresh=" + (performance.now() | 0));
+}
 function resetSettings() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
   $("saveStat").textContent = "SAVED SETTINGS CLEARED — RELOAD THE PAGE FOR DEFAULTS";
@@ -6107,12 +6200,20 @@ $("rPhoto").oninput = (e) => { S.pHold = 5.5 - +e.target.value; $("vPhoto").text
 
 /* boot log */
 const restored = loadSettings();
+const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a whole tuning, handed over in a link
+let setupCame = 0;
+if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApply(o, true) ? 1 : 0; }
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
 if (restored) applyS();
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
 if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }
+if (setupCame) {                                                 // someone handed him their console
+  applyS();
+  log("SETUP RECEIVED FROM ANOTHER TRAVELLER · TAP ⚙ SAVE TO KEEP IT", "cy");
+  $("saveStat").textContent = "A SHARED SETUP IS LOADED · TAP SAVE TO KEEP IT ON THIS DEVICE";
+}
 if (savedTarget) $("addrStatus").textContent = "LOCKED: " + fmtLL(TARGET.lat, TARGET.lon) + " — SAVED";
 log("LOCK: " + fmtLL(TARGET.lat, TARGET.lon), "cy");
 log("TAP ⚙ — SET YOUR SPOT, BREATH + PACE", "cy");
