@@ -3490,10 +3490,11 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const D = Math.min(W, H) * 1.7, k = D / (D - Z);              // perspective
   const sx = SOL.x * W, sy = skyBase();
   const el0 = (SOL.y - s.y) / (SOL.y - POLARIS.y);              // height above Earth, Polaris = 1
-  const el = Math.max(0.02, Math.min(1, 0.5 + (el0 - 0.5) * 1.6));   // the systems fill the sky: top ones near the crown, low ones just over the world
-  const span = (sy - POLARIS.y * H - 20) * Math.min(1, chartZoom) - R * 0.16;
+  const el = Math.max(-0.08, Math.min(1, 0.5 + (el0 - 0.5) * 1.75));   // the systems fill the sky, crown to the water line
+  const top = S.polaris ? POLARIS.y * H + 20 : H * 0.055;         // no gate = the crown is free, climb into it
+  const span = (sy - top) * Math.min(1, chartZoom) - R * 0.16;
   const ey = earthGeomHome().cy, y0 = sy + Z * 0.16 - el * span;   // feet on the ring: the near rim sits lower
-  const y = Math.max(POLARIS.y * H + 58, ey + (y0 - ey) * k);       // the perspective centre is the centre of the Earth: far ones sink toward it, near ones rise
+  const y = Math.max(S.polaris ? POLARIS.y * H + 58 : H * 0.055, ey + (y0 - ey) * k);   // the perspective centre is the centre of the Earth
   return { x: sx + X * k, y, k, z: Z };
 }
 function drawChart(t) {
