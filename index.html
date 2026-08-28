@@ -656,18 +656,20 @@ const EXOPLANETS = [
 ].map((e, i) => ({ n: e.n, ly: e.ly, c: "#8ef0b0", up: i % 2 === 1,
   az: (e.ra / 24) * 6.2832 + 0.35,                              // where it sits round the ring, by right ascension
   y: 0.56 - 0.10 * Math.log10(e.ly) }));                        // nearer worlds sit lower, like the systems
-function drawExo(t, posOf) {                                    // small green worlds, labelled, not pickable
+function drawExo(t, posOf, ik) {                                // small green worlds, labelled, not pickable
   if (!S.exo) return;
+  const K = ik === undefined ? 1 : ik;                            // the opening: they cannot burn on an empty sky
+  if (K <= 0.01) return;
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const e of EXOPLANETS) {
     const q = posOf(e); if (!q) continue;
     const k = q.k || 1, depth = dofK(k);
-    ctx.globalAlpha = 0.85 * depth;
-    glow(q.x, q.y, 5 * k, e.c, 0.35);
+    ctx.globalAlpha = 0.85 * depth * K;
+    glow(q.x, q.y, 5 * k, e.c, 0.35 * K);
     ctx.fillStyle = e.c; ctx.beginPath(); ctx.arc(q.x, q.y, 1.5 * k, 0, 6.29); ctx.fill();
-    ctx.strokeStyle = e.c; ctx.globalAlpha = 0.45 * depth; ctx.lineWidth = 0.8;
+    ctx.strokeStyle = e.c; ctx.globalAlpha = 0.45 * depth * K; ctx.lineWidth = 0.8;
     ctx.beginPath(); ctx.arc(q.x, q.y, 4.2 * k + Math.sin(t * 2 + e.az) * 0.6, 0, 6.29); ctx.stroke();
-    ctx.globalAlpha = 0.7 * depth; ctx.fillStyle = e.c; ctx.textAlign = "left";
+    ctx.globalAlpha = 0.7 * depth * K; ctx.fillStyle = e.c; ctx.textAlign = "left";
     ctx.fillText(e.n + " · " + fmtLy(e.ly), q.x + 6 * k, q.y + (e.up ? -5 : 8));
   }
   ctx.globalAlpha = 1;
@@ -3140,7 +3142,7 @@ function drawChart(t) {
       fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
   }
 
-  drawExo(t, (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }));
+  drawExo(t, (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }), introK().sky);
   // Sol
   drawEarthHub(t);
   if (modeOf()) {
@@ -3374,8 +3376,8 @@ function drawChart3D(t) {
     label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))));   // the words breathe with the depth: near = bigger and brighter, far = small and dim, never gone
     ctx.globalAlpha = 1;
   }
-  drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
   const IKs = introK();
+  drawExo(t, (e) => chartProject(e), IKs.sky);                   // the habitable worlds, if he has them on: in with the deep sky, never before it
   const wash = 0.88 * gvK();                                     // the pop-up world: the sky steps back (the opening fades layers itself now)
   if (wash > 0) { ctx.fillStyle = "rgba(0,0,0," + wash.toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
   drawEarthHub(t);
