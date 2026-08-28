@@ -1405,7 +1405,7 @@ function dashLine(x1, y1, x2, y2, color, t) {
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 }
 
-let chartRot = 0, chartZoom = 1, chartAuto = true, chartLastT = 0, chartResume = 0;
+let chartRot = 0, chartZoom = 0.85, chartAuto = true, chartLastT = 0, chartResume = 0;   // at rest the sky sits pinched out: his preferred framing
 const EARTH_LAND = [                                            // coarse coastlines: enough to read as Earth at this size
   [[-168,65],[-158,71],[-130,70],[-110,68],[-95,72],[-80,73],[-62,60],[-55,50],[-70,42],[-75,35],[-81,25],[-97,26],[-105,20],[-114,28],[-124,40],[-124,48],[-135,58],[-152,58],[-165,60]],
   [[-79,9],[-70,11],[-60,10],[-50,0],[-35,-6],[-39,-16],[-48,-25],[-58,-35],[-63,-42],[-70,-53],[-75,-46],[-73,-33],[-71,-18],[-76,-6],[-80,2]],
@@ -3457,7 +3457,7 @@ function drawSystemView(t) {
   const fout = v.out ? (reduced ? 1 : Math.min(1, (now - v.out) / OUT)) : 0;
   if (v.out && fout >= 1) {                                    // done: the sky gets its zoom back and turns again
     sysView = null;                                            // back out to that system at the front, leaning in as a pick does
-    chartTgt = selected && !selected.mode ? { rot: -selected.az, zoom: 1.25 } : { rot: chartRot, zoom: 1 };
+    chartTgt = selected && !selected.mode ? { rot: -selected.az, zoom: 1.25 } : { rot: chartRot, zoom: 0.85 };
     if (!ptrs.size) { clearTimeout(chartResume); chartResume = setTimeout(() => (chartAuto = true), 1500); }
     return;
   }
@@ -3678,8 +3678,7 @@ function drawChart3D(t) {
   ctx.globalAlpha = 1;
   const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = skyBase();
   const R = Math.min(W, H) * 0.40 * chartZoom;
-  ctx.strokeStyle = "rgba(255,196,107,0.10)"; ctx.lineWidth = 1;   // the turntable ring, solid and quiet
-  ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke();
+  // (the turntable ring is gone: it read as a stray oval in an empty sky)
   const P = SYSTEMS.map((s, si) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; s.ik = introSysK(si); return { s, q }; })
     .sort((a, b) => a.q.z - b.q.z);                            // far ones first
   const spun = chartRot - chartLastRot; chartLastRot = chartRot;
@@ -5511,7 +5510,7 @@ const ptrs = new Map(); let pinchD = 0, dragMoved = 0, wasPinch = false, dragEar
 function focusChart(s) {                                        // a pick before ENGAGE: bring that sky to the front, lean in
   if (!S.chart3d || phase !== "chart") return;
   chartAuto = false; clearTimeout(chartResume);
-  chartTgt = s.mode ? { rot: chartRot, zoom: 1 } : { rot: -s.az, zoom: 1.25 };  // modes depart from Earth itself
+  chartTgt = s.mode ? { rot: chartRot, zoom: 0.85 } : { rot: -s.az, zoom: 1.25 };  // modes depart from Earth itself
   chartResume = setTimeout(() => (chartAuto = true), 8000);
 }
 function pickDeparture(o, auto) {                               // auto: attract mode picked it, not his hand
