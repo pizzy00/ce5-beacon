@@ -709,7 +709,9 @@ let map = null, beacon = null, retargetMode = false;
 
 function log(txt, cls) {
   const d = document.createElement("div");
-  d.textContent = "▸ " + txt;
+  d.dataset.en = txt;
+  const hit = (typeof langDict === "object" && langDict) ? langDict[String(txt).replace(/\s+/g, " ").trim()] : null;
+  d.textContent = "▸ " + (hit || txt);
   if (cls) d.className = cls;
   logEl.appendChild(d);
   [...logEl.children].slice(0, -6).forEach((n) => n.classList.add("old"));
@@ -5005,10 +5007,14 @@ function audioUnlock() {                                         // the first to
   } catch (e) {}
 }
 function audioGuard() {                                          // Android naps the context; this never lets it stay asleep
+  if (document.hidden) return;                                   // a hidden tab stays silent on purpose
   try { if (ac && !muted && ac.state !== "running") ac.resume(); } catch (e) {}
 }
 setInterval(audioGuard, 3000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) audioGuard(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps
+  else audioGuard();                                             // look back and it wakes
+});
 let introFxOff = false;                                          // a skip means silence, not a pile-up
 let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
 function zoomFx(v, lo, hi) {
@@ -5688,6 +5694,35 @@ const L10N = {
 let uiLang = "en"; try { uiLang = localStorage.getItem("ce5.lang") || "en"; } catch (e) {}
 if (!LANGS.some((x) => x[0] === uiLang)) uiLang = "en";
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
+let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "bdCard", "infoCard"];
+const nrm = (s) => s.replace(/\s+/g, " ").trim();
+function walkTranslate() {
+  for (const rid of L10N_ROOTS) {
+    const root = $(rid); if (!root) continue;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      if (n.__en === undefined) { if (nrm(n.nodeValue).length < 2) continue; n.__en = n.nodeValue; }
+      const key = nrm(n.__en);
+      const hit = langDict && langDict[key];
+      n.nodeValue = hit ? n.__en.replace(n.__en.trim(), hit) : n.__en;
+    }
+  }
+  for (const d of document.querySelectorAll("#log div")) {        // what the tube already said, resaid
+    if (d.dataset.en === undefined) continue;
+    const hit = langDict && langDict[nrm(d.dataset.en)];
+    d.textContent = "\u25b8 " + (hit || d.dataset.en);
+  }
+}
+function loadDict() {
+  if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
+  if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
+  fetch("lang/" + uiLang + ".json?v=1")
+    .then((r) => { if (!r.ok) throw 0; return r.json(); })
+    .then((d) => { langDict = d; langDictFor = uiLang; walkTranslate(); })
+    .catch(() => { langDict = null; walkTranslate(); });
+}
 function applyLang() {
   const put = (id, key) => { const el = $(id); if (el) el.textContent = tr(key); };
   const tb = document.querySelector("#tapBegin > div");
@@ -5702,6 +5737,7 @@ function applyLang() {
   if (phase === "chart") $("phaseTxt").textContent = tr("chart");
   const secs = document.querySelectorAll("#setCard .setSec"), names = L10N.secs[uiLang] || L10N.secs.en;
   secs.forEach((el, i) => { if (names[i]) el.textContent = names[i]; });
+  loadDict();
 }
 function langBuild() {
   const el = $("langList"); el.textContent = "";
