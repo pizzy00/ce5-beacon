@@ -106,7 +106,7 @@
   body.run #loc, body.active #loc { opacity: 0.45; }
 
   #phase { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 4px); transform: translateX(-50%);   /* just above the console, whatever its height */
-    font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); }
+    font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); white-space: nowrap; }
   #blink { animation: bl 1.1s steps(2) infinite; }
   #tapHint { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 20px); transform: translateX(-50%);
     font-size: 8px; letter-spacing: 0.24em; color: var(--amber-dim); opacity: 0; transition: opacity 0.6s; white-space: nowrap; }
@@ -429,7 +429,7 @@
   }
   @keyframes rotHint { 0%, 20% { transform: rotate(-90deg); } 55%, 100% { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) { #rotate .ph { animation: none; } }
-  #hintDT { display: block; margin-top: 6px; font-size: 9px; letter-spacing: 0.24em; color: #f4eeda;
+  #hintDT { margin-left: 10px; font-size: 8px; letter-spacing: 0.12em; color: #f4eeda; white-space: nowrap;
     text-shadow: 0 0 8px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.95), 0 0 10px rgba(255,214,128,0.35); animation: hintFlash 3.2s ease-in-out infinite; }
   body.run #hintDT, body.active #hintDT { display: none; }        /* the hint belongs to the chart alone */
   @keyframes hintFlash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -523,7 +523,7 @@
   #settings { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #settings.hide { display: none; }
-  #setCard { width: 100%; max-width: 420px; max-height: 82vh; max-height: 82dvh; overflow-y: auto;
+  #setCard { width: 100%; max-width: 560px; max-height: 82vh; max-height: 82dvh; overflow-y: auto; padding-right: 44px;   /* the bare strip on the right: scroll with a finger there and touch nothing */
     background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(255,196,107,0.15); }
   .setHead { display: flex; justify-content: space-between; align-items: center;
@@ -596,6 +596,7 @@
 <div id="settings" class="hide">
   <div id="setCard">
     <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
+    <div class="bdBtns"><span id="bDefaults" class="setBtn">SET AS NEW DEFAULTS</span></div>
     <div class="setStat" id="saveStat"></div>
     <div class="setBox">
     <div class="setSec first">YOUR SPOT</div>
@@ -625,6 +626,7 @@
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />KEY CLICKS AND THE BUTTON SOUNDS</label>
+      <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
     </div>
     <div class="setRow">
@@ -639,8 +641,8 @@
     <div class="setRow">
       <div class="setLbl">MOTION</div>
       <select id="selMotion">
-        <option value="auto">FOLLOW THE PHONE — REDUCE MOTION SHORTENS THE RUN</option>
-        <option value="full">FULL — IGNORE THE PHONE'S REDUCE MOTION</option>
+        <option value="full" selected>FULL — IGNORE THE PHONE'S REDUCE MOTION (THE WAY IT IS MEANT TO RUN)</option>
+        <option value="auto">FOLLOW THE PHONE — ITS REDUCE-MOTION SETTING SHORTENS EVERYTHING</option>
       </select>
       <div class="setStat" id="motionStat">IF EVERY STAGE FLASHES BY IN A SECOND, PICK FULL</div>
     </div>
@@ -1031,7 +1033,7 @@
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
 const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail: "full",
-  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, salvo: false, motion: "auto",
+  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
@@ -1039,7 +1041,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1196,7 +1198,7 @@ const $ = (id) => document.getElementById(id);
 const cvs = $("space"), ctx = cvs.getContext("2d");
 const logEl = $("log");
 const reducedPref = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let reduced = reducedPref; // MOTION: FULL in the gear panel clears this
+let reduced = S.motion === "full" ? false : reducedPref; // MOTION: FULL (the default) ignores the phone
 let phase = "chart"; // chart | warp | earth | dive | active
 let map = null, beacon = null, retargetMode = false;
 
@@ -1216,6 +1218,7 @@ function stageFade() {                                          // a soft dip to
   fadeTimer = setTimeout(() => { f.style.transition = "opacity 0.8s ease"; f.style.opacity = "0"; }, 40);
 }
 function setPhase(p, label) {
+  if (p !== phase && typeof flyBump === "function" && document.body.classList.contains("run") && !/^(chart|active)$/.test(p)) flyBump();
   if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
@@ -4577,6 +4580,7 @@ raf = requestAnimationFrame(loop);
 function engage() {
   introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
+  flyStart();                                                   // the wind of the crossing
   wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
   precacheTiles();
   const mode = modeOf();
@@ -4983,6 +4987,7 @@ function arrive() {
   document.body.classList.remove("run"); document.body.classList.add("active");
   ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
   const callOut = () => {                                        // the message goes out last
+    flyStop();                                                  // on the ground: the wind dies
     setPhase("active", "BEACON ACTIVE"); document.body.classList.remove("holding");
     log('TX: "' + S.msg + '"', "alert");
     log("AWAITING RESPONSE...");
@@ -4997,6 +5002,7 @@ function arrive() {
 }
 
 function replay() {
+  flyStop();
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
@@ -5364,6 +5370,34 @@ function sendMorse(text) {
   step();
 }
 let ac = null, toneOn = false, oscs = [];
+let flyG = null, flyN = null, flyF = null;                       // the wind of the crossing
+function flyStart() {
+  if (!S.flySnd) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    if (flyN) return;
+    const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }   // brownish
+    flyN = ac.createBufferSource(); flyN.buffer = buf; flyN.loop = true;
+    flyF = ac.createBiquadFilter(); flyF.type = "lowpass"; flyF.frequency.value = 260; flyF.Q.value = 0.4;
+    flyG = ac.createGain(); flyG.gain.value = 0;
+    flyN.connect(flyF); flyF.connect(flyG); flyG.connect(ac.destination);
+    flyN.start();
+    flyG.gain.setTargetAtTime(0.05, ac.currentTime, 1.2);        // it breathes in slowly
+  } catch (e) {}
+}
+function flyBump() {                                             // a stage change: the wind picks up, then settles
+  if (!flyF || !ac || !S.flySnd) return;
+  try { flyF.frequency.setTargetAtTime(1100, ac.currentTime, 0.05); flyF.frequency.setTargetAtTime(260, ac.currentTime + 0.25, 0.5);
+        flyG.gain.setTargetAtTime(0.085, ac.currentTime, 0.05); flyG.gain.setTargetAtTime(0.05, ac.currentTime + 0.3, 0.6); } catch (e) {}
+}
+function flyStop() {
+  if (!flyG || !ac) { flyN = flyG = flyF = null; return; }
+  try { flyG.gain.setTargetAtTime(0, ac.currentTime, 0.4); const n = flyN; setTimeout(() => { try { n.stop(); } catch (e) {} }, 1600); } catch (e) {}
+  flyN = flyG = flyF = null;
+}
 /* ---------------- the sounds: mechanical keys, the cover, the big button (synthesised, no files) ---------------- */
 function sfx(kind) {
   if (!S.sfx) return;
@@ -5789,7 +5823,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5798,7 +5832,8 @@ function applyS() {                                             // push S into e
   set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
-$("bSave").onclick = saveSettings;
+$("bSave").onclick = () => { saveSettings(); $("settings").classList.add("hide"); };   // save and the pane closes
+$("bDefaults").onclick = saveSettings;                                                 // save and stay: from now on it opens this way
 $("bReset").onclick = resetSettings;
 $("setCard").addEventListener("contextmenu", (e) => e.preventDefault());   // no long-press menu on the sliders
 $("bInfo").onclick = () => { $("settings").classList.add("hide"); $("info").classList.remove("hide"); };
@@ -5872,6 +5907,7 @@ $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loa
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
+$("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
