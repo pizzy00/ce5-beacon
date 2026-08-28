@@ -246,10 +246,20 @@
 
   /* controls */
   body.intro #ctl { transform: translateY(118%); }                /* the opening: the console arrives after the world */
+  body.ctlSlide #ctl { transition: none; animation: ctlSlide 2.2s cubic-bezier(0.25, 0.8, 0.3, 1) both; }
+  @keyframes ctlSlide {                                            /* it jams 18 percent of the way in, rattles, then seats */
+    0% { transform: translateY(118%); }
+    24% { transform: translateY(97%); }
+    42% { transform: translateY(97%); }
+    47% { transform: translateY(98.4%); }
+    52% { transform: translateY(95.5%); }
+    100% { transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) { body.ctlSlide #ctl { animation: none; } }
   body.intro #bFull, body.introHud #hud { opacity: 0 !important; }
   #bFull, #hud { transition: opacity 0.9s ease; }
   #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
-    padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+    padding: 3px 10px calc(7px + env(safe-area-inset-bottom));
     background: rgba(0,0,0,0.80);                                  /* the case: the world shows through behind the keys */
     border-top: 1px solid rgba(210,198,168,0.22);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 -10px 24px rgba(0,0,0,0.45); }
@@ -3572,6 +3582,14 @@ function introK() {                                             // how far each 
   if (!intro.t0) return { earth: 0, moon: 0, sun: 0, planets: 0, sky: 0 };
   const e = performance.now() / 1000 - intro.t0, f = (r) => Math.max(0, Math.min(1, (e - r[0]) / (r[1] - r[0])));
   const k = { earth: easeOut3(f(INTRO.earth)), moon: easeIO(f(INTRO.moon)), sun: easeIO(f(INTRO.sun)), planets: easeIO(f(INTRO.planets)), sky: easeIO(f(INTRO.sky)) };
+  const fx = (intro.fx = intro.fx || {});
+  const beat = (name, when, fn) => { if (!fx[name] && e >= when) { fx[name] = 1; fn(); } };
+  beat("earth", INTRO.earth[0] + 0.05, () => openFx("earth"));
+  beat("slide", INTRO.ctl, () => { document.body.classList.add("ctlSlide"); openFx("slide"); });
+  beat("clunk", INTRO.ctl + 1.05, () => openFx("clunk"));
+  beat("seat", INTRO.ctl + 2.15, () => openFx("seat"));
+  beat("moon", INTRO.moon[0], () => openFx("moon"));
+  beat("sun", INTRO.sun[0], () => openFx("sun"));
   if (e >= INTRO.ctl) document.body.classList.remove("intro");
   if (e >= INTRO.hud) document.body.classList.remove("introHud");
   if (e >= INTRO.end) { intro = null; document.body.classList.remove("intro", "introHud"); setTimeout(introAfter, 1500); }
@@ -3584,7 +3602,7 @@ function introSysK(i) {                                         // the alien sys
   return easeIO(Math.max(0, Math.min(1, (e - (INTRO.sys0 + i * INTRO.sysStep)) / INTRO.sysDur)));
 }
 function introLift() { return (1 - introK().earth) * earthGeom().R * 2.3; }   // the world rises from below the screen
-function introSkip() { if (intro) { intro.t0 = performance.now() / 1000 - INTRO.end - 1; introK(); } }
+function introSkip() { if (intro) { introFxOff = true; document.body.classList.add("ctlSlide"); intro.t0 = performance.now() / 1000 - INTRO.end - 1; introK(); } }
 function introStatus(t) {                                       // the only thing on the black screen while it preloads
   const e = performance.now() / 1000 - (intro.w0 || 0), dots = ".".repeat(1 + (Math.floor(t * 2) % 3));
   ctx.font = "9px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#8a6a3a"; ctx.textAlign = "center"; ctx.globalAlpha = 0.7;
@@ -3679,7 +3697,9 @@ function drawChart3D(t) {
   const px = POLARIS.x * W, py = POLARIS.y * H, sx = SOL.x * W, sy = skyBase();
   const R = Math.min(W, H) * 0.40 * chartZoom;
   // (the turntable ring is gone: it read as a stray oval in an empty sky)
-  const P = SYSTEMS.map((s, si) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; s.ik = introSysK(si); return { s, q }; })
+  const P = SYSTEMS.map((s, si) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; s.ik = introSysK(si);
+    if (intro && s.ik > 0 && !s.popped) { s.popped = true; openFx("pop", si); }   // each one lands with a little pop
+    return { s, q }; })
     .sort((a, b) => a.q.z - b.q.z);                            // far ones first
   const spun = chartRot - chartLastRot; chartLastRot = chartRot;
   if (Math.abs(spun) > 1e-4) chartDrift = spun > 0 ? -1 : 1;   // the tail hangs behind the way it is moving
@@ -5403,6 +5423,38 @@ function sendMorse(text) {
   step();
 }
 let ac = null, toneOn = false, oscs = [];
+let introFxOff = false;                                          // a skip means silence, not a pile-up
+function openFx(kind, i) {                                       // the opening's own little orchestra
+  if (!S.sfx || introFxOff) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(ac.destination);
+    const tone = (type, f0, f1, dur, vol, at) => {
+      const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + (at || 0.05));
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.1);
+    };
+    const hiss = (dur, hp, vol) => {
+      const len = Math.ceil(ac.sampleRate * dur), b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0);
+      for (let n = 0; n < len; n++) d[n] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = b;
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = hp; f.Q.value = 0.8;
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.3);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      src.connect(f); f.connect(g); g.connect(out); src.start(t); src.stop(t + dur);
+    };
+    if (kind === "earth") { tone("sine", 46, 92, 2.4, 0.16, 0.9); hiss(2.0, 300, 0.03); }
+    else if (kind === "moon") { tone("triangle", 620, 620, 0.9, 0.05); tone("sine", 310, 310, 1.1, 0.04); }
+    else if (kind === "sun") { tone("sine", 220, 220, 1.6, 0.07, 0.5); tone("sine", 277, 277, 1.6, 0.05, 0.6); tone("sine", 330, 330, 1.6, 0.035, 0.7); }
+    else if (kind === "pop") { const f = 540 + ((i || 0) % 9) * 85; tone("sine", f, f * 1.25, 0.14, 0.06, 0.01); }
+    else if (kind === "slide") { hiss(1.0, 900, 0.10); }
+    else if (kind === "clunk") { tone("sine", 130, 70, 0.16, 0.18, 0.008); hiss(0.12, 500, 0.06); }
+    else if (kind === "seat") { tone("sine", 85, 46, 0.3, 0.22, 0.01); hiss(0.1, 350, 0.05); }
+  } catch (e) {}
+}
 function sfxBlast(farK) {                                        // the blast: a crack, then the long roll, scaled by distance
   if (!S.sfx) return;
   try {
