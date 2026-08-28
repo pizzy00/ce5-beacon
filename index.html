@@ -3575,7 +3575,7 @@ function drawChart(t) {
 
 /* ---------------- the opening ---------------- */
 let intro = null;                                               // { t0: when it started (0 = still preloading), w0: when the wait began }
-const INTRO = { earth: [0, 2.4], ctl: 2.0, moon: [3.2, 4.0], sun: [4.2, 5.2], planets: [5.0, 6.0], hud: 6.2, sys0: 6.3, sysStep: 0.35, sysDur: 0.7, sky: [9.6, 11.4], end: 11.8 };
+const INTRO = { earth: [0, 2.4], ctl: 2.0, moon: [3.2, 4.0], sun: [4.2, 5.2], planets: [5.0, 6.0], hud: 6.2, sys0: 6.3, sysStep: 0.35, sysDur: 0.7, sky: [9.6, 13.4], end: 13.8 };   // the deep sky takes its time
 const easeOut3 = (p) => 1 - Math.pow(1 - p, 3);
 function introK() {                                             // how far each piece is in: 0 = not yet, 1 = there
   if (!intro) return { earth: 1, moon: 1, sun: 1, planets: 1, sky: 1 };
@@ -3589,6 +3589,7 @@ function introK() {                                             // how far each 
   beat("clunk", INTRO.ctl + 1.05, () => openFx("clunk"));
   beat("seat", INTRO.ctl + 2.15, () => openFx("seat"));
   beat("moon", INTRO.moon[0], () => openFx("moon"));
+  beat("deep", INTRO.sky[0], () => openFx("choir"));            // the galaxies arrive with voices
   beat("sun", INTRO.sun[0], () => openFx("sun"));
   if (e >= INTRO.ctl) document.body.classList.remove("intro");
   if (e >= INTRO.hud) document.body.classList.remove("introHud");
@@ -5476,6 +5477,19 @@ function openFx(kind, i) {                                       // the opening'
     if (kind === "earth") { tone("sine", 46, 92, 2.4, 0.16, 0.9); hiss(2.0, 300, 0.03); }
     else if (kind === "moon") { tone("triangle", 620, 620, 0.9, 0.05); tone("sine", 310, 310, 1.1, 0.04); }
     else if (kind === "sun") { tone("sine", 220, 220, 1.6, 0.07, 0.5); tone("sine", 277, 277, 1.6, 0.05, 0.6); tone("sine", 330, 330, 1.6, 0.035, 0.7); }
+    else if (kind === "choir") {                                 // a slow far-off chorus as the deep sky comes in
+      const A = 1.8, HOLD = 1.6, R = 3.4, end = A + HOLD + R;
+      for (const f of [110, 164.8, 220, 261.6, 329.6]) {
+        for (const det of [-2.5, 2.5]) {
+          const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f; o.detune.value = det;
+          const g = ac.createGain(); g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.016, t + A); g.gain.setValueAtTime(0.016, t + A + HOLD);
+          g.gain.exponentialRampToValueAtTime(0.0005, t + end);
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + end + 0.2);
+        }
+      }
+      hiss(end, 850, 0.015);                                     // the breath under the voices
+    }
     else if (kind === "pop") { const f = 540 + ((i || 0) % 9) * 85; tone("sine", f, f * 1.25, 0.14, 0.06, 0.01); }
     else if (kind === "slide") { hiss(1.0, 900, 0.10); }
     else if (kind === "clunk") { tone("sine", 130, 70, 0.16, 0.18, 0.008); hiss(0.12, 500, 0.06); }
