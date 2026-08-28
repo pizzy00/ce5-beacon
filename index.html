@@ -3135,7 +3135,7 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
 function drawEarthHub(t) {
   const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
-  const zt = globeView ? 0 : Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // 0 = the whole world, 1 = down on the Triangle (not in the pop-up)
+  const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // close enough in = the Triangle wakes, pop-up view included
   if (zt <= 0 && !globeView && earthAuto && Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 0.5);   // free look: zooming never steers you anywhere; it drifts level only once the world minds itself
   earthTiltDraw = Math.round(earthTilt / 0.25) * 0.25;           // quarter-degree steps: fewer geometry builds, no visible difference
   if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
