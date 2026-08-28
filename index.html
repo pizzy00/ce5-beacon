@@ -3187,9 +3187,9 @@ function drawEarthHub(t) {
           ctx.strokeStyle = p.c; ctx.globalAlpha = 0.75 * IK.planets; ctx.lineWidth = 1;
           ctx.beginPath(); ctx.ellipse(x, y, pr * 2.2, pr * 0.62, -0.4, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1;
         }
-        if (IK.planets > 0.7) {
+        if (IK.planets > 0.7 && !(p.n === "URANUS" && Math.abs(y - (sy - RZ * 0.80)) < 50 && Math.abs(x - sx) < 230)) {
           ctx.fillStyle = "rgba(240,236,226,0.8)"; ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
-          ctx.fillText(p.n, x, y + pr + 9); ctx.textAlign = "left";
+          ctx.fillText(p.n, x, y + pr + 9); ctx.textAlign = "left";   // URANUS keeps quiet whenever it would sit beside the word EARTH
         }
       };
       if (Math.sin(th) <= 0) front.push(job); else job();        // the far half now, the near half after the world
