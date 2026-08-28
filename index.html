@@ -465,6 +465,14 @@
     transition: opacity 0.5s ease;
     display: flex; align-items: center; justify-content: center; padding: 0; }
   #bFull:active { background: rgba(255,196,107,0.25); }
+  #bFull.callout { animation: fsPulse 1.6s ease-out infinite; }    /* an expanding square ring says press me */
+  @keyframes fsPulse { 0% { box-shadow: 0 0 0 0 rgba(125,251,168,0.85); } 100% { box-shadow: 0 0 0 16px rgba(125,251,168,0); } }
+  #fsHint { position: fixed; top: calc(11px + env(safe-area-inset-top)); right: 48px; z-index: 9; pointer-events: none;
+    color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
+    background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+  #fsHint.hide { display: none; }
+  @media (prefers-reduced-motion: reduce) { #bFull.callout { animation: none; box-shadow: 0 0 0 4px rgba(125,251,168,0.4); } }
   #bFull svg { width: 16px; height: 16px; display: block; }
   #bFull .comp { display: none; }
   #bFull.on .exp { display: none; }
@@ -962,6 +970,7 @@
     <div class="infoFoot">THE CHART, THE CONTACTS LINE, THE TRAFFIC AND ALL CHANNELS FOLLOW THIS · AT LEAST ONE STAYS ON · BESIDE EACH: WHO PUT IT ON THE MAP · SAVED WITH YOUR SETTINGS</div>
   </div>
 </div>
+<div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
@@ -3315,9 +3324,10 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
   if (!S.traffic) return;
   const spd = (i, k) => (S.shipSpd || 1) *                      // his slider, and in random mode every lane has its own idea of fast
     (S.shipRnd ? 0.35 + 1.9 * (((i * 37 + k * 91 + 17) % 23) / 23) : 1);
+  const ikOf = (s) => (s && s.ik !== undefined ? s.ik : 1);
   for (let i = 0; i < SYSTEMS.length; i++) {
     const s = SYSTEMS[i], a = posOf(s);
-    if (!a || a.x === undefined) continue;
+    if (!a || a.x === undefined || ikOf(s) <= 0) continue;
     const l1 = Math.hypot(px - a.x, py - a.y), l2 = Math.hypot(sx - px, sy - py), tot = l1 + l2;
     if (tot < 1) continue;
     for (let k = 0; k < 3; k++) {
@@ -3326,14 +3336,14 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
       const d = u * tot;
       const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (sx - px) * ((d - l1) / l2);
       const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (sy - py) * ((d - l1) / l2);
-      ctx.globalAlpha = 0.65; ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
-      ctx.globalAlpha = 0.22; ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
+      ctx.globalAlpha = 0.65 * ikOf(s); ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
+      ctx.globalAlpha = 0.22 * ikOf(s); ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
     }
   }
   for (let i = 0; i < SYSTEMS.length; i++) {                    // and between the systems themselves
     for (const step of [1, 3]) {
       const a = SYSTEMS[i], b = SYSTEMS[(i + step) % SYSTEMS.length], pa = posOf(a), pb = posOf(b);
-      if (!pa || !pb || pa.x === undefined || pb.x === undefined) continue;
+      if (!pa || !pb || pa.x === undefined || pb.x === undefined || ikOf(a) < 1 || ikOf(b) < 1) continue;
       for (let k = 0; k < 2; k++) {
         let u = (t * spd(i + step, k) * (0.03 + ((i + k) % 3) * 0.012) + i * 0.29 + k * 0.5 + step * 0.17) % 1;
         if ((i + k + step) % 2) u = 1 - u;
@@ -3345,7 +3355,7 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
   if (exoOf && S.exo) {                                         // the habitable worlds get visitors too
     for (let i = 0; i < EXOPLANETS.length; i++) {
       const e = EXOPLANETS[i], s = SYSTEMS[i % SYSTEMS.length], pe = exoOf(e), ps = posOf(s);
-      if (!pe || !ps || pe.x === undefined || ps.x === undefined) continue;
+      if (!pe || !ps || pe.x === undefined || ps.x === undefined || ikOf(s) < 1) continue;
       let u = (t * spd(i, 5) * (0.025 + (i % 4) * 0.008) + i * 0.41) % 1; if (i % 2) u = 1 - u;
       const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u;
       ctx.globalAlpha = 0.5; ctx.fillStyle = u > 0.5 ? e.c : s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
@@ -3354,7 +3364,7 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
   const far = Math.max(W, H) * 0.75;                            // and out into open space, in every direction, and back in
   for (let i = 0; i < SYSTEMS.length; i++) {
     const s = SYSTEMS[i], a = posOf(s);
-    if (!a || a.x === undefined) continue;
+    if (!a || a.x === undefined || ikOf(s) < 1) continue;
     for (let k = 0; k < 2; k++) {
       const ang = i * 1.9 + k * 2.4 + Math.sin(t * 0.05 + i) * 0.3;   // each lane leans a little over time
       let u = (t * spd(i + 3, k) * (0.03 + ((i + k) % 3) * 0.008) + i * 0.23 + k * 0.5) % 1;
@@ -3554,7 +3564,7 @@ function drawChart(t) {
 
 /* ---------------- the opening ---------------- */
 let intro = null;                                               // { t0: when it started (0 = still preloading), w0: when the wait began }
-const INTRO = { earth: [0, 2.4], ctl: 2.0, moon: [3.2, 4.0], sun: [4.2, 5.2], planets: [5.0, 6.0], sky: [5.6, 7.4], hud: 6.2, end: 7.6 };
+const INTRO = { earth: [0, 2.4], ctl: 2.0, moon: [3.2, 4.0], sun: [4.2, 5.2], planets: [5.0, 6.0], hud: 6.2, sys0: 6.3, sysStep: 0.35, sysDur: 0.7, sky: [9.6, 11.4], end: 11.8 };
 const easeOut3 = (p) => 1 - Math.pow(1 - p, 3);
 function introK() {                                             // how far each piece is in: 0 = not yet, 1 = there
   if (!intro) return { earth: 1, moon: 1, sun: 1, planets: 1, sky: 1 };
@@ -3565,6 +3575,12 @@ function introK() {                                             // how far each 
   if (e >= INTRO.hud) document.body.classList.remove("introHud");
   if (e >= INTRO.end) { intro = null; document.body.classList.remove("intro", "introHud"); setTimeout(introAfter, 1500); }
   return k;
+}
+function introSysK(i) {                                         // the alien systems land one at a time, each with its ships
+  if (!intro) return 1;
+  if (!intro.t0) return 0;
+  const e = performance.now() / 1000 - intro.t0;
+  return easeIO(Math.max(0, Math.min(1, (e - (INTRO.sys0 + i * INTRO.sysStep)) / INTRO.sysDur)));
 }
 function introLift() { return (1 - introK().earth) * earthGeom().R * 2.3; }   // the world rises from below the screen
 function introSkip() { if (intro) { intro.t0 = performance.now() / 1000 - INTRO.end - 1; introK(); } }
@@ -3623,7 +3639,17 @@ function pursueRead(grp) {                                       // one file fro
   if (r.l) log(r.l.toUpperCase());
   logLink("RELEASED " + r.rel + " BY THE DEPARTMENT OF WAR", r.u || PURSUE.src);   // videos have no direct file: the PURSUE page
 }
+let fsShown = false;
+function fsCallout() {                                           // the square ring + the words, once, until pressed or 12 s
+  if (fsShown || document.fullscreenElement) return;
+  fsShown = true;
+  const h = $("fsHint"); if (!h) return;
+  h.classList.remove("hide"); $("bFull").classList.add("callout");
+  setTimeout(fsCalloutOff, 12000);
+}
+function fsCalloutOff() { const h = $("fsHint"); if (h) h.classList.add("hide"); $("bFull").classList.remove("callout"); }
 function introAfter() {                                         // everything else preloads once the opening is done
+  fsCallout();
   if (S.pursue) loadPursue(); if (S.uso) loadUso();
   try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
   try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}
@@ -3641,9 +3667,10 @@ function drawChart3D(t) {
     if (Math.abs(d) < 0.004 && Math.abs(chartTgt.zoom - chartZoom) < 0.004) chartTgt = null;
   }
   ctx.clearRect(0, 0, W, H);
-  paintDeepSky(chartRot * 40);
+  const IKD = introK().sky;                                      // the opening: the galaxies and the far stars come dead last
+  if (IKD > 0) paintDeepSky(chartRot * 40, IKD);
   for (const s of bgStars) {
-    ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
+    ctx.globalAlpha = (0.35 + 0.3 * Math.sin(t * 1.5 + s.tw)) * IKD;
     ctx.fillStyle = "#cfd6ff";
     ctx.fillRect((((s.x + chartRot * 40) % W) + W) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
   }
@@ -3652,15 +3679,16 @@ function drawChart3D(t) {
   const R = Math.min(W, H) * 0.40 * chartZoom;
   ctx.strokeStyle = "rgba(255,196,107,0.10)"; ctx.lineWidth = 1;   // the turntable ring, solid and quiet
   ctx.beginPath(); ctx.ellipse(sx, sy, R, R * 0.16, 0, 0, 6.29); ctx.stroke();
-  const P = SYSTEMS.map((s) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; return { s, q }; })
+  const P = SYSTEMS.map((s, si) => { const q = chartProject(s); s.px = q.x; s.py = q.y; s.pk = q.k; s.ik = introSysK(si); return { s, q }; })
     .sort((a, b) => a.q.z - b.q.z);                            // far ones first
   const spun = chartRot - chartLastRot; chartLastRot = chartRot;
   if (Math.abs(spun) > 1e-4) chartDrift = spun > 0 ? -1 : 1;   // the tail hangs behind the way it is moving
   if (S.trails) {                                              // a faint tail in each system's own colour
     ctx.lineCap = "round";
     for (const { s } of P) {
+      if (s.ik <= 0) continue;
       ctx.strokeStyle = s.c;
-      const depth = Math.min(1, Math.max(0.35, (s.pk - 0.55) / 0.9));
+      const depth = Math.min(1, Math.max(0.35, (s.pk - 0.55) / 0.9)) * s.ik;
       let lx = s.px, ly = s.py;
       const breathe = 1 + 0.10 * Math.sin(t * 0.9 + s.az);       // the tail breathes a little
       for (let i = 1; i <= 13; i++) {
@@ -3677,7 +3705,7 @@ function drawChart3D(t) {
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
   const EG = earthGeom(), ex = EG.cx, ey = EG.cy;               // the routes end BEHIND the world, not at a point above it
-  for (const o of origins) dashLine(o.px, o.py, gate ? px : ex, gate ? py : ey, o.c, t);
+  for (const o of origins) { if ((o.ik === undefined ? 1 : o.ik) < 0.98) continue; dashLine(o.px, o.py, gate ? px : ex, gate ? py : ey, o.c, t); }
   if (gate) dashLine(px, py, ex, ey, "#ffe9a6", t);
   drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey, (e) => chartProject(e));
   if (gate) {
@@ -3686,7 +3714,8 @@ function drawChart3D(t) {
     label(px + 12, py + 4, "POLARIS", "APPROACH GATE — ALL ROUTES PASS HERE", "#ffe9a6");
   }
   for (const { s, q } of P) {
-    const x = q.x, y = q.y, k = q.k, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9));
+    if (s.ik <= 0) continue;
+    const x = q.x, y = q.y, k = q.k, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9)) * s.ik;
     ctx.globalAlpha = depth;
     if (s.cluster) {
       for (let i = 0; i < 7; i++)
@@ -3710,7 +3739,7 @@ function drawChart3D(t) {
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
   const IKs = introK();
-  const wash = Math.max(1 - IKs.sky, 0.88 * gvK());              // the opening: the sky comes last; the pop-up world: the sky steps back
+  const wash = 0.88 * gvK();                                     // the pop-up world: the sky steps back (the opening fades layers itself now)
   if (wash > 0) { ctx.fillStyle = "rgba(0,0,0," + wash.toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
   drawEarthHub(t);
   if (intro && !intro.t0) introStatus(t);
@@ -5288,6 +5317,7 @@ const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenEle
 const fsAvail = () => !!(fsEl.requestFullscreen || fsEl.webkitRequestFullscreen) && document.fullscreenEnabled !== false;
 const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
 const drawFs = () => $("bFull").classList.toggle("on", fsOn());
+$("bFull").addEventListener("click", fsCalloutOff);
 $("bFull").onclick = () => {
   if (fsOn()) { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
   if (!fsAvail()) {
@@ -5967,7 +5997,8 @@ $("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textConten
 
 /* boot log */
 const restored = loadSettings();
-setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);   // the files, whichever way the opening went
+setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
+setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
 if (restored) applyS();
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
