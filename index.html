@@ -3141,7 +3141,7 @@ function drawEarthHub(t) {
     let d = -BERMUDA.lon - earthRot; d = ((d + 180) % 360 + 360) % 360 - 180;
     earthRot += d * Math.min(1, dt * 2.6 * zt);
     earthTilt += (BERMUDA.lat * 0.8 - earthTilt) * Math.min(1, dt * 2.6 * zt);
-  } else if (!globeView && Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);   // the pop-up world keeps the roll you gave it
+  } else if (!globeView && earthAuto && Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 0.5);   // your roll holds; it drifts level once the world minds itself again
   const tiltTgt = zt > 0 ? BERMUDA.lat * 0.8 : 0;               // while the tilt is still easing, draw it in quarter-degree steps
   earthTiltDraw = Math.abs(tiltTgt - earthTilt) > 0.3 ? Math.round(earthTilt / 0.25) * 0.25 : earthTilt;   // fewer geometry builds, overlays stay registered
   if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
@@ -3339,6 +3339,10 @@ function drawEarthHub(t) {
   }
   label(sx, sy - RZ * 0.80, "EARTH", "", "#8fd0ff", "center");  // on the world itself, clear of the sky
 }
+function landAt(i, sx, sy) {                                    // each route lands at its own spot behind the world
+  const G = earthGeom(), RZ = G.R * earthZoom;
+  return { x: sx + Math.cos(i * 2.39) * RZ * 0.42, y: sy + (0.08 + Math.abs(Math.sin(i * 1.7)) * 0.3) * RZ };
+}
 function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels running the routes, both ways
   if (!S.traffic) return;
   const spd = (i, k) => (S.shipSpd || 1) *                      // his slider, and in random mode every lane has its own idea of fast
@@ -3349,12 +3353,13 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
     if (!a || a.x === undefined || ikOf(s) <= 0) continue;
     const l1 = Math.hypot(px - a.x, py - a.y), l2 = Math.hypot(sx - px, sy - py), tot = l1 + l2;
     if (tot < 1) continue;
+    const LD = landAt(i, sx, sy);
     for (let k = 0; k < 3; k++) {
       let u = (t * spd(i, k) * (0.055 + (i % 3) * 0.018) + i * 0.37 + k * 0.33) % 1;
       if ((i + k) % 2) u = 1 - u;
       const d = u * tot;
-      const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (sx - px) * ((d - l1) / l2);
-      const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (sy - py) * ((d - l1) / l2);
+      const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (LD.x - px) * ((d - l1) / l2);
+      const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (LD.y - py) * ((d - l1) / l2);
       ctx.globalAlpha = 0.65 * ikOf(s); ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
       ctx.globalAlpha = 0.22 * ikOf(s); ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
     }
@@ -3379,6 +3384,20 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
       const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u;
       ctx.globalAlpha = 0.5; ctx.fillStyle = u > 0.5 ? e.c : s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
     }
+  }
+  for (let i = 0; i < SYSTEMS.length; i++) {                    // the depth lanes: at the camera, or away to their stars
+    const s = SYSTEMS[i], a = posOf(s);
+    if (!a || a.x === undefined || ikOf(s) < 1) continue;
+    let u = (t * spd(i + 5, 1) * 0.045 + i * 0.61) % 1;
+    const toward = i % 2 === 0;                                  // half come for a look, half head home
+    const uu = toward ? u : 1 - u;
+    if (uu > 0.965) continue;                                    // right at the glass: gone past us
+    const tx = a.x + (a.x - W * 0.5) * 0.9, ty = H * 1.2;        // past the bottom of the screen, flaring outward
+    const x = a.x + (tx - a.x) * uu * uu, y = a.y + (ty - a.y) * uu * uu;
+    const r = 0.9 + uu * uu * 8;                                 // it swells as it nears the glass
+    ctx.globalAlpha = 0.2 + 0.55 * uu; ctx.fillStyle = s.c;
+    ctx.fillRect(x - r / 2, y - r / 2, r, r);
+    if (r > 3.5) { ctx.globalAlpha = 0.12; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   }
   const far = Math.max(W, H) * 0.75;                            // and out into open space, in every direction, and back in
   for (let i = 0; i < SYSTEMS.length; i++) {
@@ -3748,7 +3767,11 @@ function drawChart3D(t) {
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
   const EG = earthGeom(), ex = EG.cx, ey = EG.cy;               // the routes end BEHIND the world, not at a point above it
-  for (const o of origins) { if ((o.ik === undefined ? 1 : o.ik) < 0.98) continue; dashLine(o.px, o.py, gate ? px : ex, gate ? py : ey, o.c, t); }
+  for (const o of origins) {
+    if ((o.ik === undefined ? 1 : o.ik) < 0.98) continue;
+    const LD = landAt(SYSTEMS.indexOf(o), ex, ey);
+    dashLine(o.px, o.py, gate ? px : LD.x, gate ? py : LD.y, o.c, t);
+  }
   if (gate) dashLine(px, py, ex, ey, "#ffe9a6", t);
   drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey, (e) => chartProject(e));
   if (gate) {
@@ -5775,7 +5798,7 @@ cvs.addEventListener("pointermove", (e) => {
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (lastMoveT || now - 16)));
     dragFx("earth", Math.abs(dx) + Math.abs(dy));
     earthRot -= dx * 0.30;
-    if (globeView && !globeView.out) earthTilt = Math.max(-80, Math.min(80, earthTilt + dy * 0.25));   // up and down rolls it; the names stay upright
+    earthTilt = Math.max(-80, Math.min(80, earthTilt + dy * 0.25));   // up and down rolls it anywhere; the names stay upright
     earthVel = Math.max(-420, Math.min(420, (-dx * 0.30 * 1000) / dtm));
     lastMoveT = now;
   }
