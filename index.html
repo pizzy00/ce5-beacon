@@ -5877,7 +5877,7 @@ function walkTranslate() {
 function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
-  fetch("lang/" + uiLang + ".json?v=1")
+  fetch("lang/" + uiLang + ".json?v=2")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { langDict = d; langDictFor = uiLang; walkTranslate(); })
     .catch(() => { langDict = null; walkTranslate(); });
