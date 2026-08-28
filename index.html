@@ -4,6 +4,24 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="manifest" href="manifest.json" />
+<script>
+  /* the console has to open with no signal at all */
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").then(function (r) {
+        window.__ce5sw = true;
+        if (r.waiting) r.waiting.postMessage("skipWaiting");
+        r.addEventListener("updatefound", function () {
+          var n = r.installing;
+          if (n) n.addEventListener("statechange", function () {
+            if (n.state === "installed" && navigator.serviceWorker.controller && typeof log === "function")
+              log("A NEWER BEACON IS READY \u00b7 RELOAD TO TAKE IT", "cy");
+          });
+        });
+      }).catch(function () {});
+    });
+  }
+</script>
 <meta name="theme-color" content="#000000" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
