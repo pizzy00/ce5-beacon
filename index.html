@@ -3033,11 +3033,12 @@ function drawSystemView(t) {
   const a = easeIO(fin) * (1 - easeIO(fout)), s = v.s, q = chartProject(s);
   const cx = q.x + (W / 2 - q.x) * a, cy = q.y + (H * 0.42 - q.y) * a;
   const R = Math.max(2, Math.min(W, H) * 0.11 * (0.25 + 0.75 * a));
-  ctx.fillStyle = "rgba(0,0,0," + (0.7 * a).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0," + (0.82 * a).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H);
   paintSystemArt(cx, cy, R, s, t, a > 0.5);
   if (a > 0.6) {
     ctx.globalAlpha = (a - 0.6) / 0.4;
-    label(cx, cy - R * 2.15, s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center", 13);   // between the portrait and the star
+    const pSz = Math.min(W, H) * 0.24, pCy = Math.max(80, H * 0.115), skB = S.faces ? pCy + pSz * 0.68 + 44 : 0;
+    label(cx, Math.max(cy - R * 2.15, skB), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center", 13);   // between the portrait and the star
     label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center", 12);
     const used = drawClaims(cx, cy + R * 3.4 + 54, s, (a - 0.6) / 0.4), qq = quoteFor(s);
     if (S.lore && qq && cy + R * 3.4 + 54 + used + 20 < (ctlTop || H * 0.72) - 24) {   // a line in their own words, when there is one
@@ -3047,7 +3048,7 @@ function drawSystemView(t) {
       ctx.fillText("\u2014 " + qq[1] + ", " + qq[2], cx, cy + R * 3.4 + 54 + used + 14 + 14 * wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))).length + 4);
       ctx.globalAlpha = 1; ctx.textAlign = "left";
     }
-    if (S.faces) drawSpecies(W * 0.5, Math.max(80, H * 0.115), Math.min(W, H) * 0.24, s, t, (a - 0.6) / 0.4);   // the portrait sits centred over their star
+    if (S.faces) drawSpecies(W * 0.5, pCy, pSz, s, t, (a - 0.6) / 0.4);   // the portrait sits centred over their star
     ctx.globalAlpha = 1;
   }
 }
