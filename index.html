@@ -477,6 +477,10 @@
   #bFull:active { background: rgba(255,196,107,0.25); }
   #bFull.callout { animation: fsPulse 1.6s ease-out infinite; }    /* an expanding square ring says press me */
   @keyframes fsPulse { 0% { box-shadow: 0 0 0 0 rgba(125,251,168,0.85); } 100% { box-shadow: 0 0 0 16px rgba(125,251,168,0); } }
+  #fps { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 8px; z-index: 15; pointer-events: none;
+    font: 10px ui-monospace, Menlo, monospace; letter-spacing: 0.1em; color: #7dfba8;
+    background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 3px; }
+  #fps.hide { display: none; }
   #fsHint { position: fixed; top: calc(11px + env(safe-area-inset-top)); right: 48px; z-index: 9; pointer-events: none;
     color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
     background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
@@ -646,6 +650,7 @@
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />KEY CLICKS AND THE BUTTON SOUNDS</label>
+      <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
@@ -981,6 +986,7 @@
     <div class="infoFoot">THE CHART, THE CONTACTS LINE, THE TRAFFIC AND ALL CHANNELS FOLLOW THIS · AT LEAST ONE STAYS ON · BESIDE EACH: WHO PUT IT ON THE MAP · SAVED WITH YOUR SETTINGS</div>
   </div>
 </div>
+<div id="fps" class="hide">-- FPS</div>
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
@@ -1063,7 +1069,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1474,13 +1480,13 @@ function measureCtl() {
   const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
-let globeView = null, lastEarthTap = 0;                          // double-tap the world: it pops up front to be turned and zoomed
+let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one                          // double-tap the world: it pops up front to be turned and zoomed
 function gvK() {                                                 // 0 = the chart's hub, 1 = the world up front
   if (!globeView) return 0;
   const now = performance.now() / 1000;
   if (globeView.out) {
     const k = 1 - Math.min(1, (now - globeView.out) / 0.5);
-    if (k <= 0) { globeView = null; return 0; }
+    if (k <= 0) { globeView = null; gvPan.x = gvPan.y = 0; return 0; }
     return easeIO(k);
   }
   return easeIO(Math.min(1, (now - globeView.t0) / 0.6));
@@ -1505,7 +1511,7 @@ function earthGeom() {                                          // ...unless it 
   const g = earthGeomHome(), gv = gvK();
   if (gv <= 0) return g;
   const top = ctlTop || H * 0.72, cyUp = Math.max(g.R * 1.08, top * 0.5), Rup = Math.min(g.R, top * 0.46);
-  return { cx: g.cx, cy: g.cy + (cyUp - g.cy) * gv, R: g.R + (Rup - g.R) * gv, tilt: 0, gv };
+  return { cx: g.cx + gvPan.x * gv, cy: g.cy + (cyUp - g.cy) * gv + gvPan.y * gv, R: g.R + (Rup - g.R) * gv, tilt: 0, gv };
 }
 function skyBase() { const g = earthGeomHome(); return Math.max(H * 0.30, g.cy - g.R - 30); }   // clear of the world (the sky stays put when the world pops up)
 function buildSunTex() {                                        // granulation cells, baked once
@@ -3135,7 +3141,7 @@ function drawEarthHub(t) {
     let d = -BERMUDA.lon - earthRot; d = ((d + 180) % 360 + 360) % 360 - 180;
     earthRot += d * Math.min(1, dt * 2.6 * zt);
     earthTilt += (BERMUDA.lat * 0.8 - earthTilt) * Math.min(1, dt * 2.6 * zt);
-  } else if (Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);
+  } else if (!globeView && Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 2);   // the pop-up world keeps the roll you gave it
   const tiltTgt = zt > 0 ? BERMUDA.lat * 0.8 : 0;               // while the tilt is still easing, draw it in quarter-degree steps
   earthTiltDraw = Math.abs(tiltTgt - earthTilt) > 0.3 ? Math.round(earthTilt / 0.25) * 0.25 : earthTilt;   // fewer geometry builds, overlays stay registered
   if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
@@ -3661,6 +3667,19 @@ function pursueRead(grp) {                                       // one file fro
   log((r.id ? r.id + ": " : "") + r.t.toUpperCase(), "cy");
   if (r.l) log(r.l.toUpperCase());
   logLink("RELEASED " + r.rel + " BY THE DEPARTMENT OF WAR", r.u || PURSUE.src);   // videos have no direct file: the PURSUE page
+}
+let fpsRaf = 0, fpsN = 0, fpsT = 0;
+function fpsRun() {                                              // an honest frame counter, top left, off unless asked for
+  if (!S.fps) { $("fps").classList.add("hide"); fpsRaf = 0; return; }
+  $("fps").classList.remove("hide");
+  if (!fpsRaf) { fpsT = 0; fpsN = 0; fpsRaf = requestAnimationFrame(fpsTick); }
+}
+function fpsTick(t) {
+  if (!S.fps) { fpsRaf = 0; $("fps").classList.add("hide"); return; }
+  fpsN++;
+  if (!fpsT) fpsT = t;
+  if (t - fpsT >= 500) { $("fps").textContent = Math.round((fpsN * 1000) / (t - fpsT)) + " FPS"; fpsT = t; fpsN = 0; }
+  fpsRaf = requestAnimationFrame(fpsTick);
 }
 let fsShown = false;
 function fsCallout() {                                           // the square ring + the words, once, until pressed or 12 s
@@ -5727,7 +5746,7 @@ cvs.addEventListener("pointerdown", (e) => {
     if (!dragEarth) { chartVel = 0; skyMoveT = 0; }
     if (dragEarth) { earthAuto = false; earthVel = 0; lastMoveT = 0; clearTimeout(earthResume); }
   }        // a gesture starts with the first finger only
-  if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); }
+  if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); pinchMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
   if (sysView) { sysLeave(); wasPinch = true; }                  // any finger while looking in: come back out (no tap-pick)
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
@@ -5738,7 +5757,7 @@ cvs.addEventListener("pointermove", (e) => {
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
-      if (dragEarth) { earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; zoomFx(earthZoom, 0.85, globeView ? 2.2 : 1.8); }   // the camera moves in
+      if (dragEarth) { earthZoom = Math.min(globeView ? 2.6 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; zoomFx(earthZoom, 0.85, globeView ? 2.6 : 1.8); }   // the camera moves in
       else {
         chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));           // the sky barely needs it
         zoomFx(chartZoom, 0.85, 1.35);
@@ -5746,10 +5765,17 @@ cvs.addEventListener("pointermove", (e) => {
       }
     }
     pinchD = d;
+    if (dragEarth && globeView && !globeView.out && pinchMid) {  // two fingers carry the world around the screen
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      gvPan.x = Math.max(-W * 0.35, Math.min(W * 0.35, gvPan.x + mid.x - pinchMid.x));
+      gvPan.y = Math.max(-H * 0.28, Math.min(H * 0.34, gvPan.y + mid.y - pinchMid.y));
+      pinchMid = mid;
+    }
   } else if (dragEarth) {                                       // his finger on the world
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (lastMoveT || now - 16)));
-    dragFx("earth", dx);
+    dragFx("earth", Math.abs(dx) + Math.abs(dy));
     earthRot -= dx * 0.30;
+    if (globeView && !globeView.out) earthTilt = Math.max(-80, Math.min(80, earthTilt + dy * 0.25));   // up and down rolls it; the names stay upright
     earthVel = Math.max(-420, Math.min(420, (-dx * 0.30 * 1000) / dtm));
     lastMoveT = now;
   }
@@ -5789,7 +5815,7 @@ cvs.addEventListener("wheel", (e) => {
   e.preventDefault();
   const G = earthGeom(), r = cvs.getBoundingClientRect();
   if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04) {   // over the world
-    earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92))); zoomFx(earthZoom, 0.85, globeView ? 2.2 : 1.8);
+    earthZoom = Math.min(globeView ? 2.6 : 1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92))); zoomFx(earthZoom, 0.85, globeView ? 2.6 : 1.8);
     zoomT = performance.now() / 1000;
     earthRef.dirty = true;
     return;
@@ -6086,7 +6112,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -6172,6 +6198,7 @@ $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); cha
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
+$("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
