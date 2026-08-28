@@ -5424,6 +5424,33 @@ function sendMorse(text) {
 }
 let ac = null, toneOn = false, oscs = [];
 let introFxOff = false;                                          // a skip means silence, not a pile-up
+let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
+function zoomFx(v, lo, hi) {
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(ac.destination); zO.start(); }
+    const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+    zO.frequency.setTargetAtTime(130 + n * 390, ac.currentTime, 0.03);   // in = higher, out = lower
+    zG.gain.setTargetAtTime(0.03, ac.currentTime, 0.04);
+    zActive = true; clearTimeout(zTimer);
+    zTimer = setTimeout(() => { try { if (zG) zG.gain.setTargetAtTime(0, ac.currentTime, 0.05); } catch (e) {}
+      if (zActive) { zActive = false; zoomLand(); } }, 230);
+  } catch (e) {}
+}
+function zoomLand() {                                            // the zoom settles: a soft touch-down
+  if (!S.sfx || !ac) return;
+  try {
+    const t = ac.currentTime;
+    const o = ac.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(390, t + 0.07);
+    const g = ac.createGain(); g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.12);
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.setValueAtTime(95, t); o2.frequency.exponentialRampToValueAtTime(60, t + 0.09);
+    const g2 = ac.createGain(); g2.gain.setValueAtTime(0.06, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+    o2.connect(g2); g2.connect(ac.destination); o2.start(t); o2.stop(t + 0.14);
+  } catch (e) {}
+}
 function openFx(kind, i) {                                       // the opening's own little orchestra
   if (!S.sfx || introFxOff) return;
   try {
@@ -5621,9 +5648,10 @@ cvs.addEventListener("pointermove", (e) => {
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinchD) {
-      if (dragEarth) { earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; }   // the camera moves in
+      if (dragEarth) { earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; zoomFx(earthZoom, 0.85, globeView ? 2.2 : 1.8); }   // the camera moves in
       else {
         chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));           // the sky barely needs it
+        zoomFx(chartZoom, 0.85, 1.35);
         if (d > pinchD && chartZoom >= 1.349) sysTry();                               // and past that: into the front system
       }
     }
@@ -5669,13 +5697,13 @@ cvs.addEventListener("wheel", (e) => {
   e.preventDefault();
   const G = earthGeom(), r = cvs.getBoundingClientRect();
   if (Math.hypot(e.clientX - r.left - G.cx, e.clientY - r.top - G.cy) < G.R * earthZoom * 1.04) {   // over the world
-    earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92)));
+    earthZoom = Math.min(globeView ? 2.2 : 1.8, Math.max(0.85, earthZoom * (e.deltaY < 0 ? 1.09 : 0.92))); zoomFx(earthZoom, 0.85, globeView ? 2.2 : 1.8);
     zoomT = performance.now() / 1000;
     earthRef.dirty = true;
     return;
   }
   chartTgt = null;
-  chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93)));
+  chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * (e.deltaY < 0 ? 1.08 : 0.93))); zoomFx(chartZoom, 0.85, 1.35);
   if (e.deltaY < 0 && chartZoom >= 1.349) sysTry();
 }, { passive: false });
 
