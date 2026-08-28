@@ -5444,6 +5444,30 @@ function zoomFx(v, lo, hi) {
       if (zActive) { zActive = false; zoomLand(); } }, 230);
   } catch (e) {}
 }
+const dragCh = {};                                               // touch-and-drag voices: the world rumbles, the sky breathes, the settings whisper
+function dragFx(kind, speed) {
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    let ch = dragCh[kind];
+    if (!ch) {
+      const len = ac.sampleRate, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 0.7;
+      const g = ac.createGain(); g.gain.value = 0;
+      src.connect(f); f.connect(g); g.connect(ac.destination); src.start();
+      ch = dragCh[kind] = { f, g, timer: 0 };
+    }
+    const cfg = { earth: [130, 420, 0.045], sky: [900, 2100, 0.022], scroll: [480, 1300, 0.03] }[kind];
+    const v = Math.min(1, Math.abs(speed) / 28);
+    ch.f.frequency.setTargetAtTime(cfg[0] + (cfg[1] - cfg[0]) * v, ac.currentTime, 0.03);
+    ch.g.gain.setTargetAtTime(cfg[2] * (0.35 + 0.65 * v), ac.currentTime, 0.05);
+    clearTimeout(ch.timer);
+    ch.timer = setTimeout(() => { try { ch.g.gain.setTargetAtTime(0, ac.currentTime, 0.09); } catch (e) {} }, 150);
+  } catch (e) {}
+}
 function gvFx(up) {                                              // the world pops up front (rising) or settles back (falling)
   if (!S.sfx) return;
   try {
@@ -5724,12 +5748,14 @@ cvs.addEventListener("pointermove", (e) => {
     pinchD = d;
   } else if (dragEarth) {                                       // his finger on the world
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (lastMoveT || now - 16)));
+    dragFx("earth", dx);
     earthRot -= dx * 0.30;
     earthVel = Math.max(-420, Math.min(420, (-dx * 0.30 * 1000) / dtm));
     lastMoveT = now;
   }
   else if (S.chart3d) {                                         // a flick of the sky carries on turning
     const now = performance.now(), dtm = Math.min(120, Math.max(8, now - (skyMoveT || now - 16)));
+    dragFx("sky", dx);
     chartRot += dx * 0.006;
     chartVel = Math.max(-4, Math.min(4, (dx * 0.006 * 1000) / dtm));
     skyMoveT = now;
@@ -5876,6 +5902,11 @@ function flushPending() {                                       // file what thi
 }
 addEventListener("online", flushPending);
 document.addEventListener("pointerdown", () => ambStart(), { passive: true });   // the first touch unlocks audio: the drift can begin
+let setScrollLast = 0;
+$("setCard").addEventListener("scroll", () => {                  // the settings page whispers as it rolls
+  const y = $("setCard").scrollTop, d = y - setScrollLast; setScrollLast = y;
+  if (Math.abs(d) > 1) dragFx("scroll", d * 0.8);
+}, { passive: true });
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   const today = new Date().toISOString().slice(0, 10);
