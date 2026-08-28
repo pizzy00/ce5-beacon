@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=4" />
+<link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body class="intro introHud">
 
@@ -413,6 +413,14 @@
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="muteHint" class="hide display">MUTE EVERY SOUND ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
+<div id="langHint" class="hide display">CHOOSE YOUR LANGUAGE ▸</div>
+<div id="langPick" class="hide">
+  <div id="langCard">
+    <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
+    <div id="langList"></div>
+    <div class="setStat" id="langNote">CORE CONTROLS ARE TRANSLATED · THE DEEP TEXT IS STILL ENGLISH FOR NOW</div>
+  </div>
+</div>
 <div id="privPick" class="hide">
   <div id="privCard">
     <div class="setHead display">PRIVACY — IN PLAIN WORDS <span id="bPrivClose">✕</span></div>
@@ -475,6 +483,7 @@
   <svg class="mut" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor" stroke="none"/><path d="M11 6l4 4M15 6l-4 4"/></svg>
 </button>
+<button id="bLang" aria-label="Language" title="Language"><span id="langGlyph">A</span></button>
 <button id="bIdea" aria-label="Send an idea" title="Send an idea">
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M4.5 8V3.6a1 1 0 0 1 2 0V7M6.5 7V2.6a1 1 0 0 1 2 0V7M8.5 7V3.2a1 1 0 0 1 2 0V7.6M10.5 7.6V4.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5H7.4A3.4 3.4 0 0 1 4.5 13L2.6 9.9a1 1 0 0 1 1.7-1L4.5 9.6"/></svg>
@@ -3190,14 +3199,14 @@ let fsShown = false;
 function fsCallout() {                                           // the ring + the words on all three corner keys, once
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;
-  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"]]) {
+  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]]) {
     const h = $(hid); if (h) h.classList.remove("hide");
     $(bid).classList.add("callout");
   }
   setTimeout(fsCalloutOff, 3000);                               // three seconds, then the sky gets the crown back
 }
 function fsCalloutOff() {
-  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"]]) {
+  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]]) {
     const h = $(hid); if (h) h.classList.add("hide");
     $(bid).classList.remove("callout");
   }
@@ -5644,6 +5653,74 @@ function ideaBuild() {
     d.appendChild(document.createTextNode(x.txt || "")); el.appendChild(d);
   }
 }
+const LANGS = [
+  ["en", "ENGLISH"], ["es", "ESPAÑOL"], ["zh", "中文"], ["hi", "हिन्दी"],
+  ["ar", "العربية"], ["pt", "PORTUGUÊS"], ["fr", "FRANÇAIS"],
+  ["ru", "РУССКИЙ"], ["de", "DEUTSCH"], ["ja", "日本語"]];
+const L10N = {
+  begin:   { en: "TAP TO BEGIN", es: "TOCA PARA EMPEZAR", zh: "轻点开始", hi: "शुरू करने के लिए टैप करें", ar: "انقر للبدء", pt: "TOQUE PARA COMEÇAR", fr: "TOUCHEZ POUR COMMENCER", ru: "КОСНИТЕСЬ, ЧТОБЫ НАЧАТЬ", de: "TIPPEN ZUM STARTEN", ja: "タップして開始" },
+  beginSub:{ en: "SOUND ON · BEST WITH THE VOLUME UP", es: "CON SONIDO · MEJOR CON VOLUMEN ALTO", zh: "开启声音·音量调高效果最佳", hi: "ध्वनि चालू · आवाज़ बढ़ाकर सुनें", ar: "الصوت مفعّل · ارفع مستوى الصوت", pt: "SOM LIGADO · MELHOR COM VOLUME ALTO", fr: "SON ACTIVÉ · MONTEZ LE VOLUME", ru: "СО ЗВУКОМ · ГРОМЧЕ — ЛУЧШЕ", de: "TON AN · AM BESTEN LAUT", ja: "サウンドON・音量を上げて" },
+  warnHead:{ en: "⚠ PHOTOSENSITIVITY WARNING", es: "⚠ AVISO DE FOTOSENSIBILIDAD", zh: "⚠ 光敏感警告", hi: "⚠ प्रकाश संवेदनशीलता चेतावनी", ar: "⚠ تحذير لمرضى الحساسية للضوء", pt: "⚠ AVISO DE FOTOSSENSIBILIDADE", fr: "⚠ AVERTISSEMENT PHOTOSENSIBILITÉ", ru: "⚠ ФОТОЧУВСТВИТЕЛЬНОСТЬ", de: "⚠ WARNUNG: LICHTEMPFINDLICHKEIT", ja: "⚠ 光過敏性に関する警告" },
+  warnBody:{ en: "THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.", es: "ESTA EXPERIENCIA CONTIENE DESTELLOS DE LUZ: UN DESTELLO NUCLEAR SIMULADO Y UNA BALIZA MORSE PULSANTE. AMBOS PUEDEN APAGARSE O AJUSTARSE EN ⚙ AJUSTES.", zh: "本体验包含闪光：模拟核闪光与脉冲莫尔斯信标。两者均可在 ⚙ 设置中关闭或调低。", hi: "इस अनुभव में प्रकाश की चमक है: एक नकली परमाणु चमक और मोर्स संकेत। दोनों को ⚙ सेटिंग्स में बंद या कम किया जा सकता है।", ar: "تحتوي هذه التجربة على ومضات ضوئية: ومضة نووية محاكاة وإشارة مورس نابضة. يمكن إيقافهما أو خفضهما من الإعدادات ⚙.", pt: "ESTA EXPERIÊNCIA CONTÉM FLASHES DE LUZ: UM CLARÃO NUCLEAR SIMULADO E UM FAROL MORSE PULSANTE. AMBOS PODEM SER DESLIGADOS OU AJUSTADOS EM ⚙ AJUSTES.", fr: "CETTE EXPÉRIENCE CONTIENT DES ÉCLAIRS DE LUMIÈRE : UN FLASH NUCLÉAIRE SIMULÉ ET UNE BALISE MORSE PULSÉE. LES DEUX SE DÉSACTIVENT OU SE RÈGLENT DANS ⚙ RÉGLAGES.", ru: "ЭТОТ ОПЫТ СОДЕРЖИТ ВСПЫШКИ СВЕТА: ИМИТАЦИЮ ЯДЕРНОЙ ВСПЫШКИ И ПУЛЬСИРУЮЩИЙ МАЯК МОРЗЕ. ОБА ОТКЛЮЧАЮТСЯ В ⚙ НАСТРОЙКАХ.", de: "DIESES ERLEBNIS ENTHÄLT LICHTBLITZE: EINEN SIMULIERTEN NUKLEARBLITZ UND EIN PULSIERENDES MORSE-LEUCHTFEUER. BEIDES LÄSST SICH IN ⚙ EINSTELLUNGEN ABSCHALTEN ODER DÄMPFEN.", ja: "この体験には光の点滅が含まれます：核爆発のフラッシュ再現とモールス信号。どちらも ⚙ 設定でオフ・調整できます。" },
+  fsHint:  { en: "CLICK HERE FOR FULL SCREEN ▸", es: "PULSA AQUÍ PARA PANTALLA COMPLETA ▸", zh: "点此全屏 ▸", hi: "पूर्ण स्क्रीन के लिए यहाँ दबाएँ ▸", ar: "اضغط هنا لملء الشاشة ▸", pt: "CLIQUE AQUI PARA TELA CHEIA ▸", fr: "CLIQUEZ ICI POUR PLEIN ÉCRAN ▸", ru: "НАЖМИТЕ ДЛЯ ПОЛНОГО ЭКРАНА ▸", de: "HIER FÜR VOLLBILD ▸", ja: "全画面はこちら ▸" },
+  muteHint:{ en: "MUTE EVERY SOUND ▸", es: "SILENCIAR TODO ▸", zh: "静音 ▸", hi: "सभी ध्वनि बंद करें ▸", ar: "كتم كل الأصوات ▸", pt: "SILENCIAR TUDO ▸", fr: "COUPER TOUS LES SONS ▸", ru: "ВЫКЛЮЧИТЬ ЗВУК ▸", de: "ALLE TÖNE STUMM ▸", ja: "すべてミュート ▸" },
+  ideaHint:{ en: "SEND ME YOUR IDEAS ▸", es: "ENVÍAME TUS IDEAS ▸", zh: "把想法告诉我 ▸", hi: "अपने विचार भेजें ▸", ar: "أرسل أفكارك ▸", pt: "ENVIE SUAS IDEIAS ▸", fr: "ENVOYEZ VOS IDÉES ▸", ru: "ПРИШЛИТЕ СВОИ ИДЕИ ▸", de: "SCHICK MIR DEINE IDEEN ▸", ja: "アイデアを送って ▸" },
+  langHint:{ en: "CHOOSE YOUR LANGUAGE ▸", es: "ELIGE TU IDIOMA ▸", zh: "选择语言 ▸", hi: "अपनी भाषा चुनें ▸", ar: "اختر لغتك ▸", pt: "ESCOLHA SEU IDIOMA ▸", fr: "CHOISISSEZ VOTRE LANGUE ▸", ru: "ВЫБЕРИТЕ ЯЗЫК ▸", de: "SPRACHE WÄHLEN ▸", ja: "言語を選択 ▸" },
+  hintDT:  { en: "DOUBLE-TAP THE EARTH TO LOOK CLOSER", es: "DOBLE TOQUE EN LA TIERRA PARA ACERCARTE", zh: "双击地球可近看", hi: "पास से देखने के लिए पृथ्वी पर दो बार टैप करें", ar: "انقر مرتين على الأرض للتقريب", pt: "TOQUE DUAS VEZES NA TERRA PARA APROXIMAR", fr: "DOUBLE-TAPEZ LA TERRE POUR VOUS APPROCHER", ru: "ДВАЖДЫ КОСНИТЕСЬ ЗЕМЛИ, ЧТОБЫ ПРИБЛИЗИТЬ", de: "DOPPELT AUF DIE ERDE TIPPEN ZUM HERANSEHEN", ja: "地球をダブルタップで拡大" },
+  tapHint: { en: "TAP THE SCREEN TO SKIP TO THE NEXT STAGE", es: "TOCA LA PANTALLA PARA SALTAR A LA SIGUIENTE ETAPA", zh: "点击屏幕跳至下一阶段", hi: "अगले चरण पर जाने के लिए स्क्रीन टैप करें", ar: "انقر الشاشة للانتقال للمرحلة التالية", pt: "TOQUE NA TELA PARA PULAR PARA A PRÓXIMA ETAPA", fr: "TOUCHEZ L'ÉCRAN POUR PASSER À L'ÉTAPE SUIVANTE", ru: "КОСНИТЕСЬ ЭКРАНА ДЛЯ СЛЕДУЮЩЕГО ЭТАПА", de: "BILDSCHIRM TIPPEN FÜR DIE NÄCHSTE STUFE", ja: "タップで次のステージへ" },
+  chart:   { en: "ALIEN SYSTEM CHART", es: "CARTA DE SISTEMAS ALIENÍGENAS", zh: "外星系统星图", hi: "एलियन सिस्टम चार्ट", ar: "خريطة الأنظمة الغريبة", pt: "CARTA DE SISTEMAS ALIENÍGENAS", fr: "CARTE DES SYSTÈMES ALIENS", ru: "КАРТА ИНОПЛАНЕТНЫХ СИСТЕМ", de: "KARTE DER ALIEN-SYSTEME", ja: "エイリアン星系図" },
+  start:   { en: "START", es: "INICIO", zh: "启动", hi: "शुरू", ar: "ابدأ", pt: "INICIAR", fr: "DÉMARRER", ru: "ПУСК", de: "START", ja: "開始" },
+  stop:    { en: "STOP", es: "PARAR", zh: "停止", hi: "रोकें", ar: "توقف", pt: "PARAR", fr: "ARRÊT", ru: "СТОП", de: "STOPP", ja: "停止" },
+  secs: {
+    en: ["YOUR SPOT", "SCREEN", "ALIEN SYSTEM CHART", "THE EARTH", "THE JOURNEY", "THE FLASH", "THE ARSENAL", "BERMUDA TRIANGLE", "MESSAGE"],
+    es: ["TU LUGAR", "PANTALLA", "CARTA DE SISTEMAS ALIENÍGENAS", "LA TIERRA", "EL VIAJE", "EL DESTELLO", "EL ARSENAL", "TRIÁNGULO DE LAS BERMUDAS", "MENSAJE"],
+    zh: ["你的位置", "屏幕", "外星系统星图", "地球", "旅程", "闪光", "武库", "百慕大三角", "信息"],
+    hi: ["आपकी जगह", "स्क्रीन", "एलियन सिस्टम चार्ट", "पृथ्वी", "यात्रा", "चमक", "शस्त्रागार", "बरमूडा त्रिकोण", "संदेश"],
+    ar: ["موقعك", "الشاشة", "خريطة الأنظمة الغريبة", "الأرض", "الرحلة", "الومضة", "الترسانة", "مثلث برمودا", "الرسالة"],
+    pt: ["SEU LUGAR", "TELA", "CARTA DE SISTEMAS ALIENÍGENAS", "A TERRA", "A JORNADA", "O CLARÃO", "O ARSENAL", "TRIÂNGULO DAS BERMUDAS", "MENSAGEM"],
+    fr: ["VOTRE POSITION", "ÉCRAN", "CARTE DES SYSTÈMES ALIENS", "LA TERRE", "LE VOYAGE", "L'ÉCLAIR", "L'ARSENAL", "TRIANGLE DES BERMUDES", "MESSAGE"],
+    ru: ["ВАШЕ МЕСТО", "ЭКРАН", "КАРТА ИНОПЛАНЕТНЫХ СИСТЕМ", "ЗЕМЛЯ", "ПУТЕШЕСТВИЕ", "ВСПЫШКА", "АРСЕНАЛ", "БЕРМУДСКИЙ ТРЕУГОЛЬНИК", "СООБЩЕНИЕ"],
+    de: ["DEIN ORT", "BILDSCHIRM", "KARTE DER ALIEN-SYSTEME", "DIE ERDE", "DIE REISE", "DER BLITZ", "DAS ARSENAL", "BERMUDADREIECK", "NACHRICHT"],
+    ja: ["あなたの場所", "画面", "エイリアン星系図", "地球", "旅", "フラッシュ", "兵器庫", "バミューダトライアングル", "メッセージ"],
+  },
+  note: { en: "CORE CONTROLS ARE TRANSLATED · THE DEEP TEXT IS STILL ENGLISH FOR NOW", es: "LOS CONTROLES PRINCIPALES ESTÁN TRADUCIDOS · EL TEXTO PROFUNDO SIGUE EN INGLÉS POR AHORA", zh: "核心控件已翻译·深层文本暂为英文", hi: "मुख्य नियंत्रण अनुवादित हैं · गहरा पाठ अभी अंग्रेज़ी में है", ar: "تمت ترجمة عناصر التحكم الأساسية · النص العميق ما زال بالإنجليزية", pt: "OS CONTROLES PRINCIPAIS ESTÃO TRADUZIDOS · O TEXTO PROFUNDO AINDA ESTÁ EM INGLÊS", fr: "LES COMMANDES PRINCIPALES SONT TRADUITES · LE TEXTE PROFOND RESTE EN ANGLAIS POUR L'INSTANT", ru: "ОСНОВНЫЕ ЭЛЕМЕНТЫ ПЕРЕВЕДЕНЫ · ГЛУБОКИЙ ТЕКСТ ПОКА НА АНГЛИЙСКОМ", de: "DIE KERN-BEDIENUNG IST ÜBERSETZT · DER TIEFE TEXT IST VORERST ENGLISCH", ja: "主要な操作は翻訳済み・詳細テキストは当面英語" },
+};
+let uiLang = "en"; try { uiLang = localStorage.getItem("ce5.lang") || "en"; } catch (e) {}
+if (!LANGS.some((x) => x[0] === uiLang)) uiLang = "en";
+function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
+function applyLang() {
+  const put = (id, key) => { const el = $(id); if (el) el.textContent = tr(key); };
+  const tb = document.querySelector("#tapBegin > div");
+  if (tb && tb.childNodes[0]) tb.childNodes[0].textContent = tr("begin");
+  const sm = document.querySelector("#tapBegin small"); if (sm) sm.textContent = tr("beginSub");
+  const w = document.querySelector("#tapBegin .warn");
+  if (w) { w.childNodes[0].textContent = tr("warnHead"); const em = w.querySelector("em"); if (em) em.textContent = tr("warnBody"); }
+  put("fsHint", "fsHint"); put("muteHint", "muteHint"); put("ideaHint", "ideaHint"); put("langHint", "langHint");
+  put("hintDT", "hintDT"); put("tapHint", "tapHint"); put("langNote", "note");
+  const go = document.querySelector("#bEngage .lbl.go"), st = document.querySelector("#bEngage .lbl.stop");
+  if (go) go.textContent = tr("start"); if (st) st.textContent = tr("stop");
+  if (phase === "chart") $("phaseTxt").textContent = tr("chart");
+  const secs = document.querySelectorAll("#setCard .setSec"), names = L10N.secs[uiLang] || L10N.secs.en;
+  secs.forEach((el, i) => { if (names[i]) el.textContent = names[i]; });
+}
+function langBuild() {
+  const el = $("langList"); el.textContent = "";
+  for (const [code, name] of LANGS) {
+    const d = document.createElement("div"); d.className = "langRow" + (code === uiLang ? " on" : "");
+    d.textContent = name; d.onclick = () => {
+      uiLang = code; try { localStorage.setItem("ce5.lang", code); } catch (e) {}
+      sfx("key"); applyLang(); langBuild();
+    };
+    el.appendChild(d);
+  }
+}
+$("bLang").onclick = () => { sfx("cover"); langBuild(); $("langPick").classList.remove("hide"); };
+$("bLangClose").onclick = () => { sfx("cover"); $("langPick").classList.add("hide"); };
+$("langPick").addEventListener("click", (e) => { if (e.target === $("langPick")) $("langPick").classList.add("hide"); });
+const GLYPHS = ["A", "文", "अ", "ع", "Я", "あ"];
+let glyphI = 0;
+setInterval(() => { glyphI = (glyphI + 1) % GLYPHS.length; const g = $("langGlyph"); if (g) g.textContent = GLYPHS[glyphI]; }, 2000);
+applyLang();
 let appLogGot = null;
 function openAppLog() {
   $("info").classList.add("hide"); $("logPick").classList.remove("hide");

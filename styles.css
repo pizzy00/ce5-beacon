@@ -653,3 +653,30 @@
   border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
   font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
 #privCard .setLbl { margin-top: 12px; }
+
+/* the language key and its picker */
+#bLang { position: fixed; right: 10px; top: calc(120px + env(safe-area-inset-top, 0px)); z-index: 9;
+  width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
+  background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
+#bLang:active { background: rgba(255,196,107,0.25); }
+#bLang.callout { animation: fsPulse 1.6s ease-out infinite; }
+#bLang #langGlyph { font: 700 13px ui-monospace, Menlo, monospace; }
+body.run #bLang, body.active #bLang { opacity: 0.3; }
+body.intro #bLang { opacity: 0 !important; }
+#langHint { position: fixed; right: 48px; top: calc(123px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
+  color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
+  background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+#langHint.hide { display: none; }
+#langPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center; }
+#langPick.hide { display: none; }
+#langCard { max-width: 420px; width: calc(100% - 24px); max-height: 78vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+.langRow { padding: 10px 8px; border-bottom: 1px dotted rgba(255,196,107,0.18); cursor: pointer; }
+.langRow.on { color: var(--amber); }
+.langRow.on::after { content: " \2713"; }
