@@ -449,6 +449,10 @@
   #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.34em; text-shadow: 0 0 12px rgba(125,251,168,0.55); animation: beginPulse 1.8s ease-in-out infinite; }
   #tapBegin small { display: block; margin-top: 12px; font-size: 8px; letter-spacing: 0.22em; color: rgba(169,255,198,0.55); }
   @keyframes beginPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+  #tapBegin .warn { display: block; margin-top: 42px; animation: none; color: var(--amber, #ffc46b);
+    font-size: 10px; letter-spacing: 0.2em; opacity: 0.9; }
+  #tapBegin .warn em { display: block; margin: 10px auto 0; max-width: 320px; font-style: normal;
+    font-size: 8.5px; letter-spacing: 0.14em; line-height: 1.8; color: rgba(255,196,107,0.75); }
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -1046,7 +1050,8 @@
     <div id="ideaList"><div class="setStat">READING THE BOARD…</div></div>
   </div>
 </div>
-<div id="tapBegin" class="hide"><div>TAP TO BEGIN<small>SOUND ON · BEST WITH THE VOLUME UP</small></div></div>
+<div id="tapBegin" class="hide"><div>TAP TO BEGIN<small>SOUND ON · BEST WITH THE VOLUME UP</small>
+<span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span></div></div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
