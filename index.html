@@ -342,13 +342,13 @@
     #loc { font-size: 12px; height: 15px; line-height: 15px; }
     #keys .key { min-width: 54px; }
   }
-  #keys #bLocL, #keys #bLocR { color: #0d7a3c;                     /* the two to press: green-tinted caps that breathe light */
+  #keys #bLocL, #keys #bLocR { color: #0d7a3c;                     /* the two to press: they strobe so you know */
     background: linear-gradient(180deg, #e4f4dc 0%, #cfe6c2 48%, #b6d2a8 100%); border-color: #5f8a5a;
-    animation: keyGlow 2.4s ease-in-out infinite; }
+    animation: keyGlow 1.3s ease-in-out infinite; }
   #bLocL svg, #bLocR svg { width: 10px; height: 12px; filter: drop-shadow(0 0 2px rgba(60,220,120,0.8)); }
   @keyframes keyGlow {
-    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 4px rgba(125,251,168,0.25); }
-    50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 16px rgba(125,251,168,0.95); }
+    0%, 100% { filter: brightness(0.96); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 3px rgba(125,251,168,0.2); }
+    50% { filter: brightness(1.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -2px 0 rgba(0,0,0,0.12), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 24px rgba(125,251,168,1), 0 0 8px rgba(125,251,168,0.9); }
   }
   @media (prefers-reduced-motion: reduce) {
     #keys #bLocL, #keys #bLocR { animation: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 0 #5f8a5a, 0 4px 6px rgba(0,0,0,0.6), 0 0 10px rgba(125,251,168,0.7); }
@@ -370,7 +370,7 @@
     margin: calc(var(--cs) / -2) 0 0 calc(var(--cs) / -2); border-radius: 50%;
     background:
       radial-gradient(circle at 50% 34%, rgba(255,255,255,0.42), rgba(255,255,255,0) 46%),
-      linear-gradient(168deg, #7bf59b 0%, #2fbe55 38%, #128b37 72%, #0a5f26 100%);
+      linear-gradient(168deg, #4ed676 0%, #1f9440 38%, #0c6b2a 72%, #07481d 100%);   /* deeper green, less toy */
     box-shadow:
       inset 0 3px 4px rgba(255,255,255,0.45),                    /* rounded top edge of the ring */
       inset 0 -5px 9px rgba(0,0,0,0.38),                         /* the ring rolls away underneath */
@@ -382,7 +382,7 @@
     content: ""; position: absolute; inset: 13%; border-radius: 50%;
     background:
       radial-gradient(ellipse 48% 30% at 34% 20%, rgba(255,255,255,0.80), rgba(255,255,255,0) 72%),
-      radial-gradient(circle at 40% 32%, #8dffab 0%, #38d763 40%, #14a03e 74%, #0b6b2a 100%);
+      radial-gradient(circle at 40% 32%, #63e186 0%, #28a94c 40%, #0e7c30 74%, #084f1f 100%);
     box-shadow:
       inset 0 2px 3px rgba(255,255,255,0.55),
       inset 0 -7px 13px rgba(0,0,0,0.34),
