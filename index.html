@@ -686,14 +686,14 @@
       <div class="bdBtns"><span class="setBtn" id="bSysPick">PICK THE SYSTEMS…</span></div>
       <div class="setStat" id="sysStat"></div>
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
-      <input type="range" id="rSpin" min="0" max="40" step="1" value="5" />
+      <input type="range" id="rSpin" min="0" max="160" step="1" value="5" />
       <div class="setLbl">PINCH INTO A SYSTEM AT THE FRONT — HOLD THEIR HOME FOR <span id="vSys">7.5</span>S</div>
-      <input type="range" id="rSys" min="3" max="20" step="0.5" value="7.5" />
+      <input type="range" id="rSys" style="direction: rtl" min="3" max="20" step="0.5" value="7.5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
       <div class="setLbl">HOW FAST THE SHIPS RUN — <span id="vShip">1.0</span>×</div>
-      <input type="range" id="rShip" min="10" max="300" step="10" value="100" />
+      <input type="range" id="rShip" min="10" max="1000" step="10" value="100" />
       <label class="setChk"><input type="checkbox" id="ckShipRnd" />RANDOM — EVERY SHIP AT ITS OWN SPEED · WHO KNOWS HOW FAST THEY REALLY GO</label>
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS WHERE THEY REALLY ARE TODAY (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
@@ -742,17 +742,17 @@
       <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR\u2019S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE \u2014 TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
       <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
-      <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
+      <input type="range" id="rBreath" style="direction: rtl" min="2" max="8" step="0.2" value="3.2" />
       <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
     </div>
     <div class="setRow">
       <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · ISS · EARTH)</span></div>
-      <input type="range" id="rFly" min="2" max="25" step="0.5" value="5" />
+      <input type="range" id="rFly" style="direction: rtl" min="2" max="25" step="0.5" value="5" />
       <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
-      <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1" />
+      <input type="range" id="rSpace" style="direction: rtl" min="0.5" max="2" step="0.1" value="1" />
       <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
       <div class="setLbl">ORIGIN LEG PACE — <span id="vOrigin">1.0</span>×</div>
-      <input type="range" id="rOrigin" min="0.5" max="3" step="0.1" value="1" />
+      <input type="range" id="rOrigin" style="direction: rtl" min="0.5" max="3" step="0.1" value="1" />
       <div class="setStat">THEIR HOME SYSTEM + THE CROSSING — HIGHER = SLOWER</div>
     </div>
     <div class="setRow">
@@ -768,7 +768,7 @@
     </div>
     <div class="setRow">
       <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
-      <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1" />
+      <input type="range" id="rDive" style="direction: rtl" min="0.5" max="2" step="0.1" value="1" />
       <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
       <div class="setLbl">DESCENT DETAIL</div>
       <select id="selDetail">
@@ -784,7 +784,7 @@
       </select>
       <div class="setStat">AFTER TOUCHDOWN YOU CAN STILL PINCH FURTHER · THE IMAGERY ITSELF STOPS AT 19</div>
       <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
-      <input type="range" id="rBcn" min="0" max="10" step="0.25" value="0.25" />
+      <input type="range" id="rBcn" style="direction: rtl" min="0" max="10" step="0.25" value="0.25" />
       <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
       <div class="setLbl">SATELLITE TILE PRECACHE</div>
       <select id="selCache">
@@ -799,7 +799,7 @@
     <div class="setSec">THE FLASH</div>
     <div class="setRow">
       <div class="setLbl">HOLD ON YOUR SPOT BEFORE THE FLASH — <span id="vArr">8</span>S</div>
-      <input type="range" id="rArr" min="0" max="40" step="1" value="8" />
+      <input type="range" id="rArr" style="direction: rtl" min="0" max="40" step="1" value="8" />
       <label class="setChk"><input type="checkbox" id="ckNukeAll" checked />THE FLASH ON EVERY TRIP — CLOSE YOUR EYES BEFORE THE DESCENT (OFF = BERMUDA ONLY)</label>
       <div class="setLbl">WHICH SHOT'S LIGHT</div>
       <select id="selShot">
@@ -813,13 +813,13 @@
       <input type="range" id="rInt" min="30" max="100" step="5" value="100" />
       <div class="setStat">TURN IT DOWN IN A DARK ROOM · PHOTOSENSITIVE? TAP THE WARNING TO SKIP THE STAGE</div>
       <div class="setLbl">FLASH TIME STRETCH — <span id="vStretch">1.0</span>×</div>
-      <input type="range" id="rStretch" min="0.5" max="3" step="0.1" value="1" />
+      <input type="range" id="rStretch" style="direction: rtl" min="0.5" max="3" step="0.1" value="1" />
       <div class="setStat">1× = AS FILMED · TEST CAMERAS RAN FAST, SO THE FILM IS ALREADY SLOWER THAN LIFE</div>
       <div class="setLbl">FLASHES — <span id="vRepeat">1</span></div>
       <input type="range" id="rRepeat" min="1" max="8" step="1" value="1" />
       <label class="setChk"><input type="checkbox" id="ckSalvo" />A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT</label>
       <div class="setLbl">EYES-CLOSED COUNTDOWN — <span id="vWarn">6</span>S</div>
-      <input type="range" id="rWarn" min="2" max="15" step="1" value="6" />
+      <input type="range" id="rWarn" style="direction: rtl" min="2" max="15" step="1" value="6" />
       <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
     </div>
     </div>
@@ -829,7 +829,7 @@
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS AFTER THE FLASH — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
       <div class="setLbl">SECONDS PER PHOTO — <span id="vPhoto">1.6</span>S</div>
-      <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="1.6" />
+      <input type="range" id="rPhoto" style="direction: rtl" min="0.5" max="5" step="0.1" value="1.6" />
       <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
     </div>
     </div>
@@ -846,17 +846,17 @@
       </select>
       <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
       <div class="setLbl">ORBIT APPROACH — <span id="vOrbit">12</span>S</div>
-      <input type="range" id="rOrbit" min="4" max="30" step="1" value="12" />
+      <input type="range" id="rOrbit" style="direction: rtl" min="4" max="30" step="1" value="12" />
       <div class="setStat">ENGAGE STARTS IN ORBIT AND DESCENDS ONTO THE TRIANGLE · THEN THE HOLD BELOW</div>
       <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
       <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
       <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
       <label class="setChk"><input type="checkbox" id="ckNow" checked />THEN 2 ACTIVE MISSILE BASES — MALMSTROM · F.E. WARREN (MINUTEMAN III)</label>
       <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
-      <input type="range" id="rHold" min="3" max="25" step="1" value="10" />
+      <input type="range" id="rHold" style="direction: rtl" min="3" max="25" step="1" value="10" />
       <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · LONGER = TIME TO TAKE IT IN</div>
       <div class="setLbl">FLIGHT TIME BETWEEN SITES — <span id="vBFly">7</span>S</div>
-      <input type="range" id="rBFly" min="3" max="15" step="1" value="7" />
+      <input type="range" id="rBFly" style="direction: rtl" min="3" max="15" step="1" value="7" />
       <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
     </div>
     </div>
@@ -1480,7 +1480,8 @@ function measureCtl() {
   const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
-let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one                          // double-tap the world: it pops up front to be turned and zoomed
+let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one
+let earthGoal = null, spotPulse = null;                          // a picked spot swings to the front and rings                          // double-tap the world: it pops up front to be turned and zoomed
 function gvK() {                                                 // 0 = the chart's hub, 1 = the world up front
   if (!globeView) return 0;
   const now = performance.now() / 1000;
@@ -3137,6 +3138,11 @@ function drawEarthHub(t) {
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
   const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // close enough in = the Triangle wakes, pop-up view included
   if (zt <= 0 && !globeView && earthAuto && Math.abs(earthTilt) > 0.05) earthTilt += (0 - earthTilt) * Math.min(1, dt * 0.5);   // free look: zooming never steers you anywhere; it drifts level only once the world minds itself
+  if (earthGoal) {                                              // the picked spot comes round to face you, then the world minds itself again
+    let gd = -earthGoal.lon - earthRot; gd = ((gd + 180) % 360 + 360) % 360 - 180;
+    earthRot += gd * Math.min(1, dt * 2.2);
+    if (Math.abs(gd) < 1.5) { earthGoal = null; earthAuto = true; }
+  }
   earthTiltDraw = Math.round(earthTilt / 0.25) * 0.25;           // quarter-degree steps: fewer geometry builds, no visible difference
   if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
     earthZoom += (EZ_HOME - earthZoom) * Math.min(1, dt * 0.8);
@@ -3270,6 +3276,13 @@ function drawEarthHub(t) {
   for (const pin of pins) {
     const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
+    if (spotPulse && spotPulse.id === pin.id) {                 // the ring that says HERE
+      const pa = (performance.now() / 1000 - spotPulse.t0) / 1.1;
+      if (pa >= 3) spotPulse = null;
+      else { const w = pa % 1, rr = 8 + w * 36;
+        ctx.globalAlpha = 0.85 * (1 - w); ctx.strokeStyle = pin.c; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1; }
+    }
     const on = selected.id === pin.id;
     glow(p.x, p.y, 7, pin.c, on ? 0.75 : 0.45);
     ctx.fillStyle = pin.c; ctx.beginPath(); ctx.arc(p.x, p.y, on ? 2.6 : 2, 0, 6.29); ctx.fill();
@@ -3797,7 +3810,7 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
-    label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, s.tag, s.c, right ? "right" : "left");   // the light-years live on the tube and the lean-in card, not the spinning sky
+    if (depth > 0.4) label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, s.tag, s.c, right ? "right" : "left");   // words only when readable; the marker carries the far side
     ctx.globalAlpha = 1;
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
@@ -5724,6 +5737,11 @@ function focusChart(s) {                                        // a pick before
 }
 function pickDeparture(o, auto) {                               // auto: attract mode picked it, not his hand
   selected = o; allChannels = false; $("bAll").classList.remove("on");
+  if (o.mode === "bermuda" || o.mode === "ocean") {             // the world swings to the spot you picked and rings it
+    const q = o.mode === "bermuda" ? BERMUDA : nearestSite();
+    earthGoal = { lon: q.lon }; spotPulse = { id: o.id, t0: performance.now() / 1000 };
+    earthAuto = false; earthVel = 0;
+  }
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === o.id));
   focusChart(o);
   if (!auto) { log("DEPARTURE SET: " + o.name + " (" + o.tag + ")"); lastUserPick = performance.now(); }
@@ -5949,7 +5967,10 @@ function flushPending() {                                       // file what thi
 }
 addEventListener("online", flushPending);
 document.addEventListener("pointerdown", () => ambStart(), { passive: true });   // the first touch unlocks audio: the drift can begin
-// (the settings-scroll sound is gone: it never sounded right)
+$("setCard").addEventListener("change", (e) => { if (e.target.matches("input, select")) sfx("key"); });
+$("setCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bClose")) sfx("cover"); });
+$("sysCard").addEventListener("change", (e) => { if (e.target.matches("input")) sfx("key"); });
+$("sysCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bSysClose")) sfx("cover"); });
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   const today = new Date().toISOString().slice(0, 10);
