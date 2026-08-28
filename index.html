@@ -5988,7 +5988,8 @@ function logTrip() {                                            // a run reached
 }
 function readPending() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || "[]") || []; } catch (e) { return []; } }
 let flushing = false;
-function flushPending() {                                       // file what this device still owes the board, one issue per trip
+function flushPending() {
+  if (!BOARD_HOME) return;                                      // test loads never touch the board                                       // file what this device still owes the board, one issue per trip
   if (!BOARD_TOKEN || boardDead || flushing || !navigator.onLine) return;
   const P = readPending(); if (!P.length) return;
   flushing = true;
@@ -6015,8 +6016,10 @@ $("setCard").addEventListener("change", (e) => { if (e.target.matches("input, se
 $("setCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bClose")) sfx("cover"); });
 $("sysCard").addEventListener("change", (e) => { if (e.target.matches("input")) sfx("key"); });
 $("sysCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bSysClose")) sfx("cover"); });
+const BOARD_HOME = location.hostname === "pizzy00.github.io";   // only the real site talks to the board
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
+  if (!BOARD_HOME) return;
   const today = new Date().toISOString().slice(0, 10);
   let seen = ""; try { seen = localStorage.getItem(VISIT_KEY) || ""; } catch (e) {}
   if (seen === today) return;
