@@ -5949,6 +5949,35 @@ function openBoard() {
     .then((b) => {
       const lead = (b && b.leaders || []).slice(0, 25), last = (b && b.trips || []).slice(-8).reverse();
       let h = note;
+      try {                                                      // the fleet numbers: everything the flat files can honestly say
+        const T = (b && b.totals) || {}, names = Object.keys(T), trips = (b && b.trips) || [];
+        if (names.length) {
+          const allTrips = names.reduce((a, n) => a + (T[n].trips || 0), 0);
+          const allLy = names.reduce((a, n) => a + (T[n].ly || 0), 0);
+          let far = 0, farWho = "";
+          for (const n of names) if ((T[n].far || 0) > far) { far = T[n].far; farWho = n; }
+          const dayAgo = Date.now() - 864e5, weekAgo = Date.now() - 7 * 864e5;
+          const t24 = trips.filter((x) => x.t > dayAgo).length, t7 = trips.filter((x) => x.t > weekAgo).length;
+          const byD = {}; trips.forEach((x) => (byD[x.d] = (byD[x.d] || 0) + 1));
+          const top = Object.keys(byD).sort((a2, b2) => byD[b2] - byD[a2]).slice(0, 3);
+          const rank = ((b && b.leaders) || []).findIndex((r) => r.n === callsign) + 1;
+          const v = (b && b.visits) || null;
+          let bd = "", bn = 0; if (v && v.days) for (const k of Object.keys(v.days)) if (v.days[k] > bn) { bn = v.days[k]; bd = k; }
+          const line = (l, r2) => '<div class="bdRow"><span>' + l + "</span><span>" + r2 + "</span></div>";
+          h += '<div class="setLbl">FLEET NUMBERS</div>';
+          h += line("TRAVELLERS EVER", names.length + " CALL-SIGN" + (names.length === 1 ? "" : "S"));
+          h += line("TRIPS EVER · TOGETHER", allTrips + " · " + fmtLy(Math.round(allLy)));
+          if (allLy >= 105700) h += line("THAT IS THE MILKY WAY CROSSED", (allLy / 105700).toFixed(1) + " TIMES OVER");
+          else if (allLy > 0) h += line("OF ONE MILKY WAY CROSSING", ((allLy / 105700) * 100).toFixed(allLy > 1000 ? 1 : 3) + "%");
+          if (far) h += line("FARTHEST SINGLE TRIP", esc(farWho) + " · " + fmtLy(far));
+          h += line("THE LAST 24 H · 7 DAYS", t24 + " · " + t7 + " TRIPS");
+          if (top.length) h += line("WHERE EVERYONE GOES", top.map((d) => esc(d) + " (" + byD[d] + ")").join(" · "));
+          if (rank) h += line("YOUR PLACE ON THE BOARD", "#" + rank + " OF " + ((b && b.leaders) || []).length);
+          if (bd) h += line("BUSIEST DAY AT THE CONSOLE", bd + " · " + bn + " DEVICE" + (bn === 1 ? "" : "S"));
+          h += '<div class="setStat">RECENT COUNTS READ THE LAST ' + trips.length + " TRIPS ON FILE · THE TOTALS COUNT EVERYTHING EVER</div>";
+          h += '<div class="setLbl" style="margin-top:10px">LEADERS</div>';
+        }
+      } catch (e) {}
       if (!lead.length) h += '<div class="setStat">NOBODY ON THE BOARD YET \u00b7 BE THE FIRST</div>';
       else h += lead.map((r, i) => '<div class="bdRow' + (r.n === callsign ? " me" : "") + '"><span><b>' + (i + 1) + ". " + esc(r.n) + '</b> \u00b7 ' + r.trips + ' TRIP' + (r.trips === 1 ? "" : "S") +
         '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.last) + '</i></span></div>').join("");
