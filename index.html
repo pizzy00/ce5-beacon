@@ -547,6 +547,12 @@
   #msgIn { width: 100%; display: block; }
   #morse { position: fixed; inset: 0; z-index: 12; background: #fff; opacity: 0; pointer-events: none; }
   #morse.hide { display: none; }
+  #txMsg { position: fixed; left: 10px; right: 10px; bottom: calc(var(--ctlH, 128px) + 46px); z-index: 8; text-align: center;
+    pointer-events: none; font-size: 13px; letter-spacing: 0.22em; line-height: 1.9; color: rgba(240,236,226,0.28);
+    text-shadow: 0 0 8px rgba(0,0,0,0.95); }
+  #txMsg.hide { display: none; }
+  #txMsg b { font-weight: 400; color: var(--amber); }
+  #txMsg u { text-decoration: none; color: #ffffff; text-shadow: 0 0 10px rgba(255,236,180,0.9); }
   #setCard input:not([type="range"]):not([type="checkbox"]) { flex: 1; min-width: 0;
     background: rgba(10,10,24,0.9); border: 1px solid var(--cyan); color: var(--ink);
     font: inherit; font-size: 13px; padding: 9px; border-radius: 3px; }
@@ -962,6 +968,7 @@
 </div>
 <div id="nuke" class="hide"></div>
 <div id="morse" class="hide"></div>
+<div id="txMsg" class="hide display"></div>
 <div id="flash" class="hide">
   <div class="archCap display">THE ARSENAL — <span id="flashCap">REAL MISSILES</span></div>
   <img id="flashImg" alt="" />
@@ -5317,7 +5324,7 @@ function morseKey(on) {
 }
 function stopMorse() {
   ++morseToken; clearTimeout(morseHold);
-  const l = $("morse"); l.style.opacity = "0"; l.classList.add("hide");
+  const l = $("morse"); l.style.opacity = "0"; l.classList.add("hide"); $("txMsg").classList.add("hide");
   if (morseGain && ac) { try { morseGain.gain.setTargetAtTime(0, ac.currentTime, 0.004); } catch (e) {} }
 }
 function sendMorse(text) {
@@ -5326,22 +5333,32 @@ function sendMorse(text) {
   if (!words.length) return log("NOTHING TO SEND — USE LETTERS AND NUMBERS", "alert");
   const token = morseToken, unit = 1200 / S.mWpm;                 // PARIS standard: dot = 1200 / wpm ms
   const plan = [];                                                  // [on?, units]
+  const up = String(text || "").toUpperCase();
+  const disp = up.split(/\s+/).filter((w) => [...w].some((c) => MORSE[c])).join(" ");   // what the sky actually gets
+  let pos = 0;
   words.forEach((w, wi) => {
     w.forEach((ch, ci) => {
-      [...ch].forEach((sym, si) => { plan.push([true, sym === "-" ? 3 : 1]); if (si < ch.length - 1) plan.push([false, 1]); });
-      if (ci < w.length - 1) plan.push([false, 3]);
+      const at = pos + ci;
+      [...ch].forEach((sym, si) => { plan.push([true, sym === "-" ? 3 : 1, at]); if (si < ch.length - 1) plan.push([false, 1, at]); });
+      if (ci < w.length - 1) plan.push([false, 3, at]);
     });
-    if (wi < words.length - 1) plan.push([false, 7]);
+    pos += w.length + 1;                                          // the space between words
+    if (wi < words.length - 1) plan.push([false, 7, pos - 1]);
   });
+  const paint = (at) => {                                         // the message on screen, the letter under the key lit
+    $("txMsg").innerHTML = "<b>" + esc(disp.slice(0, at)) + "</b><u>" + esc(disp.charAt(at) || "") + "</u>" + esc(disp.slice(at + 1));
+  };
+  $("txMsg").classList.remove("hide"); paint(0);
   const total = plan.reduce((n, p) => n + p[1], 0) * unit;
   log("TX MORSE @ " + S.mWpm + " WPM · " + Math.round(total / 1000) + " S", "cy");
   log(morseString(text).slice(0, 60) + (morseString(text).length > 60 ? "…" : ""), "cy");
   let i = 0;
   const step = () => {
     if (token !== morseToken) return;
-    if (i >= plan.length) { morseKey(false); $("morse").classList.add("hide"); log("TX COMPLETE · " + words.length + " WORDS", "cy"); return; }
-    const [on, units] = plan[i++];
-    morseKey(on);
+    if (i >= plan.length) { morseKey(false); $("morse").classList.add("hide"); log("TX COMPLETE · " + words.length + " WORDS", "cy");
+      $("txMsg").innerHTML = "<b>" + esc(disp) + "</b>"; setTimeout(() => { if (token === morseToken) $("txMsg").classList.add("hide"); }, 2500); return; }
+    const [on, units, at] = plan[i++];
+    paint(at); morseKey(on);
     morseHold = setTimeout(step, units * unit);
   };
   step();
