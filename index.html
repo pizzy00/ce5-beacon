@@ -3664,7 +3664,7 @@ function fsCallout() {                                           // the square r
   fsShown = true;
   const h = $("fsHint"); if (!h) return;
   h.classList.remove("hide"); $("bFull").classList.add("callout");
-  setTimeout(fsCalloutOff, 12000);
+  setTimeout(fsCalloutOff, 3000);                               // three seconds, then the sky gets the crown back
 }
 function fsCalloutOff() { const h = $("fsHint"); if (h) h.classList.add("hide"); $("bFull").classList.remove("callout"); }
 function introAfter() {                                         // everything else preloads once the opening is done
