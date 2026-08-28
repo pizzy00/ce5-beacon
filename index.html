@@ -3165,7 +3165,7 @@ function drawEarthHub(t) {
   let PLANET_NEAR = null;
   if (S.planets && zt < 0.15 && IK.planets > 0) {              // the real order round the Sun; Earth's own ring runs through the hub (not in the close-up)
     const dx = sx - sunX, q = 0.26, front = [];
-    ctx.strokeStyle = "rgba(255,196,107," + (0.055 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;   // whisper-faint: the rings are a hint, not noise
+    ctx.strokeStyle = "rgba(255,196,107," + (0.055 * IK.planets * (0.55 + 0.45 * Math.sin(t * 0.35))).toFixed(3) + ")"; ctx.lineWidth = 1;   // the rings breathe in and out
     ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
     const phiE = Math.atan2(-(sy - sunY) / q, sx - sunX);       // where Earth sits on its ring (counterclockwise, seen from the north)
     PLANETS.forEach((p, i) => {
@@ -3174,7 +3174,7 @@ function drawEarthHub(t) {
       const th = phiE + (p.L - EARTH_L) * DEG + t * 0.055 / Math.pow(p.au, 1.5);   // where it really is today, then Kepler at a quarter of the old pace
       const x = sunX + Math.cos(th) * a, y = sunY - Math.sin(th) * a * q;
       if (!p.car) {                                               // (the car shares Mars's lane near enough: no ring of its own)
-        ctx.strokeStyle = "rgba(255,196,107," + (0.04 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255,196,107," + (0.04 * IK.planets * (0.55 + 0.45 * Math.sin(t * 0.35 + i))).toFixed(3) + ")"; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
       }
       const job = () => {
@@ -3203,8 +3203,8 @@ function drawEarthHub(t) {
   if (!reduced) { moonRot += dt * 1.4; moonOrbit += dt * 0.17; cloudDrift += dt * S.cloudSpd; }   // one lap in about 37 seconds; the weather slides a little
   const mA = Math.min(RZ * 1.6, W / 2 - RZ * 0.10 - 3), mSin = Math.sin(moonOrbit), ocy = sy - RZ * 0.62;   // well out (real: 60 radii) but never off a phone screen; the lane rides high, the console eats the rest
   const mx = sx + Math.cos(moonOrbit) * mA, my = ocy + mSin * mA * 0.34;
-  const mr = RZ * 0.10 * IK.moon, behind = mSin < 0;            // far side of the orbit: it goes behind the world; the opening grows it in
-  ctx.strokeStyle = "rgba(200,214,255," + (0.055 * IK.moon).toFixed(3) + ")"; ctx.lineWidth = 1;   // his note: fainter, and no dashes
+  const mr = RZ * 0.10 * IK.moon * (1 + mSin * 0.30), behind = mSin < 0;   // it swells on the near side of its lane, shrinks behind
+  ctx.strokeStyle = "rgba(200,214,255," + (0.055 * IK.moon * (0.55 + 0.45 * Math.sin(t * 0.4))).toFixed(3) + ")"; ctx.lineWidth = 1;   // the lane breathes
   ctx.beginPath(); ctx.ellipse(sx, ocy, mA, mA * 0.34, 0, 0, 6.29); ctx.stroke();
   const drawMoon = () => {
     if (IK.moon <= 0 || mr < 1) return;   // a sub-pixel Moon would be a zero-size canvas (the pop-up world)
@@ -3792,21 +3792,22 @@ function drawChart3D(t) {
   for (const { s, q } of P) {
     if (s.ik <= 0) continue;
     const x = q.x, y = q.y, k = q.k, depth = dofK(k) * s.ik;
+    const kk = k * (0.55 + 0.85 * dofK(k));                      // the size half of the depth of field: near = big, far = small
     ctx.globalAlpha = depth;
     if (s.cluster) {
       for (let i = 0; i < 7; i++)
-        star(x + Math.cos(i * 2.4) * (6 + i * 2.4) * k, y + Math.sin(i * 1.9) * (5 + i * 2) * k, 1.1 * k, s.c);
+        star(x + Math.cos(i * 2.4) * (6 + i * 2.4) * kk, y + Math.sin(i * 1.9) * (5 + i * 2) * kk, 1.1 * kk, s.c);
     } else if (s.galaxy) {
       ctx.save(); ctx.translate(x, y); ctx.rotate(-0.5 + chartRot * 0.3);
-      glow(0, 0, 22 * k, s.c, 0.5);
+      glow(0, 0, 22 * kk, s.c, 0.5);
       ctx.strokeStyle = s.c; ctx.globalAlpha = 0.6 * depth;
-      ctx.beginPath(); ctx.ellipse(0, 0, 16 * k, 5 * k, 0, 0, 6.29); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(0, 0, 16 * kk, 5 * kk, 0, 0, 6.29); ctx.stroke();
       ctx.restore();
-    } else star(x, y, 2.4 * k, s.c);
+    } else star(x, y, 2.4 * kk, s.c);
     ctx.globalAlpha = depth;
     if (s === selected || allChannels) {
       ctx.strokeStyle = s.c; ctx.globalAlpha = 0.9 * depth;
-      ctx.beginPath(); ctx.arc(x, y, (15 + 3 * Math.sin(t * 3)) * k, 0, 6.29); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, (15 + 3 * Math.sin(t * 3)) * kk, 0, 6.29); ctx.stroke();
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
