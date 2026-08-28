@@ -3157,7 +3157,7 @@ function drawEarthHub(t) {
   let PLANET_NEAR = null;
   if (S.planets && zt < 0.15 && IK.planets > 0) {              // the real order round the Sun; Earth's own ring runs through the hub (not in the close-up)
     const dx = sx - sunX, q = 0.26, front = [];
-    ctx.strokeStyle = "rgba(255,196,107," + (0.16 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255,196,107," + (0.055 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;   // whisper-faint: the rings are a hint, not noise
     ctx.beginPath(); ctx.ellipse(sunX, sunY, dx, dx * q, 0, 0, 6.29); ctx.stroke();   // ours
     const phiE = Math.atan2(-(sy - sunY) / q, sx - sunX);       // where Earth sits on its ring (counterclockwise, seen from the north)
     PLANETS.forEach((p, i) => {
@@ -3166,7 +3166,7 @@ function drawEarthHub(t) {
       const th = phiE + (p.L - EARTH_L) * DEG + t * 0.055 / Math.pow(p.au, 1.5);   // where it really is today, then Kepler at a quarter of the old pace
       const x = sunX + Math.cos(th) * a, y = sunY - Math.sin(th) * a * q;
       if (!p.car) {                                               // (the car shares Mars's lane near enough: no ring of its own)
-        ctx.strokeStyle = "rgba(255,196,107," + (0.11 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255,196,107," + (0.04 * IK.planets).toFixed(3) + ")"; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.ellipse(sunX, sunY, a, a * q, 0, 0, 6.29); ctx.stroke();
       }
       const job = () => {
