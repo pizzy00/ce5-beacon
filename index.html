@@ -1403,14 +1403,15 @@ function star(x, y, r, color) {
   ctx.fillStyle = "#fff";
   ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
 }
-function label(x, y, main, sub, color, align) {
+function label(x, y, main, sub, color, align, sz) {
+  const fs = sz || 10;
   ctx.textAlign = align || "left";
-  ctx.fillStyle = color; ctx.font = "10px ui-monospace, Menlo, monospace";
+  ctx.fillStyle = color; ctx.font = fs.toFixed(1) + "px ui-monospace, Menlo, monospace";
   ctx.shadowColor = color; ctx.shadowBlur = 6;
   ctx.fillText(main, x, y);
   ctx.shadowBlur = 0; ctx.fillStyle = "rgba(232,226,212,0.55)";
-  ctx.font = "9px ui-monospace, Menlo, monospace";
-  if (sub) ctx.fillText(sub, x, y + 12);
+  ctx.font = (fs * 0.9).toFixed(1) + "px ui-monospace, Menlo, monospace";
+  if (sub) ctx.fillText(sub, x, y + fs * 1.2);
   ctx.textAlign = "left";
 }
 function fmtLy(ly) {
@@ -3811,7 +3812,7 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
-    if (depth > 0.4) label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, s.tag, s.c, right ? "right" : "left");   // words only when readable; the marker carries the far side
+    label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))));   // the words breathe with the depth: near = bigger and brighter, far = small and dim, never gone
     ctx.globalAlpha = 1;
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
@@ -3821,7 +3822,7 @@ function drawChart3D(t) {
   drawEarthHub(t);
   if (intro && !intro.t0) introStatus(t);
   drawSystemView(t);
-  if (modeOf() && !sysView) {                                   // the pick sits on the spot itself: the Moon, the Triangle, the trench
+  if (modeOf() && !sysView && !intro) {                         // the pick sits on the spot itself; never during the opening
     const m = modeHit.find((q) => q.id === selected.id);
     const sub = modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
       : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE";
