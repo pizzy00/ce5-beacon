@@ -1154,7 +1154,7 @@ function drawExo(t, posOf) {                                    // small green w
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const e of EXOPLANETS) {
     const q = posOf(e); if (!q) continue;
-    const k = q.k || 1, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9));
+    const k = q.k || 1, depth = dofK(k);
     ctx.globalAlpha = 0.85 * depth;
     glow(q.x, q.y, 5 * k, e.c, 0.35);
     ctx.fillStyle = e.c; ctx.beginPath(); ctx.arc(q.x, q.y, 1.5 * k, 0, 6.29); ctx.fill();
@@ -3515,6 +3515,9 @@ function drawSystemView(t) {
   }
 }
 function spinText(v) { return v <= 0 ? "HELD STILL" : "ONE TURN EVERY " + Math.round(6.283 / v) + "S"; }
+function dofK(k) {                                              // fake depth of field: the near sky bright, the far sky sunk back
+  return Math.min(1, Math.max(0.22, Math.pow(Math.max(0, ((k || 1) - 0.88) / 0.22), 1.25)));
+}
 function chartProject(s, rotOff) {                              // the sky as a turntable around Earth at the bottom
   const a = s.az + chartRot + (rotOff || 0);
   const R = Math.min(W, H) * 0.40 * chartZoom;
@@ -3744,7 +3747,7 @@ function drawChart3D(t) {
     for (const { s } of P) {
       if (s.ik <= 0) continue;
       ctx.strokeStyle = s.c;
-      const depth = Math.min(1, Math.max(0.35, (s.pk - 0.55) / 0.9)) * s.ik;
+      const depth = dofK(s.pk) * s.ik;
       let lx = s.px, ly = s.py;
       const breathe = 1 + 0.10 * Math.sin(t * 0.9 + s.az);       // the tail breathes a little
       for (let i = 1; i <= 13; i++) {
@@ -3775,7 +3778,7 @@ function drawChart3D(t) {
   }
   for (const { s, q } of P) {
     if (s.ik <= 0) continue;
-    const x = q.x, y = q.y, k = q.k, depth = Math.min(1, Math.max(0.35, (k - 0.55) / 0.9)) * s.ik;
+    const x = q.x, y = q.y, k = q.k, depth = dofK(k) * s.ik;
     ctx.globalAlpha = depth;
     if (s.cluster) {
       for (let i = 0; i < 7; i++)
