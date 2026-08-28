@@ -82,7 +82,7 @@
   body.run #loc, body.active #loc { opacity: 0.45; }
 
   #phase { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 4px); transform: translateX(-50%);   /* just above the console, whatever its height */
-    font-size: 10px; letter-spacing: 0.3em; color: var(--amber-dim); white-space: nowrap; }
+    font-size: 12px; letter-spacing: 0.3em; color: #a8d8ff; white-space: nowrap; }
   #blink { animation: bl 1.1s steps(2) infinite; }
   #tapHint { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 20px); transform: translateX(-50%);
     font-size: 8px; letter-spacing: 0.24em; color: var(--amber-dim); opacity: 0; transition: opacity 0.6s; white-space: nowrap; }
@@ -537,7 +537,7 @@
   }
   #sysPick { z-index: 12; }                                        /* above the settings it opens from */
   .sysPre { flex-wrap: wrap; }
-  #sysList .setChk small { display: block; font-size: 9px; color: var(--amber-dim); margin: 1px 0 0 22px; letter-spacing: 0.06em; }
+  #sysList .setChk small { display: block; font-size: 10px; color: #a8d8ff; margin: 1px 0 0 22px; letter-spacing: 0.06em; }
   #info, #board, #sysPick { position: fixed; inset: 0; z-index: 10; background: rgba(3,3,12,0.72);
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #info.hide, #board.hide, #sysPick.hide { display: none; }
@@ -608,7 +608,7 @@
   #setCard { -webkit-touch-callout: none; }
   #setCard select { width: 100%; background: #0d0d20; border: 1px solid var(--amber-dim);
     color: var(--ink); font: inherit; font-size: 11px; padding: 9px; border-radius: 3px; }
-  .setNote { color: var(--amber-dim); font-size: 8.5px; letter-spacing: 0.06em; }
+  .setNote { color: #f0ecdd; font-size: 10px; letter-spacing: 0.06em; }
   .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
   .setChk input { accent-color: var(--amber); margin-right: 8px; }
 
