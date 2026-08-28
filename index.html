@@ -501,8 +501,8 @@
     background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
     box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
     display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
-  #bMute { top: calc(49px + env(safe-area-inset-top, 0px)); }
-  #bIdea { top: calc(87px + env(safe-area-inset-top, 0px)); }
+  #bMute { top: calc(44px + env(safe-area-inset-top, 0px)); right: 10px; }
+  #bIdea { top: calc(82px + env(safe-area-inset-top, 0px)); right: 10px; }
   #bMute:active, #bIdea:active { background: rgba(255,196,107,0.25); }
   #bMute.callout, #bIdea.callout { animation: fsPulse 1.6s ease-out infinite; }
   #bMute svg, #bIdea svg { width: 16px; height: 16px; display: block; }
@@ -514,8 +514,8 @@
     color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
     background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
     box-shadow: 0 0 12px rgba(0,0,0,0.7); }
-  #muteHint { top: calc(52px + env(safe-area-inset-top, 0px)); }
-  #ideaHint { top: calc(90px + env(safe-area-inset-top, 0px)); }
+  #muteHint { top: calc(47px + env(safe-area-inset-top, 0px)); }
+  #ideaHint { top: calc(85px + env(safe-area-inset-top, 0px)); }
   #muteHint.hide, #ideaHint.hide { display: none; }
   #ideaPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
     display: flex; align-items: center; justify-content: center; }
@@ -623,7 +623,7 @@
   #setCard input:not([type="range"]):not([type="checkbox"]) { flex: 1; min-width: 0;
     background: rgba(10,10,24,0.9); border: 1px solid var(--cyan); color: var(--ink);
     font: inherit; font-size: 13px; padding: 9px; border-radius: 3px; }
-  #setCard input[type="range"] { width: calc(100% - 44px); margin: 4px 30px 4px 14px; height: 30px;
+  #setCard input[type="range"] { width: min(60%, 220px); margin: 4px 0 4px 14px; height: 30px;
     accent-color: var(--amber); touch-action: pan-y; display: block; }
   #setCard { -webkit-touch-callout: none; }
   #setCard select { width: 100%; background: #0d0d20; border: 1px solid var(--amber-dim);
@@ -731,7 +731,7 @@
       <div class="setLbl">HOW FAST THE SKY TURNS — <span id="vSpin">ONE TURN EVERY 126S</span></div>
       <input type="range" id="rSpin" min="0" max="160" step="1" value="5" />
       <div class="setLbl">PINCH INTO A SYSTEM AT THE FRONT — HOLD THEIR HOME FOR <span id="vSys">7.5</span>S</div>
-      <input type="range" id="rSys" style="direction: rtl" min="3" max="20" step="0.5" value="7.5" />
+      <input type="range" id="rSys" min="3" max="20" step="0.5" value="15.5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
@@ -785,18 +785,18 @@
       <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR\u2019S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE \u2014 TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
       <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
-      <input type="range" id="rBreath" style="direction: rtl" min="2" max="8" step="0.2" value="3.2" />
-      <div class="setStat">LEFT = QUICKER BREATHS · RIGHT = BIG LUNGS</div>
+      <input type="range" id="rBreath" min="2" max="8" step="0.2" value="6.8" />
+      <div class="setStat">LEFT = BIG SLOW LUNGS · RIGHT = QUICK BREATHS</div>
     </div>
     <div class="setRow">
       <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · ISS · EARTH)</span></div>
-      <input type="range" id="rFly" style="direction: rtl" min="2" max="25" step="0.5" value="5" />
+      <input type="range" id="rFly" min="2" max="25" step="0.5" value="22" />
       <div class="setLbl">DEEP SPACE PACE — <span id="vSpace">1.0</span>×</div>
-      <input type="range" id="rSpace" style="direction: rtl" min="0.5" max="2" step="0.1" value="1" />
-      <div class="setStat">GALAXY / POLARIS / SUN / MOON — HIGHER = SLOWER</div>
+      <input type="range" id="rSpace" min="0.5" max="2" step="0.1" value="1.5" />
+      <div class="setStat">GALAXY / POLARIS / SUN / MOON · LEFT = SLOW AND LONG · RIGHT = FAST</div>
       <div class="setLbl">ORIGIN LEG PACE — <span id="vOrigin">1.0</span>×</div>
-      <input type="range" id="rOrigin" style="direction: rtl" min="0.5" max="3" step="0.1" value="1" />
-      <div class="setStat">THEIR HOME SYSTEM + THE CROSSING — HIGHER = SLOWER</div>
+      <input type="range" id="rOrigin" min="0.5" max="3" step="0.1" value="2.5" />
+      <div class="setStat">THEIR HOME SYSTEM + THE CROSSING · LEFT = SLOW AND LONG · RIGHT = FAST</div>
     </div>
     <div class="setRow">
       <div class="setLbl">FLYBYS ON THE WAY IN</div>
@@ -811,8 +811,8 @@
     </div>
     <div class="setRow">
       <div class="setLbl">EARTH DESCENT PACE — <span id="vDive">1.0</span>×</div>
-      <input type="range" id="rDive" style="direction: rtl" min="0.5" max="2" step="0.1" value="1" />
-      <div class="setStat">SATELLITE ZOOM SPEED — HIGHER = SLOWER</div>
+      <input type="range" id="rDive" min="0.5" max="2" step="0.1" value="1.5" />
+      <div class="setStat">SATELLITE ZOOM · LEFT = SLOW GLIDE · RIGHT = FAST DROP</div>
       <div class="setLbl">DESCENT DETAIL</div>
       <select id="selDetail">
         <option value="full">FULL — 10 ALTITUDE HOLDS</option>
@@ -827,7 +827,7 @@
       </select>
       <div class="setStat">AFTER TOUCHDOWN YOU CAN STILL PINCH FURTHER · THE IMAGERY ITSELF STOPS AT 19</div>
       <div class="setLbl">BEACON MARKER AFTER TOUCHDOWN — <span id="vBcn">0.25</span>S, THEN IT BLOOMS OUT AND FADES</div>
-      <input type="range" id="rBcn" style="direction: rtl" min="0" max="10" step="0.25" value="0.25" />
+      <input type="range" id="rBcn" min="0" max="10" step="0.25" value="9.75" />
       <label class="setChk"><input type="checkbox" id="ckBcnStay" />KEEP THE MARKER ON THE MAP</label>
       <div class="setLbl">SATELLITE TILE PRECACHE</div>
       <select id="selCache">
@@ -842,7 +842,7 @@
     <div class="setSec">THE FLASH</div>
     <div class="setRow">
       <div class="setLbl">HOLD ON YOUR SPOT BEFORE THE FLASH — <span id="vArr">8</span>S</div>
-      <input type="range" id="rArr" style="direction: rtl" min="0" max="40" step="1" value="8" />
+      <input type="range" id="rArr" min="0" max="40" step="1" value="32" />
       <label class="setChk"><input type="checkbox" id="ckNukeAll" checked />THE FLASH ON EVERY TRIP — CLOSE YOUR EYES BEFORE THE DESCENT (OFF = BERMUDA ONLY)</label>
       <div class="setLbl">WHICH SHOT'S LIGHT</div>
       <select id="selShot">
@@ -856,23 +856,24 @@
       <input type="range" id="rInt" min="30" max="100" step="5" value="100" />
       <div class="setStat">TURN IT DOWN IN A DARK ROOM · PHOTOSENSITIVE? TAP THE WARNING TO SKIP THE STAGE</div>
       <div class="setLbl">FLASH TIME STRETCH — <span id="vStretch">1.0</span>×</div>
-      <input type="range" id="rStretch" style="direction: rtl" min="0.5" max="3" step="0.1" value="1" />
+      <input type="range" id="rStretch" min="0.5" max="3" step="0.1" value="2.5" />
       <div class="setStat">1× = AS FILMED · TEST CAMERAS RAN FAST, SO THE FILM IS ALREADY SLOWER THAN LIFE</div>
       <div class="setLbl">FLASHES — <span id="vRepeat">1</span></div>
       <input type="range" id="rRepeat" min="1" max="8" step="1" value="1" />
       <label class="setChk"><input type="checkbox" id="ckSalvo" />A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT</label>
       <div class="setLbl">EYES-CLOSED COUNTDOWN — <span id="vWarn">6</span>S</div>
-      <input type="range" id="rWarn" style="direction: rtl" min="2" max="15" step="1" value="6" />
+      <input type="range" id="rWarn" min="2" max="15" step="1" value="11" />
       <div class="setStat">HOW MANY TIMES IT GOES OFF · SECONDS OF WARNING BEFORE EACH</div>
     </div>
     </div>
 
     <div class="setBox">
     <div class="setSec">THE ARSENAL</div>
+    <div class="setStat">WHY NUKES AT ALL: FOR DECADES, PILOTS AND MISSILE CREWS HAVE CLAIMED THE VISITORS ARE DRAWN TO NUCLEAR FACILITIES · MALMSTROM AFB 1967, WHERE TEN MINUTEMEN WENT DARK DURING A SIGHTING, IS THE FAMOUS TELLING · A CLAIM, NOT A FINDING · EVERY NUCLEAR PIECE OF THIS EXPERIENCE SWITCHES OFF RIGHT HERE</div>
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckPhotos" checked />SHOW REAL MISSILE PHOTOS AFTER THE FLASH — MINUTEMAN III · TRIDENT II · PEACEKEEPER · TITAN II</label>
       <div class="setLbl">SECONDS PER PHOTO — <span id="vPhoto">1.6</span>S</div>
-      <input type="range" id="rPhoto" style="direction: rtl" min="0.5" max="5" step="0.1" value="1.6" />
+      <input type="range" id="rPhoto" min="0.5" max="5" step="0.1" value="3.9" />
       <div class="setStat">TAP A PHOTO = NEXT · US AIR FORCE / NAVY PHOTOS, PUBLIC DOMAIN</div>
     </div>
     </div>
@@ -889,17 +890,17 @@
       </select>
       <div class="setStat">THEY SURFACE WHEN WE DETONATE · TAP SCREEN = NEXT AT ANY POINT</div>
       <div class="setLbl">ORBIT APPROACH — <span id="vOrbit">12</span>S</div>
-      <input type="range" id="rOrbit" style="direction: rtl" min="4" max="30" step="1" value="12" />
+      <input type="range" id="rOrbit" min="4" max="30" step="1" value="22" />
       <div class="setStat">ENGAGE STARTS IN ORBIT AND DESCENDS ONTO THE TRIANGLE · THEN THE HOLD BELOW</div>
       <div class="setLbl">LIMIT: NUKE SITES ON THE TOUR — <span id="vSites">4</span> OF 8</div>
       <input type="range" id="rSites" min="1" max="8" step="1" value="4" />
       <div class="setStat">IN ORDER: SEDAN CRATER · BIKINI · LAKE CHAGAN · TRINITY · NOVAYA ZEMLYA · MURUROA · PUNGGYE-RI · LOS ALAMOS · THEIR IMAGERY IS PRE-LOADED AT ENGAGE</div>
       <label class="setChk"><input type="checkbox" id="ckNow" checked />THEN 2 ACTIVE MISSILE BASES — MALMSTROM · F.E. WARREN (MINUTEMAN III)</label>
       <div class="setLbl">HOLD AT EACH SITE — <span id="vHold">10</span>S</div>
-      <input type="range" id="rHold" style="direction: rtl" min="3" max="25" step="1" value="10" />
+      <input type="range" id="rHold" min="3" max="25" step="1" value="18" />
       <div class="setStat">ALSO THE HOLD ON THE TRIANGLE · LONGER = TIME TO TAKE IT IN</div>
       <div class="setLbl">FLIGHT TIME BETWEEN SITES — <span id="vBFly">7</span>S</div>
-      <input type="range" id="rBFly" style="direction: rtl" min="3" max="15" step="1" value="7" />
+      <input type="range" id="rBFly" min="3" max="15" step="1" value="11" />
       <div class="setStat">THE SATELLITE GLIDE FROM ONE SITE TO THE NEXT</div>
     </div>
     </div>
@@ -913,7 +914,7 @@
       <label class="setChk"><input type="checkbox" id="ckMorse" checked />SEND IT — THE SCREEN PULSES THE CODE</label>
       <label class="setChk"><input type="checkbox" id="ckMorseTone" checked />KEY A 600 HZ TONE WITH THE LIGHT</label>
       <div class="setLbl">SPEED — <span id="vWpm">12</span> WPM</div>
-      <input type="range" id="rWpm" min="5" max="25" step="1" value="12" />
+      <input type="range" id="rWpm" min="5" max="90" step="1" value="12" />
       <div class="setLbl">PULSE LIGHT — <span id="vMInt">60</span>%</div>
       <input type="range" id="rMInt" min="10" max="100" step="5" value="60" />
       <div class="setStat">A–Z, 0–9 AND . , ? ! / ( ) - + = @ · ANYTHING ELSE IS SKIPPED · SEND AGAIN WITH THE SEND BUTTON</div>
@@ -3233,6 +3234,7 @@ function drawEarthHub(t) {
   const IK = introK();                                          // the opening: 0 = not yet, 1 = there
   const gv = G.gv || 0;
   if (gv > 0) { IK.sun *= 1 - gv; IK.moon *= 1 - gv; IK.planets *= 1 - gv; }   // the pop-up world: the rest of the system steps aside
+  IK.moon *= Math.max(0, Math.min(1, 1 - (earthZoom - 1.05) / 0.30));   // zooming into the Earth: the Moon bows out
   const sunX = Math.max(R * 0.13, W * 0.09), sunY = sy - R * 0.62;   // Sol out on the left, where it used to live
   const sv = Math.hypot(sunX - sx, sunY - sy), svx = (sunX - sx) / sv, svy = (sunY - sy) / sv;
   const sunV = { x: svx * 0.60, y: svy * 0.60, z: 0.80 };        // screen-space light, tipped toward us
@@ -6312,24 +6314,24 @@ function applyS() {                                             // push S into e
   const set = (id, v) => { const el = $(id); if (el) el.value = v; };
   const txt = (id, v) => { const el = $(id); if (el) el.textContent = v; };
   const chk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
-  set("rBreath", S.breath); txt("vBreath", S.breath.toFixed(1));
-  set("rSpace", S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
-  set("rFly", S.flyby); txt("vFly", S.flyby.toFixed(1));
+  set("rBreath", 10 - S.breath); txt("vBreath", S.breath.toFixed(1));
+  set("rSpace", 2.5 - S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
+  set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
   set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites);
-  set("rOrigin", S.originMul); txt("vOrigin", S.originMul.toFixed(1));
-  set("rDive", S.diveMul); txt("vDive", S.diveMul.toFixed(1));
+  set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
+  set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion); reduced = false;
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
-  set("rOrbit", S.bOrbit); txt("vOrbit", S.bOrbit);
-  set("rHold", S.bHold); txt("vHold", S.bHold); set("rBFly", S.bFly); txt("vBFly", S.bFly);
+  set("rOrbit", 34 - S.bOrbit); txt("vOrbit", S.bOrbit);
+  set("rHold", 28 - S.bHold); txt("vHold", S.bHold); set("rBFly", 18 - S.bFly); txt("vBFly", S.bFly);
   set("selShot", S.nShot); set("rInt", Math.round(S.nInt * 100)); txt("vInt", Math.round(S.nInt * 100));
-  set("rStretch", S.nStretch); txt("vStretch", S.nStretch.toFixed(1));
-  set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); chk("ckSalvo", S.salvo); set("rWarn", S.nWarn); txt("vWarn", S.nWarn);
-  chk("ckPhotos", S.bPhotos); set("rPhoto", S.pHold); txt("vPhoto", S.pHold.toFixed(1));
+  set("rStretch", 3.5 - S.nStretch); txt("vStretch", S.nStretch.toFixed(1));
+  set("rRepeat", S.nRepeat); txt("vRepeat", S.nRepeat); chk("ckSalvo", S.salvo); set("rWarn", 17 - S.nWarn); txt("vWarn", S.nWarn);
+  chk("ckPhotos", S.bPhotos); set("rPhoto", 5.5 - S.pHold); txt("vPhoto", S.pHold.toFixed(1));
   [...chipsEl.children].forEach((c) => c.classList.toggle("sel", c.dataset.id === selected.id));
   locSync();
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
@@ -6338,10 +6340,10 @@ function applyS() {                                             // push S into e
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
-  set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
+  set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster);
   set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
-  set("rArr", S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
+  set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
 }
 $("bSave").onclick = () => { saveSettings(); $("settings").classList.add("hide"); };   // save and the pane closes
@@ -6369,14 +6371,14 @@ $("bCopy").onclick = () => {
   else log("LONG-PRESS THE LINK TO COPY", "cy");
 };
 $("rBreath").oninput = (e) => {
-  S.breath = +e.target.value;
+  S.breath = 10 - +e.target.value;
   $("vBreath").textContent = S.breath.toFixed(1);
   if (breathTimer) { clearInterval(breathTimer); startBreath(); }
 };
-$("rSpace").oninput = (e) => { S.spaceMul = +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
-$("rFly").oninput = (e) => { S.flyby = +e.target.value; $("vFly").textContent = S.flyby.toFixed(1); };
-$("rDive").oninput = (e) => { S.diveMul = +e.target.value; $("vDive").textContent = S.diveMul.toFixed(1); };
-$("rOrigin").oninput = (e) => { S.originMul = +e.target.value; $("vOrigin").textContent = S.originMul.toFixed(1); };
+$("rSpace").oninput = (e) => { S.spaceMul = 2.5 - +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
+$("rFly").oninput = (e) => { S.flyby = 27 - +e.target.value; $("vFly").textContent = S.flyby.toFixed(1); };
+$("rDive").oninput = (e) => { S.diveMul = 2.5 - +e.target.value; $("vDive").textContent = S.diveMul.toFixed(1); };
+$("rOrigin").oninput = (e) => { S.originMul = 3.5 - +e.target.value; $("vOrigin").textContent = S.originMul.toFixed(1); };
 $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
 $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
@@ -6388,7 +6390,7 @@ $("ckIss").onchange = (e) => (S.iss = e.target.checked);
 $("ckStar").onchange = (e) => (S.starlink = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
 $("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
-$("rArr").oninput = (e) => { S.arrHold = +e.target.value; $("vArr").textContent = e.target.value; };
+$("rArr").oninput = (e) => { S.arrHold = 40 - +e.target.value; $("vArr").textContent = e.target.value; };
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
 $("selMotion").onchange = (e) => {
@@ -6396,9 +6398,9 @@ $("selMotion").onchange = (e) => {
   log("MOTION: " + (reduced ? "REDUCED — SHORT STAGES" : "FULL"), "cy");
 };
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
-$("rHold").oninput = (e) => { S.bHold = +e.target.value; $("vHold").textContent = S.bHold; };
-$("rBFly").oninput = (e) => { S.bFly = +e.target.value; $("vBFly").textContent = S.bFly; };
-$("rOrbit").oninput = (e) => { S.bOrbit = +e.target.value; $("vOrbit").textContent = S.bOrbit; };
+$("rHold").oninput = (e) => { S.bHold = 28 - +e.target.value; $("vHold").textContent = S.bHold; };
+$("rBFly").oninput = (e) => { S.bFly = 18 - +e.target.value; $("vBFly").textContent = S.bFly; };
+$("rOrbit").oninput = (e) => { S.bOrbit = 34 - +e.target.value; $("vOrbit").textContent = S.bOrbit; };
 $("msgIn").oninput = (e) => { S.msg = e.target.value; $("msgMorse").textContent = morseString(S.msg) || "—"; };
 $("ckMorse").onchange = (e) => (S.mOn = e.target.checked);
 $("ckMorseTone").onchange = (e) => (S.mTone = e.target.checked);
@@ -6425,7 +6427,7 @@ $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
-$("rSys").oninput = (e) => { S.sysHold = +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
+$("rSys").oninput = (e) => { S.sysHold = 23 - +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
 $("ckPlanets").onchange = (e) => (S.planets = e.target.checked);
 $("ckRoadster").onchange = (e) => (S.roadster = e.target.checked);
 $("ckShipRnd").onchange = (e) => (S.shipRnd = e.target.checked);
@@ -6433,7 +6435,7 @@ $("rShip").oninput = (e) => { S.shipSpd = +e.target.value / 100; $("vShip").text
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
-$("rBcn").oninput = (e) => { S.bcnHold = +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
+$("rBcn").oninput = (e) => { S.bcnHold = 10 - +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
 $("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
 $("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
 $("selEarth").onchange = (e) => { S.earthSrc = e.target.value; useEarthSource(); log(S.earthSrc === "photo" ? "EARTH: NASA IMAGERY" : "EARTH: THE DRAWN MAP", "cy"); };
@@ -6447,11 +6449,11 @@ $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
 $("selShot").onchange = (e) => (S.nShot = e.target.value);
 $("rInt").oninput = (e) => { S.nInt = +e.target.value / 100; $("vInt").textContent = e.target.value; };
-$("rStretch").oninput = (e) => { S.nStretch = +e.target.value; $("vStretch").textContent = S.nStretch.toFixed(1); };
+$("rStretch").oninput = (e) => { S.nStretch = 3.5 - +e.target.value; $("vStretch").textContent = S.nStretch.toFixed(1); };
 $("rRepeat").oninput = (e) => { S.nRepeat = +e.target.value; $("vRepeat").textContent = S.nRepeat; };
 $("ckSalvo").onchange = (e) => (S.salvo = e.target.checked);
-$("rWarn").oninput = (e) => { S.nWarn = +e.target.value; $("vWarn").textContent = S.nWarn; };
-$("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
+$("rWarn").oninput = (e) => { S.nWarn = 17 - +e.target.value; $("vWarn").textContent = S.nWarn; };
+$("rPhoto").oninput = (e) => { S.pHold = 5.5 - +e.target.value; $("vPhoto").textContent = S.pHold.toFixed(1); };
 
 /* boot log */
 const restored = loadSettings();
