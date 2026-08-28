@@ -646,6 +646,7 @@
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />KEY CLICKS AND THE BUTTON SOUNDS</label>
+      <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
     </div>
@@ -1062,7 +1063,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -3669,7 +3670,7 @@ function fsCallout() {                                           // the square r
 }
 function fsCalloutOff() { const h = $("fsHint"); if (h) h.classList.add("hide"); $("bFull").classList.remove("callout"); }
 function introAfter() {                                         // everything else preloads once the opening is done
-  fsCallout();
+  fsCallout(); ambStart();
   if (S.pursue) loadPursue(); if (S.uso) loadUso();
   try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
   try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}
@@ -4632,6 +4633,7 @@ raf = requestAnimationFrame(loop);
 function engage() {
   introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
+  ambStop();                                                    // the music yields to the crossing
   flyStart();                                                   // the wind of the crossing
   wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
   precacheTiles();
@@ -5055,7 +5057,7 @@ function arrive() {
 }
 
 function replay() {
-  flyStop();
+  flyStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
@@ -5519,6 +5521,38 @@ function sfxBlast(farK) {                                        // the blast: a
     sub.connect(sg); sg.connect(ac.destination); sub.start(t); sub.stop(t + 4.2);
   } catch (e) {}
 }
+let ambG = null, ambOsc = [], ambTimer = 0;                      // the quiet drift before START
+function ambStart() {
+  if (!S.amb || ambG || phase !== "chart") return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(ac.destination);
+    const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
+    for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
+      const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = fr; o.detune.value = det;
+      const g = ac.createGain(); g.gain.value = 0.011; o.connect(g); g.connect(f); o.start(); ambOsc.push(o);
+    }
+    ambG.gain.setTargetAtTime(1, ac.currentTime, 2.5);
+    const NOTES = [220, 261.6, 329.6, 392, 440, 523.2];
+    ambTimer = setInterval(() => {                               // a slow wandering note, now and then
+      if (!ambG || !S.amb) return;
+      try {
+        const t = ac.currentTime, fr = NOTES[Math.floor(Math.random() * NOTES.length)];
+        const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = fr;
+        const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.02, t + 1.4);
+        g.gain.exponentialRampToValueAtTime(0.0004, t + 4.2);
+        o.connect(g); g.connect(ambG); o.start(t); o.stop(t + 4.4);
+      } catch (e) {}
+    }, 4600 + Math.floor(Math.random() * 1200));
+  } catch (e) {}
+}
+function ambStop() {
+  clearInterval(ambTimer); ambTimer = 0;
+  if (ambG && ac) { try { ambG.gain.setTargetAtTime(0, ac.currentTime, 0.6); } catch (e) {} }
+  const list = ambOsc; ambOsc = []; const g = ambG; ambG = null;
+  setTimeout(() => list.forEach((o) => { try { o.stop(); } catch (e) {} }), 2500);
+}
 let flyG = null, flyN = null, flyF = null;                       // the wind of the crossing
 function flyStart() {
   if (!S.flySnd) return;
@@ -5823,6 +5857,7 @@ function flushPending() {                                       // file what thi
   }).catch(() => { flushing = false; });
 }
 addEventListener("online", flushPending);
+document.addEventListener("pointerdown", () => ambStart(), { passive: true });   // the first touch unlocks audio: the drift can begin
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   const today = new Date().toISOString().slice(0, 10);
@@ -5973,7 +6008,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -6058,6 +6093,7 @@ $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); }
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
+$("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
