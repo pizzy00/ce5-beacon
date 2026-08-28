@@ -429,8 +429,8 @@
   }
   @keyframes rotHint { 0%, 20% { transform: rotate(-90deg); } 55%, 100% { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) { #rotate .ph { animation: none; } }
-  #hintDT { margin-left: 14px; font-size: 8px; letter-spacing: 0.24em; color: var(--amber-dim);
-    animation: hintFlash 3.2s ease-in-out infinite; }
+  #hintDT { display: block; margin-top: 6px; font-size: 8px; letter-spacing: 0.24em; color: var(--amber);
+    text-shadow: 0 0 6px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.9); animation: hintFlash 3.2s ease-in-out infinite; }
   body.run #hintDT, body.active #hintDT { display: none; }        /* the hint belongs to the chart alone */
   @keyframes hintFlash { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.85; } }
   @media (prefers-reduced-motion: reduce) { #hintDT { animation: none; opacity: 0.6; } }
