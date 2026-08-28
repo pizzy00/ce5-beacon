@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=2" />
+<link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body class="intro introHud">
 
@@ -33,6 +33,7 @@
 <div id="settings" class="hide">
   <div id="setCard">
     <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
+    <div class="setStat">EVERY CHANGE SAVES ITSELF ON THIS DEVICE · CLEARING BROWSER DATA CLEARS IT · NOTHING IS SENT ANYWHERE</div>
     <div class="bdBtns"><span id="bDefaults" class="setBtn">SET AS NEW DEFAULTS</span></div>
     <div class="setStat" id="saveStat"></div>
     <div class="setBox">
@@ -314,7 +315,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
-    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span></div>
+    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -406,6 +407,19 @@
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="muteHint" class="hide display">MUTE EVERY SOUND ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
+<div id="privPick" class="hide">
+  <div id="privCard">
+    <div class="setHead display">PRIVACY — IN PLAIN WORDS <span id="bPrivClose">✕</span></div>
+    <div class="setLbl">NO REAL DATA IS COLLECTED</div>
+    <div class="setStat">NO ACCOUNTS · NO ANALYTICS · NO TRACKERS · NO ADS · NO COOKIES OF OURS · WE NEVER SEE YOUR NAME, EMAIL, OR LOCATION</div>
+    <div class="setLbl">WHAT STAYS ON YOUR DEVICE ONLY</div>
+    <div class="setStat">YOUR SETTINGS, YOUR CALL-SIGN, YOUR TRIP LOG AND YOUR TARGET SPOT LIVE IN THIS BROWSER'S OWN STORAGE AND NEVER LEAVE IT · IF YOU USE THE GPS KEY, YOUR POSITION IS READ BY YOUR OWN BROWSER, DRAWN ON YOUR OWN SCREEN, AND SENT NOWHERE · CLEARING BROWSER DATA ERASES ALL OF IT</div>
+    <div class="setLbl">THE ONLY THINGS THAT EVER LEAVE</div>
+    <div class="setStat">THE PUBLIC TRAVELLERS BOARD RECEIVES: ONE ANONYMOUS "VISIT" MARK PER DEVICE PER DAY (A RANDOM ID AND A DATE, NOTHING ELSE) · EACH TRIP YOU COMPLETE (YOUR MADE-UP CALL-SIGN + THE DESTINATION) · ANY IDEA YOU CHOOSE TO SEND (YOUR CALL-SIGN + YOUR WORDS) · ALL OF THAT IS PUBLIC BY DESIGN AND CONTAINS NOTHING ABOUT WHO YOU REALLY ARE</div>
+    <div class="setLbl">THE PLUMBING</div>
+    <div class="setStat">THE SITE AND THE BOARD ARE HOSTED ON GITHUB, AND YOUR BROWSER TALKS TO GITHUB TO LOAD THEM · LIKE ANY WEB HOST, GITHUB KEEPS ORDINARY SERVER LOGS UNDER ITS OWN PRIVACY POLICY · THIS APP ADDS NOTHING ON TOP · THE WHOLE SOURCE IS PUBLIC AT GITHUB.COM/PIZZY00/CE5-BEACON, SO NONE OF THIS IS A PROMISE YOU HAVE TO TAKE ON FAITH</div>
+  </div>
+</div>
 <div id="logPick" class="hide">
   <div id="logCard">
     <div class="setHead display">APPLICATION LOG <span id="bLogClose">✕</span></div>
@@ -5631,6 +5645,9 @@ function openAppLog() {
       d.textContent = "NO ANSWER FROM THE RECORD · TRY AGAIN IN A MINUTE"; $("logList").appendChild(d); });
 }
 $("bAppLog").onclick = () => { sfx("cover"); openAppLog(); };
+$("bPriv").onclick = () => { sfx("cover"); $("info").classList.add("hide"); $("privPick").classList.remove("hide"); };
+$("bPrivClose").onclick = () => { sfx("cover"); $("privPick").classList.add("hide"); };
+$("privPick").addEventListener("click", (e) => { if (e.target === $("privPick")) $("privPick").classList.add("hide"); });
 $("bLogClose").onclick = () => { sfx("cover"); $("logPick").classList.add("hide"); };
 $("logPick").addEventListener("click", (e) => { if (e.target === $("logPick")) $("logPick").classList.add("hide"); });
 let autoSaveT = 0;

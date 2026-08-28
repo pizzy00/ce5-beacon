@@ -643,3 +643,13 @@
   font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
 #logList div { padding: 5px 0; border-bottom: 1px dotted rgba(255,196,107,0.18); line-height: 1.5; }
 #logList b { color: var(--amber); font-weight: 400; }
+
+/* the privacy card: same glass as the log */
+#privPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center; }
+#privPick.hide { display: none; }
+#privCard { max-width: 560px; width: calc(100% - 24px); max-height: 78vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#privCard .setLbl { margin-top: 12px; }
