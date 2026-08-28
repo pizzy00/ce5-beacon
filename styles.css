@@ -680,3 +680,11 @@ body.intro #bLang { opacity: 0 !important; }
 .langRow { padding: 10px 8px; border-bottom: 1px dotted rgba(255,196,107,0.18); cursor: pointer; }
 .langRow.on { color: var(--amber); }
 .langRow.on::after { content: " \2713"; }
+
+/* the share keys: one row of round keys under the share link */
+#shareRow { display: flex; gap: 10px; margin: 6px 0 2px; flex-wrap: wrap; }
+.shBtn { width: 40px; height: 40px; border-radius: 8px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,196,107,0.35); background: rgba(0,0,0,0.5); color: var(--cyan); }
+.shBtn svg { width: 19px; height: 19px; display: block; }
+.shBtn:active { background: rgba(255,196,107,0.25); }
