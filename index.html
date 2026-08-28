@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body class="intro introHud">
 
@@ -506,6 +506,7 @@
 <div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">ALIEN SYSTEM CHART</span> <span id="blink">▌</span><span id="hintDT">DOUBLE-TAP THE EARTH TO LOOK CLOSER</span></div>
   <div id="tapHint" class="display">TAP THE SCREEN TO SKIP TO THE NEXT STAGE</div>
+  <div id="crumb" class="display"></div>
 </div>
 
 <div id="ctl">
@@ -735,11 +736,36 @@ function stageFade() {                                          // a soft dip to
   f.style.transition = "none"; f.style.opacity = "0.9";
   fadeTimer = setTimeout(() => { f.style.transition = "opacity 0.8s ease"; f.style.opacity = "0"; }, 40);
 }
+function crumbNext(p) {                                          // what the journey holds next, mode-aware
+  const m = typeof modeOf === "function" ? modeOf() : null;
+  const flashOn = S.nukeAll && m !== "bermuda";
+  switch (p) {
+    case "origin": return m === "moon" ? "LUNAR DEPARTURE" : (m === "ocean" || m === "bermuda") ? "SLOW DESCENT" : "MILKY WAY";
+    case "galaxy": return "SUPERLUMINAL";
+    case "warp": case "polaris": case "voyager": case "sun": case "starman": case "jwst": case "moon": case "hubble": case "iss": {
+      const n = typeof stageAfter === "function" ? stageAfter(p) : null;
+      return (n && STAGE_LABEL[n]) || "TERRAN APPROACH";
+    }
+    case "earth": return "SLOW DESCENT";
+    case "dive": return m === "bermuda" ? "THE TRIANGLE" : flashOn ? "THE FLASH \u00b7 EYES CLOSED" : "TOUCHDOWN";
+    case "triangle": return S.bSeq === "film" ? "THE FLASH \u00b7 EYES CLOSED" : S.bSeq === "off" ? "THE DEEP RESPONDS" : "NUCLEAR SITES";
+    case "sites": return "THE FLASH \u00b7 EYES CLOSED";
+    case "flash": return m === "bermuda" && S.bPhotos ? "THE ARSENAL" : m === "bermuda" ? "THE DEEP RESPONDS" : "TOUCHDOWN";
+    case "photos": return "THE DEEP RESPONDS";
+    case "active": return "BACK TO THE CHART WHEN YOU STOP";
+  }
+  return null;
+}
 function setPhase(p, label) {
   if (p !== phase && typeof flyBump === "function" && document.body.classList.contains("run") && !/^(chart|active)$/.test(p)) flyBump();
   if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
+  const c = $("crumb");
+  if (c) {
+    const nx = crumbNext(p);
+    c.textContent = p === "chart" ? "" : nx ? "NOW: " + label + "  \u25b8  NEXT: " + nx : "NOW: " + label;
+  }
 }
 
 /* ---------------- canvas ---------------- */
