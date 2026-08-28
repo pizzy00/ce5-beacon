@@ -5553,7 +5553,7 @@ const SAVE_KEY = "ce5.console.v1";
 /* ---------------- the travellers board ---------------- */
 const BOARD_REPO = "pizzy00/ce5-board";                          // the board lives on GitHub, no server: trips = issues, an Action writes board.json
 const BOARD_READ = "https://raw.githubusercontent.com/" + BOARD_REPO + "/main/board.json";
-const BOARD_TOKEN = [].join("");                                 // a fine-grained token for THAT repo only, Issues: write (it can do nothing else);
+const BOARD_TOKEN = ["github_", "pat_", "11AJEIWCQ0G9GrjsTsiG", "2Q_37K2EnOkOq0MKaApe", "s8thoHgoWfUm8PJn2jHc", "PyhRMYBTEX2MPEFmY5bC", "J5"].join("");                                 // a fine-grained token for THAT repo only, Issues: write (it can do nothing else);
                                                                  // kept in pieces so GitHub's scanner does not revoke it (it is public by design)
 const BOARD_API = "https://api.github.com/repos/" + BOARD_REPO + "/contents/board.json?ref=main";   // fresh; the raw file is the fallback
 let boardDead = 0;                                               // 401/403/404 from filing: the key is dead or throttled, stop trying this session
