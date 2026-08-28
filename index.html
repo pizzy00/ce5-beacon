@@ -1487,10 +1487,12 @@ function gvK() {                                                 // 0 = the char
 }
 function globeToggle() {
   if (globeView && !globeView.out) {
+    gvFx(false);
     globeView.out = performance.now() / 1000;
     earthZoom = Math.min(earthZoom, 1); zoomT = -1e9;             // it eases back to the resting size, no tilt-dive on the way
     log("BACK TO THE CHART", "cy");
   } else {
+    gvFx(true);
     globeView = { t0: performance.now() / 1000, out: 0 }; earthAuto = false; earthVel = 0;
     log("THE WORLD, UP CLOSE \u2014 DRAG TO TURN IT, PINCH TO LEAN IN \u00b7 TAP THE SKY TO PUT IT BACK", "cy");
   }
@@ -5440,6 +5442,22 @@ function zoomFx(v, lo, hi) {
     zActive = true; clearTimeout(zTimer);
     zTimer = setTimeout(() => { try { if (zG) zG.gain.setTargetAtTime(0, ac.currentTime, 0.05); } catch (e) {}
       if (zActive) { zActive = false; zoomLand(); } }, 230);
+  } catch (e) {}
+}
+function gvFx(up) {                                              // the world pops up front (rising) or settles back (falling)
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    const t = ac.currentTime;
+    const o = ac.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(up ? 240 : 560, t); o.frequency.exponentialRampToValueAtTime(up ? 560 : 240, t + 0.45);
+    const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.6);
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.setValueAtTime(up ? 120 : 90, t);
+    const g2 = ac.createGain(); g2.gain.setValueAtTime(0.05, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o2.connect(g2); g2.connect(ac.destination); o2.start(t); o2.stop(t + 0.35);
   } catch (e) {}
 }
 function zoomLand() {                                            // the zoom settles: a soft touch-down
