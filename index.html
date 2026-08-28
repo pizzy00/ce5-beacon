@@ -417,6 +417,7 @@
   #bEngage .cover::after { content: "LIFT"; position: absolute; left: 0; right: 0; bottom: 7%; text-align: center;
     font-size: 11px; font-weight: 700; letter-spacing: 0.26em; color: rgba(15,30,18,0.65); }
   #bEngage.open .cover, body.run #bEngage .cover, body.active #bEngage .cover { transform: perspective(320px) rotateX(-112deg); }
+  #bEngage.open .cover { pointer-events: auto; cursor: pointer; }   /* the raised lid itself: tap it to snap it shut */
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -5357,6 +5358,10 @@ function sfx(kind) {
 }
 let coverOpen = false, coverTimer = 0;
 function coverClose() { coverOpen = false; $("bEngage").classList.remove("open"); }
+$("bEngage").querySelector(".cover").addEventListener("click", (e) => {   // tap the raised lid: it snaps shut instead of starting
+  if (!coverOpen || document.body.classList.contains("run") || document.body.classList.contains("active")) return;
+  e.stopPropagation(); clearTimeout(coverTimer); sfx("cover"); coverClose(); log("SAFETY COVER DOWN", "cy");
+});
 $("keys").addEventListener("pointerdown", (e) => { if (e.target.closest(".key")) sfx("key"); });
 $("bTone").onclick = () => {
   try {
