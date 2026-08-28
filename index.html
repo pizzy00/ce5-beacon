@@ -192,6 +192,12 @@
       </select>
       <div class="setLbl">FINAL ZOOM</div>
       <select id="selFinal">
+        <option value="2">2 — WHOLE CONTINENTS</option>
+        <option value="3">3 — COUNTRY SCALE</option>
+        <option value="5">5 — A REGION</option>
+        <option value="8">8 — CITY AND COAST</option>
+        <option value="12">12 — TOWN SCALE</option>
+        <option value="16">16 — STREETS</option>
         <option value="19">19 — SHARPEST THE IMAGERY GOES</option>
         <option value="20" selected>20 — ALL THE WAY IN, ONE STEP ENLARGED</option>
         <option value="21">21 — CLOSEST, ENLARGED AND SOFTER</option>
@@ -4552,7 +4558,7 @@ function runStep(i, token) {
   const s = divePlan[i];
   cueStage(s.msg);
   retShow(true);
-  const z = i === divePlan.length - 1 ? Math.max(s.z, S.finalZ) : s.z;   // the last hold goes all the way in
+  const z = i === divePlan.length - 1 ? S.finalZ : s.z;         // the last hold lands exactly where the setting says, high or low
   map.flyTo([TARGET.lat, TARGET.lon], z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
   map.once("moveend", () => {
     if (token !== diveToken || phase !== "dive") return;
