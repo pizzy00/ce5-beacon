@@ -5589,7 +5589,8 @@ function flushPending() {                                       // file what thi
   fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
     method: "POST",
     headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ id: trip.id, n: trip.n, d: trip.d }) })
+    body: JSON.stringify(trip.v ? { title: "VISIT", body: JSON.stringify({ id: trip.id, v: 1, day: trip.day }) }
+                                 : { title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ id: trip.id, n: trip.n, d: trip.d }) })
   }).then((r) => {
     if (r.ok || r.status === 422) {                               // filed (or refused for good): drop THIS trip by id, never a stale snapshot
       const Q = readPending().filter((x) => x.id !== trip.id);
@@ -5599,6 +5600,17 @@ function flushPending() {                                       // file what thi
   }).catch(() => { flushing = false; });
 }
 addEventListener("online", flushPending);
+const VISIT_KEY = "ce5.visit.day";
+function countVisit() {                                          // one VISIT per device per day, riding the same queue
+  const today = new Date().toISOString().slice(0, 10);
+  let seen = ""; try { seen = localStorage.getItem(VISIT_KEY) || ""; } catch (e) {}
+  if (seen === today) return;
+  try { localStorage.setItem(VISIT_KEY, today); } catch (e) {}
+  const P = readPending();
+  P.push({ id: "v-" + today + "-" + Math.random().toString(36).slice(2), v: 1, day: today }); while (P.length > 50) P.shift();
+  try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {}
+}
+countVisit();
 setTimeout(flushPending, 4000);
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function bdWhen(t) {
@@ -5617,7 +5629,7 @@ function openBoard() {
   const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
   $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
     " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + bdRows(L.slice(0, 12), true);
-  const pend = readPending().length;
+  const pend = readPending().filter((x) => !x.v).length;
   const note = !BOARD_TOKEN
     ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
     : boardDead ? '<div class="setStat">THE BOARD KEY IS DEAD OR THROTTLED (' + boardDead + ') \u00b7 ' + (pend ? pend + ' OF YOURS ARE KEPT HERE' : 'NOTHING OF YOURS IS WAITING') + '</div>'
@@ -5634,6 +5646,11 @@ function openBoard() {
       else h += lead.map((r, i) => '<div class="bdRow' + (r.n === callsign ? " me" : "") + '"><span><b>' + (i + 1) + ". " + esc(r.n) + '</b> \u00b7 ' + r.trips + ' TRIP' + (r.trips === 1 ? "" : "S") +
         '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.last) + '</i></span></div>').join("");
       if (last.length) h += '<div class="setLbl" style="margin-top:10px">LATEST TRIPS</div>' + bdRows(last);
+      const v = b && b.visits;
+      if (v && v.total) {
+        const today = new Date().toISOString().slice(0, 10);
+        h += '<div class="setStat">SEEN BY ' + v.total + ' DEVICE-DAY' + (v.total === 1 ? "" : "S") + ' ALL TOLD \u00b7 ' + ((v.days && v.days[today]) || 0) + ' TODAY (ONE COUNT PER DEVICE PER DAY, NOTHING ELSE RECORDED)</div>';
+      }
       if (b && b.updated) h += '<div class="setStat">BOARD WRITTEN ' + bdWhen(Date.parse(b.updated)) + ' \u00b7 IT CATCHES UP A FEW MINUTES AFTER EACH TRIP</div>';
       $("bdAll").innerHTML = h;
     })
