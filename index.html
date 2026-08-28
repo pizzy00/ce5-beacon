@@ -5949,11 +5949,7 @@ function flushPending() {                                       // file what thi
 }
 addEventListener("online", flushPending);
 document.addEventListener("pointerdown", () => ambStart(), { passive: true });   // the first touch unlocks audio: the drift can begin
-let setScrollLast = 0;
-$("setCard").addEventListener("scroll", () => {                  // the settings page whispers as it rolls
-  const y = $("setCard").scrollTop, d = y - setScrollLast; setScrollLast = y;
-  if (Math.abs(d) > 1) dragFx("scroll", d * 0.8);
-}, { passive: true });
+// (the settings-scroll sound is gone: it never sounded right)
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   const today = new Date().toISOString().slice(0, 10);
