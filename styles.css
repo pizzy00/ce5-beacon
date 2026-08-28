@@ -586,7 +586,7 @@
     color: var(--amber); font-size: 11px; letter-spacing: 0.24em; font-weight: 700; }
   .setSec.first { margin-top: 4px; }
   .setStat + .setLbl, .setChk + .setLbl, input[type="range"] + .setLbl { margin-top: 10px; }
-  .setLbl { font-size: 10px; letter-spacing: 0.18em; color: var(--amber-dim); margin-bottom: 6px; }
+  .setLbl { font-size: 10px; letter-spacing: 0.18em; color: #a8d8ff; margin-bottom: 6px; }
   .setStat { font-size: 9px; color: var(--cyan); margin-top: 5px; letter-spacing: 0.08em; }
   .setFlex { display: flex; gap: 8px; }
   #msgIn { width: 100%; display: block; }
