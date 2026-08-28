@@ -84,7 +84,7 @@
   #phase { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 4px); transform: translateX(-50%);   /* just above the console, whatever its height */
     font-size: 12px; letter-spacing: 0.3em; color: #a8d8ff; white-space: nowrap; }
   #blink { animation: bl 1.1s steps(2) infinite; }
-  #tapHint { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 20px); transform: translateX(-50%);
+  #tapHint { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 38px); transform: translateX(-50%);
     font-size: 8px; letter-spacing: 0.24em; color: var(--amber-dim); opacity: 0; transition: opacity 0.6s; white-space: nowrap; }
   body.run #tapHint, body.active.holding #tapHint { opacity: 0.55; }   /* mid-run, and during the hold before the flash */
   @keyframes bl { 50% { opacity: 0; } }
@@ -106,7 +106,7 @@
   #cue .breath { font-size: 10px; letter-spacing: 0.34em; color: var(--cyan); margin-top: 6px;
     text-shadow: 0 0 6px rgba(107,227,255,0.5); }
   /* during a run: get the chrome out of the way of the scene */
-  body.run #cue, body.active #cue { top: auto; bottom: calc(var(--ctlH, 128px) + 40px); width: 94vw; }   /* --ctlH already holds the safe-area inset; clears the phase label */
+  body.run #cue, body.active #cue { top: auto; bottom: calc(var(--ctlH, 128px) + 56px); width: 94vw; }   /* --ctlH already holds the safe-area inset; clears the phase label */
   body.run #cue .stage, body.active #cue .stage { white-space: normal; font-size: 12px; }
 
 /* ============================================================
@@ -690,7 +690,7 @@ body.intro #bLang { opacity: 0 !important; }
 .shBtn:active { background: rgba(255,196,107,0.25); }
 
 /* the journey breadcrumb: where you are, what comes next */
-#crumb { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 6px); transform: translateX(-50%);
+#crumb { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 22px); transform: translateX(-50%);
   font-size: 8.5px; letter-spacing: 0.18em; color: var(--amber); white-space: nowrap; max-width: 96vw;
   overflow: hidden; text-overflow: ellipsis; background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 4px;
   opacity: 0; transition: opacity 0.6s; }
