@@ -699,7 +699,7 @@
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
-      <label class="setChk"><input type="checkbox" id="ckDeep" checked />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
+      <label class="setChk"><input type="checkbox" id="ckDeep" />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
       <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
       <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
     </div>
@@ -1067,7 +1067,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false, starman: true,
   nukeAll: true, cache: "normal",
-  deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
+  deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
@@ -3731,7 +3731,7 @@ function drawChart3D(t) {
   const IKD = introK().sky;                                      // the opening: the galaxies and the far stars come dead last
   if (IKD > 0) paintDeepSky(chartRot * 40, IKD);
   for (const s of bgStars) {
-    ctx.globalAlpha = (0.35 + 0.3 * Math.sin(t * 1.5 + s.tw)) * IKD;
+    ctx.globalAlpha = 0.42 * IKD;                               // steady stars: the blinking read as noise
     ctx.fillStyle = "#cfd6ff";
     ctx.fillRect((((s.x + chartRot * 40) % W) + W) % W, s.y, s.r, s.r);   // the background sky drifts with the turn
   }
