@@ -3411,7 +3411,7 @@ function drawClaims(cx, y, s, alpha) {                           // the claims u
 }
 function drawSystemView(t) {
   if (!sysView) return;
-  const v = sysView, now = performance.now() / 1000, IN = 0.6, OUT = 0.6, hold = reduced ? 3 : (S.sysHold || 7.5);
+  const v = sysView, now = performance.now() / 1000, IN = 0.6, OUT = 0.6, hold = Math.max(5, S.sysHold || 7.5);   // reduced motion skips the fly-in, never the reading time
   const fin = reduced ? 1 : Math.min(1, (now - v.t0) / IN);
   if (!v.out && now - v.t0 >= IN + hold) v.out = now;          // time is up: back out
   const fout = v.out ? (reduced ? 1 : Math.min(1, (now - v.out) / OUT)) : 0;
