@@ -444,6 +444,11 @@
   body.run #hintDT, body.active #hintDT { display: none; }        /* the hint belongs to the chart alone */
   @keyframes hintFlash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) and (min-width: 99999px) { #hintDT { animation: none; opacity: 0.9; } }
+  #tapBegin { position: fixed; inset: 0; z-index: 30; background: #000; display: flex; align-items: center; justify-content: center; }
+  #tapBegin.hide { display: none; }
+  #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.34em; text-shadow: 0 0 12px rgba(125,251,168,0.55); animation: beginPulse 1.8s ease-in-out infinite; }
+  #tapBegin small { display: block; margin-top: 12px; font-size: 8px; letter-spacing: 0.22em; color: rgba(169,255,198,0.55); }
+  @keyframes beginPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -994,6 +999,7 @@
 <div id="fps" class="hide">-- FPS</div>
 <button id="gvX" class="hide" aria-label="Close the world view">✕</button>
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
+<div id="tapBegin" class="hide"><div>TAP TO BEGIN<small>SOUND ON · BEST WITH THE VOLUME UP</small></div></div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
@@ -5809,7 +5815,7 @@ function chartTap(cx, cy) {
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") return;                                // a tap mid-run is skipCurrent()'s job (document handler)
-  if (intro) introSkip();                                       // the opening: a tap skips to the end
+  if (intro && intro.t0) introSkip();                           // the opening: a tap skips to the end (only once it is running)
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   lastUserPick = performance.now();                             // his hand is on the sky: attract mode waits
   if (ptrs.size === 1) {
@@ -6130,11 +6136,18 @@ if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "c
   intro = { t0: 0, w0: performance.now() / 1000 };
   let fontsOk = false;
   try { document.fonts.ready.then(() => (fontsOk = true)); } catch (e) { fontsOk = true; }
+  let beginTapped = false;
+  $("tapBegin").addEventListener("pointerdown", (e) => {          // the tap that wakes the sound chip and raises the curtain
+    e.stopPropagation(); beginTapped = true; audioUnlock(); ambStart(); $("tapBegin").classList.add("hide");
+  });
   const gate = setInterval(() => {
-    if (!intro) return clearInterval(gate);
+    if (!intro) { $("tapBegin").classList.add("hide"); return clearInterval(gate); }
     const waited = performance.now() / 1000 - intro.w0;
     const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3)) || waited > 9;   // the maps, the Moon, the fonts; or it has been long enough
-    if (ready && !intro.t0) { intro.t0 = performance.now() / 1000; clearInterval(gate); }
+    if (ready && !intro.t0) {
+      if (!beginTapped) { $("tapBegin").classList.remove("hide"); return; }   // the show holds for the hand
+      intro.t0 = performance.now() / 1000; clearInterval(gate);
+    }
   }, 100);
 } else document.body.classList.remove("intro", "introHud");
 let savedTarget = false;
