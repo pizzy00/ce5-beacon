@@ -1496,6 +1496,7 @@ function measureCtl() {
 }
 let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one
 let fleetTrips = null, fleetIdx = 0, fleetPulse = null;          // earlier travellers, read from the board, told one at a time
+const bare = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");   // mangled dots and accents fall away
 let earthGoal = null, spotPulse = null;                          // a picked spot swings to the front and rings                          // double-tap the world: it pops up front to be turned and zoomed
 function gvK() {                                                 // 0 = the chart's hub, 1 = the world up front
   if (!globeView) return 0;
@@ -3793,7 +3794,7 @@ function drawChart3D(t) {
     ctx.globalAlpha = 1;
   }
   if (fleetPulse) {                                             // an earlier traveller's destination rings three times
-    const fs = SYSTEMS.find((q) => q.name === fleetPulse.d);
+    const fs = SYSTEMS.find((q) => bare(q.name) === bare(fleetPulse.d));
     const fa = (t - fleetPulse.t0) / 1.2;
     if (fa >= 3 || !fs || fs.px === undefined) { if (fa >= 3) fleetPulse = null; }
     else { const w = fa % 1, rr = 6 + w * 30;
@@ -6040,14 +6041,16 @@ function countVisit() {                                          // one VISIT pe
 }
 countVisit();
 setTimeout(flushPending, 4000);
-setTimeout(() => {                                               // the fleet feed: read once, tell slowly
+function fleetRead() {                                           // the whole book, newest first; back every ten minutes for new names
   fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
     .then((r) => r.json())
     .then((b) => {
-      const T = ((b && b.trips) || []).filter((x) => x.n && x.d && x.n !== callsign).slice(-20).reverse();
-      if (T.length) { fleetTrips = T; setTimeout(tellFleet, 4000); }
+      const T = ((b && b.trips) || []).filter((x) => x.n && x.d && x.n !== callsign).reverse();
+      if (T.length) { const first = !fleetTrips; fleetTrips = T; if (first) { fleetIdx = 0; setTimeout(tellFleet, 4000); } }
     }).catch(() => {});
-}, 6000);
+}
+setTimeout(fleetRead, 6000);
+setInterval(fleetRead, 600000);
 function tellFleet() {
   if (fleetTrips && fleetTrips.length && phase === "chart" && !intro && !document.hidden) {
     const x = fleetTrips[fleetIdx % fleetTrips.length]; fleetIdx++;
