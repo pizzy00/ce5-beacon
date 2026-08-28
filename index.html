@@ -481,6 +481,11 @@
     font: 10px ui-monospace, Menlo, monospace; letter-spacing: 0.1em; color: #7dfba8;
     background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 3px; }
   #fps.hide { display: none; }
+  #gvX { position: fixed; right: 12px; bottom: calc(var(--ctlH, 128px) + 14px); z-index: 9;
+    width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.72); color: var(--amber);
+    border: 1px solid var(--amber-dim); font: 16px ui-monospace, Menlo, monospace; }
+  #gvX:active { background: rgba(255,196,107,0.25); }
+  #gvX.hide { display: none; }
   #fsHint { position: fixed; top: calc(11px + env(safe-area-inset-top)); right: 48px; z-index: 9; pointer-events: none;
     color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
     background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
@@ -987,6 +992,7 @@
   </div>
 </div>
 <div id="fps" class="hide">-- FPS</div>
+<button id="gvX" class="hide" aria-label="Close the world view">✕</button>
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
@@ -1496,12 +1502,13 @@ function gvK() {                                                 // 0 = the char
 }
 function globeToggle() {
   if (globeView && !globeView.out) {
-    gvFx(false);
+    gvFx(false); $("gvX").classList.add("hide");
     globeView.out = performance.now() / 1000;
     earthZoom = Math.min(earthZoom, 1); zoomT = -1e9;             // it eases back to the resting size, no tilt-dive on the way
     log("BACK TO THE CHART", "cy");
   } else {
     gvFx(true);
+    $("gvX").classList.remove("hide");                          // the way out, for whoever misses the tap-away
     globeView = { t0: performance.now() / 1000, out: 0 }; earthAuto = false; earthVel = 0;
     log("THE WORLD, UP CLOSE \u2014 DRAG TO TURN IT, PINCH TO LEAN IN \u00b7 TAP THE SKY TO PUT IT BACK", "cy");
   }
@@ -6068,6 +6075,7 @@ function setName(v) {                                           // the same whit
   callsign = v; try { localStorage.setItem(NAME_KEY, v); } catch (e) {}
   openBoard();
 }
+$("gvX").onclick = () => { if (globeView && !globeView.out) globeToggle(); };
 $("bBoard").onclick = openBoard;
 $("bBoardClose").onclick = () => $("board").classList.add("hide");
 function sysListBuild() {                                        // the one-by-one list in the pop-up
