@@ -5494,13 +5494,21 @@ function sendMorse(text) {
   step();
 }
 let ac = null, toneOn = false, oscs = [];
+function audioUnlock() {                                         // the first touch wakes the sound chip for good
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050);
+    b.connect(ac.destination); b.start(0);                       // the silent tick some phones demand
+  } catch (e) {}
+}
 let introFxOff = false;                                          // a skip means silence, not a pile-up
 let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
 function zoomFx(v, lo, hi) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(ac.destination); zO.start(); }
     const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
     zO.frequency.setTargetAtTime(130 + n * 390, ac.currentTime, 0.03);   // in = higher, out = lower
@@ -5515,7 +5523,7 @@ function dragFx(kind, speed) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     let ch = dragCh[kind];
     if (!ch) {
       const len = ac.sampleRate, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
@@ -5539,7 +5547,7 @@ function blip(f0, f1, dur, vol) {                               // one small hon
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     const t = ac.currentTime, o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -5550,7 +5558,7 @@ function gvFx(up) {                                              // the world po
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     const t = ac.currentTime;
     const o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(up ? 240 : 560, t); o.frequency.exponentialRampToValueAtTime(up ? 560 : 240, t + 0.45);
@@ -5578,7 +5586,7 @@ function openFx(kind, i) {                                       // the opening'
   if (!S.sfx || introFxOff) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(ac.destination);
     const tone = (type, f0, f1, dur, vol, at) => {
       const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
@@ -5646,7 +5654,7 @@ function ambStart() {
   if (!S.amb || ambG || phase !== "chart") return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") { ac.resume(); if (ac.state === "suspended") return; }
+    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
     ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(ac.destination);
     const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
     for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
@@ -5993,7 +6001,10 @@ function flushPending() {                                       // file what thi
   }).catch(() => { flushing = false; });
 }
 addEventListener("online", flushPending);
-document.addEventListener("pointerdown", () => ambStart(), { passive: true });   // the first touch unlocks audio: the drift can begin
+const firstTouch = () => { audioUnlock(); ambStart(); };
+document.addEventListener("pointerdown", firstTouch, { passive: true });   // the first touch unlocks audio: the drift can begin
+document.addEventListener("touchend", firstTouch, { passive: true });
+document.addEventListener("click", firstTouch, true);
 $("setCard").addEventListener("change", (e) => { if (e.target.matches("input, select")) sfx("key"); });
 $("setCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bClose")) sfx("cover"); });
 $("sysCard").addEventListener("change", (e) => { if (e.target.matches("input")) sfx("key"); });
