@@ -1495,6 +1495,7 @@ function measureCtl() {
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
 let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one
+let fleetTrips = null, fleetIdx = 0, fleetPulse = null;          // earlier travellers, read from the board, told one at a time
 let earthGoal = null, spotPulse = null;                          // a picked spot swings to the front and rings                          // double-tap the world: it pops up front to be turned and zoomed
 function gvK() {                                                 // 0 = the chart's hub, 1 = the world up front
   if (!globeView) return 0;
@@ -3791,6 +3792,15 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = 1;
   }
+  if (fleetPulse) {                                             // an earlier traveller's destination rings three times
+    const fs = SYSTEMS.find((q) => q.name === fleetPulse.d);
+    const fa = (t - fleetPulse.t0) / 1.2;
+    if (fa >= 3 || !fs || fs.px === undefined) { if (fa >= 3) fleetPulse = null; }
+    else { const w = fa % 1, rr = 6 + w * 30;
+      ctx.globalAlpha = 0.7 * (1 - w) * dofK(fs.pk || 1);
+      ctx.strokeStyle = fs.c; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(fs.px, fs.py, rr, 0, 6.29); ctx.stroke(); ctx.globalAlpha = 1; }
+  }
   const origins = allChannels ? SYSTEMS : (selected.mode ? [] : [selected]);
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
   const EG = earthGeom(), ex = EG.cx, ey = EG.cy;               // the routes end BEHIND the world, not at a point above it
@@ -6030,6 +6040,22 @@ function countVisit() {                                          // one VISIT pe
 }
 countVisit();
 setTimeout(flushPending, 4000);
+setTimeout(() => {                                               // the fleet feed: read once, tell slowly
+  fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
+    .then((r) => r.json())
+    .then((b) => {
+      const T = ((b && b.trips) || []).filter((x) => x.n && x.d && x.n !== callsign).slice(-20).reverse();
+      if (T.length) { fleetTrips = T; setTimeout(tellFleet, 4000); }
+    }).catch(() => {});
+}, 6000);
+function tellFleet() {
+  if (fleetTrips && fleetTrips.length && phase === "chart" && !intro && !document.hidden) {
+    const x = fleetTrips[fleetIdx % fleetTrips.length]; fleetIdx++;
+    log("EARLIER TRAVELLER \u00b7 " + x.n + " \u2192 " + x.d + (x.t ? " \u00b7 " + bdWhen(x.t) : ""), "cy");
+    fleetPulse = { d: x.d, t0: performance.now() / 1000 };
+  }
+  setTimeout(tellFleet, 30000);
+}
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function bdWhen(t) {
   const m = Math.round((Date.now() - t) / 60000);
