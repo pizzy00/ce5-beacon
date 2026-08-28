@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=1" />
+<link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body class="intro introHud">
 
@@ -314,6 +314,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
+    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -405,6 +406,13 @@
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="muteHint" class="hide display">MUTE EVERY SOUND ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
+<div id="logPick" class="hide">
+  <div id="logCard">
+    <div class="setHead display">APPLICATION LOG <span id="bLogClose">✕</span></div>
+    <div class="setStat">EVERY CHANGE EVER PUSHED TO THIS APP, NEWEST FIRST, STRAIGHT FROM THE PUBLIC REPOSITORY · NOTHING CURATED, NOTHING HIDDEN</div>
+    <div id="logList"><div class="setStat">READING THE RECORD…</div></div>
+  </div>
+</div>
 <div id="ideaPick" class="hide">
   <div id="ideaCard">
     <div class="setHead display">IDEAS FOR THE BEACON <span id="bIdeaClose">✕</span></div>
@@ -5600,6 +5608,41 @@ function ideaBuild() {
     b.textContent = (x.n || "SOMEONE") + " · "; d.appendChild(b);
     d.appendChild(document.createTextNode(x.txt || "")); el.appendChild(d);
   }
+}
+let appLogGot = null;
+function openAppLog() {
+  $("info").classList.add("hide"); $("logPick").classList.remove("hide");
+  if (appLogGot) return;
+  fetch("https://api.github.com/repos/pizzy00/ce5-beacon/commits?per_page=100")
+    .then((r) => { if (!r.ok) throw 0; return r.json(); })
+    .then((L) => {
+      appLogGot = L; const el = $("logList"); el.textContent = "";
+      for (const c of L) {
+        const d = document.createElement("div"), b = document.createElement("b");
+        b.textContent = (c.commit.author.date || "").slice(0, 10) + " · ";
+        d.appendChild(b); d.appendChild(document.createTextNode((c.commit.message || "").split("\n")[0].toUpperCase()));
+        el.appendChild(d);
+      }
+      const tail = document.createElement("div"); tail.className = "setStat";
+      tail.textContent = "THE " + L.length + " MOST RECENT CHANGES · THE FULL HISTORY LIVES AT GITHUB.COM/PIZZY00/CE5-BEACON";
+      el.appendChild(tail);
+    })
+    .catch(() => { $("logList").textContent = ""; const d = document.createElement("div"); d.className = "setStat";
+      d.textContent = "NO ANSWER FROM THE RECORD · TRY AGAIN IN A MINUTE"; $("logList").appendChild(d); });
+}
+$("bAppLog").onclick = () => { sfx("cover"); openAppLog(); };
+$("bLogClose").onclick = () => { sfx("cover"); $("logPick").classList.add("hide"); };
+$("logPick").addEventListener("click", (e) => { if (e.target === $("logPick")) $("logPick").classList.add("hide"); });
+let autoSaveT = 0;
+function autoSave() {                                            // every change keeps itself: no one loses their setup
+  clearTimeout(autoSaveT);
+  autoSaveT = setTimeout(() => {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ S, target: { lat: TARGET.lat, lon: TARGET.lon }, sel: selected.id })); } catch (e) {}
+  }, 400);
+}
+for (const cid of ["setCard", "sysCard"]) {
+  $(cid).addEventListener("change", autoSave);
+  $(cid).addEventListener("input", autoSave);
 }
 $("bIdea").onclick = () => { ideaBuild(); $("ideaStat").textContent = ""; $("ideaPick").classList.remove("hide"); };
 $("bIdeaClose").onclick = () => $("ideaPick").classList.add("hide");
