@@ -418,6 +418,17 @@
     font-size: 11px; font-weight: 700; letter-spacing: 0.26em; color: rgba(15,30,18,0.65); }
   #bEngage.open .cover, body.run #bEngage .cover, body.active #bEngage .cover { transform: perspective(320px) rotateX(-112deg); }
   #bEngage.open .cover { pointer-events: auto; cursor: pointer; }   /* the raised lid itself: tap it to snap it shut */
+  #rotate { display: none; }                                       /* sideways on a touch screen: lights out until it turns back */
+  @media (orientation: landscape) and (pointer: coarse) {
+    #rotate { display: flex; position: fixed; inset: 0; z-index: 40; background: #000;
+      align-items: center; justify-content: center; text-align: center;
+      color: var(--amber-dim); font-size: 12px; letter-spacing: 0.3em; }
+    #rotate small { display: block; margin-top: 10px; font-size: 8px; letter-spacing: 0.24em; color: rgba(138,106,58,0.7); }
+    #rotate .ph { width: 34px; height: 58px; margin: 0 auto 16px; border: 2px solid var(--amber-dim); border-radius: 7px;
+      animation: rotHint 2.4s ease-in-out infinite; }
+  }
+  @keyframes rotHint { 0%, 20% { transform: rotate(-90deg); } 55%, 100% { transform: rotate(0deg); } }
+  @media (prefers-reduced-motion: reduce) { #rotate .ph { animation: none; } }
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -936,6 +947,7 @@
     <div class="infoFoot">THE CHART, THE CONTACTS LINE, THE TRAFFIC AND ALL CHANNELS FOLLOW THIS · AT LEAST ONE STAYS ON · BESIDE EACH: WHO PUT IT ON THE MAP · SAVED WITH YOUR SETTINGS</div>
   </div>
 </div>
+<div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
   <div class="warnSub display">FOR THE NUKE</div>
