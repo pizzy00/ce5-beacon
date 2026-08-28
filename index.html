@@ -686,6 +686,7 @@
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — A FIELD SKETCH OF THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT A PHOTOGRAPH)</label>
       <label class="setChk"><input type="checkbox" id="ckTapLook" checked />A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)</label>
+      <label class="setChk"><input type="checkbox" id="ckPursue" checked />THE PURSUE FILES: THE DEPARTMENT OF WAR\u2019S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE \u2014 TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
       <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="3.2" />
@@ -877,6 +878,14 @@
         with gratitude and a clear goodbye.</span></div>
     </div>
     <div class="setRow">
+      <div class="setLbl">THE PURSUE FILES</div>
+      <div class="infoP">The cyan squares on the globe are the U.S. Department of War&#39;s released UAP records
+        (PURSUE, <a href="https://www.war.gov/ufo/" target="_blank" rel="noopener" style="color:var(--cyan)">war.gov/ufo</a>,
+        releases from May 2026 on): unresolved cases the government could not explain, with the document, video or
+        image each one points to. Places are as the release index gives them, mostly region-level. Government
+        records, public domain; the app only indexes them.</div>
+    </div>
+    <div class="setRow">
       <div class="setLbl">THE LORE ON THIS CONSOLE</div>
       <div class="infoP">The star systems, the beings and the unit in the Triangle come from what people have
         <b>claimed</b>: Bob Lazar (1989 onward), John Lear (1987&#8211;90), later lists that grew out of Lear&#39;s
@@ -995,7 +1004,7 @@ const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail
   nukeAll: true, cache: "normal",
   deep: true, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, lore: true, tapLook: true,
+  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, lore: true, tapLook: true, pursue: true,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -3189,6 +3198,20 @@ function drawEarthHub(t) {
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
+  pursueHit = [];
+  if (S.pursue && PURSUE && PURSUE.groups.length) {             // the released UAP records: cyan squares, a count when you lean in
+    const big = earthZoom > 1.25 || gvK() > 0.5;
+    ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#8ff0ff";
+    for (const q of PURSUE.groups) {
+      const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
+      pursueHit.push({ q, x: p.x, y: p.y });
+      const r = Math.min(4.5, 2 + Math.sqrt(q.recs.length) * 0.45);
+      ctx.globalAlpha = 0.85; ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+      ctx.globalAlpha = 0.35; ctx.strokeStyle = "#8ff0ff"; ctx.lineWidth = 1; ctx.strokeRect(p.x - r - 1.5, p.y - r - 1.5, r * 2 + 3, r * 2 + 3);
+      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.recs.length + (q.recs.length === 1 ? " FILE" : " FILES"), p.x + (p.x > sx ? 8 : -8), p.y + 2.5); }
+    }
+    ctx.globalAlpha = 1; ctx.textAlign = "left";
+  }
   const you = orthPt(TARGET.lon, TARGET.lat, sx, sy, RZ, earthTiltDraw);   // and where you are standing
   if (you.v) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
@@ -3440,7 +3463,43 @@ function introStatus(t) {                                       // the only thin
   ctx.fillText("PRELOADING \u00b7 THE EARTH \u00b7 LUNA \u00b7 THE SKY" + dots, W / 2, H * 0.62);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
 }
+let PURSUE = null, pursueHit = [], pursueSeen = {};             // the released UAP records, grouped by place
+function loadPursue() {
+  if (PURSUE) return;
+  PURSUE = { groups: [], n: 0, moon: 0, orbit: 0 };
+  fetch("pursue.json", { cache: "force-cache" }).then((r) => r.json()).then((d) => {
+    const g = {};
+    for (const r of d.records || []) {
+      PURSUE.n++;
+      if (r.prec === "moon") { PURSUE.moon++; continue; }
+      if (r.prec === "orbit") { PURSUE.orbit++; continue; }
+      if (r.lat === undefined) continue;
+      (g[r.p] = g[r.p] || { p: r.p, lat: r.lat, lon: r.lon, prec: r.prec, recs: [] }).recs.push(r);
+    }
+    PURSUE.groups = Object.values(g).sort((a, b) => b.recs.length - a.recs.length);
+    PURSUE.src = d.source || "https://www.war.gov/ufo/";
+    log("THE PURSUE FILES ARE IN: " + PURSUE.n + " RELEASED UAP RECORDS \u00b7 " + PURSUE.groups.reduce((s, q) => s + q.recs.length, 0) + " PLACED ON THE GLOBE (CYAN SQUARES, TAP ONE) \u00b7 " + PURSUE.moon + " ABOUT THE MOON \u00b7 " + PURSUE.orbit + " IN ORBIT", "cy");
+  }).catch(() => { PURSUE = null; });
+}
+function logLink(txt, url, cls) {                                // a line on the tube that opens a file
+  const d = document.createElement("div"); d.className = cls || "cy";
+  d.textContent = "\u25b8 " + txt + " ";
+  const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "[OPEN THE FILE]";
+  a.style.color = "var(--cyan)"; a.style.pointerEvents = "auto"; d.appendChild(a);
+  logEl.appendChild(d); [...logEl.children].slice(0, -6).forEach((n) => n.classList.add("old"));
+  while (logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function pursueRead(grp) {                                       // one file from that place, the next one on the next tap
+  const i = (pursueSeen[grp.p] || 0) % grp.recs.length, r = grp.recs[i]; pursueSeen[grp.p] = i + 1;
+  const kind = { PDF: "DOCUMENT", VID: "VIDEO", IMG: "IMAGE", AUD: "AUDIO" }[(r.k || "").trim()] || r.k;
+  log("PURSUE FILE " + (i + 1) + " OF " + grp.recs.length + " AT " + grp.p + (grp.prec === "region" ? " (REGION-LEVEL)" : "") + " \u2014 " + (r.d && r.d !== "N/A" ? r.d + " \u00b7 " : "") + r.a.toUpperCase() + " \u00b7 " + kind, "cy");
+  log((r.id ? r.id + ": " : "") + r.t.toUpperCase(), "cy");
+  if (r.l) log(r.l.toUpperCase());
+  logLink("RELEASED " + r.rel + " BY THE DEPARTMENT OF WAR", r.u || PURSUE.src);   // videos have no direct file: the PURSUE page
+}
 function introAfter() {                                         // everything else preloads once the opening is done
+  loadPursue();
   try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
   try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}
 }
@@ -5243,9 +5302,11 @@ function chartTap(cx, cy) {
     if (Math.hypot(cx - m.x, cy - m.y) > 22) continue;
     const o = MODES.find((q) => q.id === m.id);
     if (o) { pickDeparture(o);
+      if (o.id === "luna" && PURSUE && PURSUE.moon) log("THE PURSUE FILES HOLD " + PURSUE.moon + " RELEASED RECORDS ABOUT THE MOON AND " + PURSUE.orbit + " ABOUT LOW EARTH ORBIT", "cy");
       if (o.id === "berm" && S.lore) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
       return; }
   }
+  for (const h of pursueHit) if (Math.hypot(cx - h.x, cy - h.y) < 11) { pursueRead(h.q); return; }   // a tap on a cyan square: a released file
   for (const h of siteHit) if (Math.hypot(cx - h.x, cy - h.y) < 12) {   // a tap on an old place: its story on the tube
     log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
   }
@@ -5574,7 +5635,7 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckSfx", S.sfx);
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckSfx", S.sfx);
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -5653,6 +5714,7 @@ $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckFaces").onchange = (e) => (S.faces = e.target.checked);
 $("ckTapLook").onchange = (e) => (S.tapLook = e.target.checked);
 $("ckLore").onchange = (e) => (S.lore = e.target.checked);
+$("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loadPursue(); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckDeep").onchange = (e) => (S.deep = e.target.checked);
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
@@ -5687,6 +5749,7 @@ $("rPhoto").oninput = (e) => { S.pHold = +e.target.value; $("vPhoto").textConten
 
 /* boot log */
 const restored = loadSettings();
+setTimeout(() => { if (S.pursue !== false) loadPursue(); }, 12000);   // the PURSUE files, whichever way the opening went
 if (restored) applyS();
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
