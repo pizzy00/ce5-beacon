@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v1";
+const VER = "ce5-v2";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -72,14 +72,14 @@ self.addEventListener("fetch", (e) => {
 
   if (url.startsWith(self.location.origin)) {                    // our own files: cache first, then refresh behind you
     e.respondWith(
-      caches.match(req, { ignoreSearch: true }).then((hit) => {
+      caches.match(req).then((hit) => {                          // exact URL, ?v= and all: a bumped version misses on purpose
         const net = fetch(req).then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
             caches.open(SHELL).then((c) => c.put(req, copy)).catch(() => {});
           }
           return res;
-        }).catch(() => hit);
+        }).catch(() => caches.match(req, { ignoreSearch: true }));   // no signal: any cached copy of this file will do
         return hit || net;
       })
     );

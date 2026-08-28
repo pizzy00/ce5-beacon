@@ -617,7 +617,7 @@ function applySystems(boot) {                                    // S.sysOn -> S
   SYSTEMS = SYSTEMS_ALL.filter((s) => (s.id in on ? !!on[s.id] : !s.opt));
   if (!SYSTEMS.length) { SYSTEMS = [SYSTEMS_ALL[0]]; on.zeta = true; }   // at least one stays on
   if (boot) return;
-  if (selected && !selected.mode && !SYSTEMS.includes(selected)) { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }
+  if (phase === "chart" && selected && !selected.mode && !SYSTEMS.includes(selected)) { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }   // never mid-flight: the board would file the wrong destination
   CHIP_SRC.length = 0; CHIP_SRC.push(...SYSTEMS, ...MODES);
   locBuild();
   const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", ");
@@ -777,7 +777,7 @@ function crumbNext(p) {                                          // what the jou
     }
     case "earth": return "SLOW DESCENT";
     case "dive": return m === "bermuda" ? "THE TRIANGLE" : flashOn ? "THE FLASH \u00b7 EYES CLOSED" : "TOUCHDOWN";
-    case "triangle": return S.bSeq === "film" ? "THE FLASH \u00b7 EYES CLOSED" : S.bSeq === "off" ? "THE DEEP RESPONDS" : "NUCLEAR SITES";
+    case "triangle": return S.bTrig === "film" ? "THE FLASH \u00b7 EYES CLOSED" : S.bTrig === "off" ? "THE DEEP RESPONDS" : "NUCLEAR SITES";
     case "sites": return "THE FLASH \u00b7 EYES CLOSED";
     case "flash": return m === "bermuda" && S.bPhotos ? "THE ARSENAL" : m === "bermuda" ? "THE DEEP RESPONDS" : "TOUCHDOWN";
     case "photos": return "THE DEEP RESPONDS";
@@ -3354,7 +3354,7 @@ function drawChart3D(t) {
     const LD = landAt(SYSTEMS.indexOf(o), ex, ey);
     dashLine(o.px, o.py, gate ? px : LD.x, gate ? py : LD.y, o.c, t);
   }
-  if (gate) dashLine(px, py, ex, ey, "#ffe9a6", t);
+  if (gate && IKD >= 0.98) dashLine(px, py, ex, ey, "#ffe9a6", t);   // the gate waits for the sky, like the routes do
   drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey, (e) => chartProject(e));
   if (gate) {
     star(px, py, 3.2, POLARIS.c);
@@ -4303,7 +4303,7 @@ function engage() {
 /* ---------------- Bermuda: the trigger sequence ---------------- */
 let bermToken = 0, bermHold = 0, bermGuard = 0, bermStep = -1, bermLayer = null, tourPlan = [];
 function bermudaCall() {
-  if (!map) { failNoMap(); return; }
+  if (!map) { failNoMap(); setTimeout(replay, 2200); return; }   // no map: say so, then hand the chart back rather than strand the run
   cancelAnimationFrame(raf);
   $("space").classList.add("gone");
   lockMap(true);
@@ -4611,13 +4611,14 @@ function startBreath() {
   const set = () =>
     ($("cue").querySelector(".breath").textContent = inhale ? "BREATHE IN" : "BREATHE OUT");
   set();
+  clearInterval(breathTimer);                                    // never leave a previous cue running
   breathTimer = setInterval(() => { inhale = !inhale; set(); }, S.breath * 1000);
 }
 function startDive() {
   cancelAnimationFrame(raf);
   setPhase("dive", "SLOW DESCENT");
   $("space").classList.add("gone");
-  if (!map) { failNoMap(); return; }
+  if (!map) { failNoMap(); setTimeout(replay, 2200); return; }   // no map: say so, then hand the chart back rather than strand the run
   lockMap(true);
   divePlan = activeDescent();
   const wet = modeOf() === "ocean" || modeOf() === "bermuda";
@@ -4658,7 +4659,7 @@ function skipStep() {
 function arrive() {
   if (phase !== "dive") return;
   setPhase("active", "BEACON ACTIVE");
-  clearInterval(breathTimer);
+  clearInterval(breathTimer); breathTimer = 0;
   $("cue").classList.remove("on");
   $("reticle").classList.remove("on");
   lockMap(false);
@@ -4690,7 +4691,7 @@ function arrive() {
 function replay() {
   flyStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
-  ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer);
+  ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer); breathTimer = 0;
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
@@ -5005,7 +5006,10 @@ function morseString(text) { return morseWords(text).map((w) => w.join(" ")).joi
 let morseToken = 0, morseHold = 0, morseGain = null, morseOsc = null;
 function morseKey(on) {
   const l = $("morse"); l.classList.remove("hide"); l.style.opacity = on ? S.mInt.toFixed(2) : "0";
-  if (!S.mTone || muted) return;
+  if (!S.mTone || muted) {
+    if (morseGain && ac) { try { morseGain.gain.setTargetAtTime(0, ac.currentTime, 0.004); } catch (e) {} }   // never leave the beacon tone latched on
+    return;
+  }
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (!morseOsc) {
@@ -5068,7 +5072,7 @@ let keepAlive = null, sndTold = false;
 function audioUnlock() {                                         // the first touch wakes the sound chip for good
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state !== "running" && !muted) ac.resume();
+    if (muted) { try { ac.suspend(); } catch (e) {} } else if (ac.state !== "running") ac.resume();
     const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050);
     b.connect(master()); b.start(0);                       // the silent tick some phones demand
     if (!keepAlive) {                                            // a silent line held open so the hardware never spins down
@@ -5094,6 +5098,7 @@ document.addEventListener("visibilitychange", () => {
 let introFxOff = false;                                          // a skip means silence, not a pile-up
 let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
 function zoomFx(v, lo, hi) {
+  if (muted) return;                                            // muted means muted
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5109,6 +5114,7 @@ function zoomFx(v, lo, hi) {
 }
 const dragCh = {};                                               // touch-and-drag voices: the world rumbles, the sky breathes, the settings whisper
 function dragFx(kind, speed) {
+  if (muted) return;                                            // muted means muted
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5133,6 +5139,7 @@ function dragFx(kind, speed) {
   } catch (e) {}
 }
 function blip(f0, f1, dur, vol) {                               // one small honest tone
+  if (muted) return;                                            // muted means muted
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5144,6 +5151,7 @@ function blip(f0, f1, dur, vol) {                               // one small hon
   } catch (e) {}
 }
 function gvFx(up) {                                              // the world pops up front (rising) or settles back (falling)
+  if (muted) return;                                            // muted means muted
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5160,6 +5168,7 @@ function gvFx(up) {                                              // the world po
   } catch (e) {}
 }
 function zoomLand() {                                            // the zoom settles: a soft touch-down
+  if (muted) return;                                            // muted means muted
   if (!S.sfx || !ac) return;
   try {
     const t = ac.currentTime;
@@ -5216,6 +5225,7 @@ function openFx(kind, i) {                                       // the opening'
   } catch (e) {}
 }
 function sfxBlast(farK) {                                        // the blast: a crack, then the long roll, scaled by distance
+  if (muted) return;                                            // muted means muted
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5300,6 +5310,7 @@ function flyStop() {
 }
 /* ---------------- the sounds: mechanical keys, the cover, the big button (synthesised, no files) ---------------- */
 function sfx(kind) {
+  if (muted) return;                                            // muted means muted: never wake the context
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -5398,7 +5409,6 @@ function chartTap(cx, cy) {
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") return;                                // a tap mid-run is skipCurrent()'s job (document handler)
-  if (intro && intro.t0) introSkip();                           // the opening: a tap skips to the end (only once it is running)
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   lastUserPick = performance.now();                             // his hand is on the sky: attract mode waits
   if (ptrs.size === 1) {
@@ -5409,6 +5419,7 @@ cvs.addEventListener("pointerdown", (e) => {
     if (dragEarth) { earthAuto = false; earthVel = 0; lastMoveT = 0; clearTimeout(earthResume); }
   }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); pinchMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+  if (intro && intro.t0) { introSkip(); wasPinch = true; }       // the opening: this finger only skips, it never picks
   if (sysView) { sysLeave(); wasPinch = true; }                  // any finger while looking in: come back out (no tap-pick)
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
@@ -5499,7 +5510,7 @@ function skipCurrent() {                                        // a tap anywher
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick")) return;
   skipCurrent();
 });
 $("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
@@ -6134,6 +6145,8 @@ function applyS() {                                             // push S into e
   set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
   set("rVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100)); txt("vVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100));
+  try { if (masterG && ac) { const gv = S.vol === undefined ? 0.7 : S.vol; masterG.gain.cancelScheduledValues(ac.currentTime); masterG.gain.setValueAtTime(gv, ac.currentTime); } } catch (e) {}   // the graph was built from factory defaults before the save was read
+  if (!S.amb && typeof ambStop === "function") ambStop();        // the pad started before we knew he had turned it off
 }
 $("bSave").onclick = () => { saveSettings(); $("settings").classList.add("hide"); };   // save and the pane closes
 $("bDefaults").onclick = saveSettings;                                                 // save and stay: from now on it opens this way
@@ -6255,6 +6268,11 @@ if (restored) applyS();
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
 if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }
+if (!S.opening && intro) {                                       // he turned the opening off and saved it: honour that before it plays
+  intro = null;
+  const tb = $("tapBegin"); if (tb) tb.classList.add("hide");
+  document.body.classList.remove("intro", "introHud");
+}
 if (setupCame) {                                                 // someone handed him their console
   applyS();
   log("SETUP RECEIVED FROM ANOTHER TRAVELLER · TAP ⚙ SAVE TO KEEP IT", "cy");
