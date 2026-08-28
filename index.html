@@ -63,7 +63,7 @@
       <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
-      <label class="setChk"><input type="checkbox" id="ckSfx" checked />KEY CLICKS AND THE BUTTON SOUNDS</label>
+      <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
@@ -4971,14 +4971,29 @@ function sendMorse(text) {
 }
 let ac = null, toneOn = false, oscs = [];
 let muted = false; try { muted = localStorage.getItem("ce5.mute") === "1"; } catch (e) {}
+let keepAlive = null, sndTold = false;
 function audioUnlock() {                                         // the first touch wakes the sound chip for good
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !muted) ac.resume();
+    if (ac.state !== "running" && !muted) ac.resume();
     const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050);
     b.connect(ac.destination); b.start(0);                       // the silent tick some phones demand
+    if (!keepAlive) {                                            // a silent line held open so the hardware never spins down
+      const o = ac.createOscillator(), g = ac.createGain();
+      g.gain.value = 0.0001; o.frequency.value = 30; o.connect(g); g.connect(ac.destination); o.start();
+      keepAlive = o;
+    }
+    if (!sndTold && ac.state === "running") { sndTold = true;
+      if (muted) log("SOUND IS SWITCHED OFF \u2014 THE SPEAKER KEY, TOP RIGHT", "alert");
+      else if (!S.sfx) log("SOUND EFFECTS ARE OFF IN \u2699 SETTINGS", "alert");
+    }
   } catch (e) {}
 }
+function audioGuard() {                                          // Android naps the context; this never lets it stay asleep
+  try { if (ac && !muted && ac.state !== "running") ac.resume(); } catch (e) {}
+}
+setInterval(audioGuard, 3000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) audioGuard(); });
 let introFxOff = false;                                          // a skip means silence, not a pile-up
 let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
 function zoomFx(v, lo, hi) {
@@ -5480,7 +5495,7 @@ function flushPending() {
   }).catch(() => { flushing = false; });
 }
 addEventListener("online", flushPending);
-const firstTouch = () => { audioUnlock(); ambStart(); };
+const firstTouch = () => { audioUnlock(); ambStart(); audioGuard(); };
 document.addEventListener("pointerdown", firstTouch, { passive: true });   // the first touch unlocks audio: the drift can begin
 document.addEventListener("touchend", firstTouch, { passive: true });
 document.addEventListener("click", firstTouch, true);
