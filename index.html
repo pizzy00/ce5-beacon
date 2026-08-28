@@ -547,9 +547,11 @@
   #msgIn { width: 100%; display: block; }
   #morse { position: fixed; inset: 0; z-index: 12; background: #fff; opacity: 0; pointer-events: none; }
   #morse.hide { display: none; }
-  #txMsg { position: fixed; left: 10px; right: 10px; bottom: calc(var(--ctlH, 128px) + 46px); z-index: 8; text-align: center;
-    pointer-events: none; font-size: 13px; letter-spacing: 0.22em; line-height: 1.9; color: rgba(240,236,226,0.28);
-    text-shadow: 0 0 8px rgba(0,0,0,0.95); }
+  #txMsg { position: fixed; left: 50%; transform: translateX(-50%); max-width: calc(100% - 20px);
+    bottom: calc(var(--ctlH, 128px) + 46px); z-index: 8; text-align: center; pointer-events: none;
+    font-size: 13px; letter-spacing: 0.22em; line-height: 1.9; color: rgba(240,236,226,0.45);
+    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,196,107,0.25); border-radius: 6px; padding: 8px 14px;
+    box-shadow: 0 0 18px rgba(0,0,0,0.8); }
   #txMsg.hide { display: none; }
   #txMsg b { font-weight: 400; color: var(--amber); }
   #txMsg u { text-decoration: none; color: #ffffff; text-shadow: 0 0 10px rgba(255,236,180,0.9); }
@@ -4745,6 +4747,7 @@ function runFlash(token) {
   const shot = flashShot, layer = $("nuke"), v = shot.v, hz = shot.hz, tint = shot.tint, dur = v.length / hz;
   layer.style.opacity = "0"; layer.classList.remove("hide");
   flashT0 = performance.now();
+  sfxBlast(flashFar);                                            // the sound breaks with the light, far shots softer
   let quietSince = -1;
   const frame = () => {
     if (token !== bermToken || phase !== "flash") return;
@@ -5325,7 +5328,7 @@ function morseKey(on) {
       morseOsc = ac.createOscillator(); morseOsc.type = "sine"; morseOsc.frequency.value = 600;
       morseOsc.connect(morseGain); morseOsc.start();
     }
-    morseGain.gain.setTargetAtTime(on ? 0.12 : 0, ac.currentTime, 0.004);
+    morseGain.gain.setTargetAtTime(on ? 0.045 : 0, ac.currentTime, 0.004);   // soft: the light does the talking
   } catch (e) {}
 }
 function stopMorse() {
@@ -5370,6 +5373,29 @@ function sendMorse(text) {
   step();
 }
 let ac = null, toneOn = false, oscs = [];
+function sfxBlast(farK) {                                        // the blast: a crack, then the long roll, scaled by distance
+  if (!S.sfx) return;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    const t = ac.currentTime, vol = 0.5 * Math.min(1, Math.max(0.15, farK || 1));
+    const len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + 0.04 * w) / 1.04; d[i] = last * 3; }
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = "lowpass"; f.Q.value = 0.5;
+    f.frequency.setValueAtTime(6000, t); f.frequency.exponentialRampToValueAtTime(90, t + 3.2);   // the roar darkens as it rolls
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.02);                    // it breaks with the light
+    g.gain.exponentialRampToValueAtTime(0.001, t + 3.8);
+    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); src.stop(t + 4);
+    const sub = ac.createOscillator(); sub.type = "sine"; sub.frequency.setValueAtTime(48, t);      // the ground note
+    sub.frequency.exponentialRampToValueAtTime(30, t + 3.5);
+    const sg = ac.createGain(); sg.gain.setValueAtTime(0, t); sg.gain.linearRampToValueAtTime(vol * 0.7, t + 0.04);
+    sg.gain.exponentialRampToValueAtTime(0.001, t + 4);
+    sub.connect(sg); sg.connect(ac.destination); sub.start(t); sub.stop(t + 4.2);
+  } catch (e) {}
+}
 let flyG = null, flyN = null, flyF = null;                       // the wind of the crossing
 function flyStart() {
   if (!S.flySnd) return;
