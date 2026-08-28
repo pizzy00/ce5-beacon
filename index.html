@@ -108,7 +108,7 @@
     <div class="setRow">
       <div class="setLbl">CROSSHAIR RETICLE</div>
       <select id="selRet">
-        <option value="flight" selected>WHILE TRAVELLING ONLY — GONE ONCE IT LANDS</option>
+        <option value="flight" selected>ON THE DESCENT ONLY — NEVER OVER THE FLYBY TEXT</option>
         <option value="always">ALWAYS DURING A RUN</option>
         <option value="off">OFF</option>
       </select>
@@ -576,17 +576,17 @@
 /* ---------------- target ---------------- */
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
-const S = { breath: 3.2, spaceMul: 1, diveMul: 1, originMul: 1, flyby: 5, detail: "full",
-  arrHold: 8, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 6, salvo: false, motion: "full",
-  bNow: true, bPhotos: true, pHold: 1.6, bOrbit: 12,
-  msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 12, mInt: 0.6,
-  crt: false, vig: true, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: false, sun: true, moon: true, jwst: true, hubble: true, voyager: true, iss: true, starlink: false, starman: true,
+const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, detail: "rapid",
+  arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
+  bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
+  msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
+  crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
+  polaris: false, sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: true, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: false,
-  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: false, drac: false } };
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true,
+  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -736,7 +736,7 @@ function nearestSite() {
   return USO_SITES.reduce((b, s) => (kmBetween(s, TARGET) < kmBetween(b, TARGET) ? s : b), USO_SITES[0]);
 }
 const modeOf = () => (allChannels ? "" : selected.mode || "");
-let selected = SYSTEMS[0]; // Zeta Reticuli default
+let selected = SYSTEMS.find((x) => x.id === "siri") || SYSTEMS[0];   // the chart opens on Sirius
 let allChannels = false;
 
 /* ---------------- dom ---------------- */
@@ -790,6 +790,7 @@ function setPhase(p, label) {
   if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
+  if (typeof retShow === "function") retShow();                  // the crosshair re-decides on every stage, not only where someone remembered to ask
   const c = $("crumb");
   if (c) {
     const nx = crumbNext(p);
@@ -4945,11 +4946,12 @@ $("bTarget").onclick = () => {
   if (retargetMode) log("RETARGET: TAP YOUR ROOF", "cy");
 };
 let retWant = false;
+const RET_SPACE = /^(origin|galaxy|warp|polaris|voyager|sun|starman|jwst|moon|hubble|iss|earth)$/;   // the space legs: the captions live in the middle, the crosshair must not
 function retShow(on) {                                        // on = the camera is travelling
-  retWant = !!on;
+  if (on !== undefined) retWant = !!on;
   const inRun = phase !== "chart" && phase !== "active";
-  const show = S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun;
-  $("reticle").classList.toggle("on", show);
+  const show = S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun && !RET_SPACE.test(phase);
+  const el = $("reticle"); if (el) el.classList.toggle("on", show);
 }
 function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); }
 function useGps() {
@@ -5720,41 +5722,85 @@ function applyMute() {
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
   if (muted) ambStop(); else ambStart();
 }
-/* ---------------- a whole tuning, carried as one code ---------------- */
-function setupPack() {                                           // only what he changed: a light tune makes a short code
-  const d = {};
-  for (const k of Object.keys(S)) {
-    const a = S[k], b = S_FACTORY[k];
-    if (a === b) continue;
-    if (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i])) continue;
-    d[k] = a;
+/* ---------------- a whole tuning, carried as one short code ----------------
+   Every setting has a fixed two-character slot from a frozen table. New settings are only
+   ever APPENDED, never inserted, so a code shared today still opens years from now.
+   zt, zd and zy are reserved for the target, the departure and the nine systems. */
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky"];
+const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
+function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
+function setupNum(v) {                                           // .5 not 0.50000000001
+  let t = (Math.round(v * 1000) / 1000).toString();
+  if (t.slice(0, 2) === "0.") t = t.slice(1);
+  else if (t.slice(0, 3) === "-0.") t = "-" + t.slice(2);
+  return t;
+}
+function setupPack() {                                           // only what he changed, short enough to text
+  const parts = [];
+  for (let i = 0; i < SETUP_KEYS.length; i++) {
+    const k = SETUP_KEYS[i], a = S[k], b = S_FACTORY[k];
+    if (a === b || b === undefined) continue;
+    const slot = setupSlot(i);
+    if (typeof a === "boolean") parts.push(slot + (a ? "1" : "0"));
+    else if (typeof a === "number") parts.push(slot + setupNum(a));
+    else parts.push(slot + encodeURIComponent(String(a)).replace(/~/g, "%7E"));
   }
-  const body = { v: 1, s: d };
-  if (TARGET && TARGET.exact) body.t = [+TARGET.lat.toFixed(5), +TARGET.lon.toFixed(5)];
-  if (selected && selected.id) body.d = selected.id;
-  try {
-    const j = JSON.stringify(body);
-    return btoa(unescape(encodeURIComponent(j))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  } catch (e) { return ""; }
+  if (S.sysOn && S_FACTORY.sysOn) {                              // nine switches, one number
+    let bits = 0, base = 0;
+    for (let i = 0; i < SETUP_SYS.length; i++) {
+      if (S.sysOn[SETUP_SYS[i]]) bits |= 1 << i;
+      if (S_FACTORY.sysOn[SETUP_SYS[i]]) base |= 1 << i;
+    }
+    if (bits !== base) parts.push("zy" + bits.toString(36));
+  }
+  if (TARGET && TARGET.exact) parts.push("zt" + (+TARGET.lat.toFixed(4)) + "_" + (+TARGET.lon.toFixed(4)));
+  if (selected && selected.id) parts.push("zd" + selected.id);
+  return "1" + parts.join("~");
 }
 function setupUnpack(code) {
-  try {
-    const b = code.trim().replace(/^.*[?&]c=/, "").replace(/[-]/g, "+").replace(/_/g, "/");
-    const j = decodeURIComponent(escape(atob(b)));
-    const o = JSON.parse(j);
-    return o && o.s ? o : null;
-  } catch (e) { return null; }
+  if (!code) return null;
+  let c = String(code).trim();
+  const q = c.match(/[?&]c=([^&#\s]+)/);
+  if (q) c = q[1];
+  if (c.indexOf("eyJ") === 0) {                                  // the first codes he shared were base64 JSON: they still open
+    try {
+      const b = c.replace(/-/g, "+").replace(/_/g, "/");
+      const o = JSON.parse(decodeURIComponent(escape(atob(b))));
+      return o && o.s ? o : null;
+    } catch (e) { return null; }
+  }
+  if (c.charAt(0) !== "1") return null;
+  const out = { v: 2, s: {} };
+  let any = false;
+  for (const p of c.slice(1).split("~")) {
+    if (p.length < 2) continue;
+    const head = p.slice(0, 2), rest = p.slice(2);
+    if (head === "zt") { const ll = rest.split("_"); if (ll.length === 2 && isFinite(+ll[0]) && isFinite(+ll[1])) { out.t = [+ll[0], +ll[1]]; any = true; } continue; }
+    if (head === "zd") { if (rest) { out.d = rest; any = true; } continue; }
+    if (head === "zy") { const n = parseInt(rest, 36); if (isFinite(n)) { out.y = n; any = true; } continue; }
+    if (!/^[0-9a-z]{2}$/.test(head)) continue;
+    const k = SETUP_KEYS[parseInt(head, 36)];
+    if (k === undefined) continue;
+    out.s[k] = decodeURIComponent(rest);
+    any = true;
+  }
+  return any ? out : null;
 }
-function setupApply(o, quiet) {                                  // types must match the factory, so a bad code cannot bend the console
+function setupApply(o, quiet) {                                  // the factory decides every type, so a bent code cannot bend the console
   if (!o || !o.s) return false;
   let n = 0;
   for (const k of Object.keys(o.s)) {
-    if (!(k in S_FACTORY)) continue;
-    const v = o.s[k], f = S_FACTORY[k];
-    if (Array.isArray(f)) { if (Array.isArray(v)) { S[k] = v.slice(); n++; } continue; }
-    if (typeof v !== typeof f) continue;
-    if (typeof v === "number" && !isFinite(v)) continue;
-    S[k] = v; n++;
+    const f = S_FACTORY[k];
+    if (f === undefined) continue;
+    const v = o.s[k];
+    if (typeof f === "boolean") { if (v === true || v === false) { S[k] = v; n++; } else if (v === "1" || v === "0") { S[k] = v === "1"; n++; } continue; }
+    if (typeof f === "number") { const x = parseFloat(v); if (isFinite(x)) { S[k] = x; n++; } continue; }
+    if (typeof f === "string") { S[k] = String(v); n++; continue; }
+    if (f && typeof f === "object" && v && typeof v === "object") { S[k] = JSON.parse(JSON.stringify(v)); n++; }
+  }
+  if (o.y !== undefined && isFinite(o.y) && S.sysOn) {           // the nine systems, unpacked
+    for (let i = 0; i < SETUP_SYS.length; i++) S.sysOn[SETUP_SYS[i]] = !!(o.y & (1 << i));
+    n++;
   }
   if (o.t && isFinite(+o.t[0]) && isFinite(+o.t[1]) && Math.abs(+o.t[0]) <= 90 && Math.abs(+o.t[1]) <= 180)
     TARGET = { lat: +o.t[0], lon: +o.t[1], exact: true };
