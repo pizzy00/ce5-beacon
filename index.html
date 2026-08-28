@@ -3758,7 +3758,7 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
-    label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
+    label(x + (right ? -12 : 12) * k, y - 8 * k, s.name, s.tag, s.c, right ? "right" : "left");   // the light-years live on the tube and the lean-in card, not the spinning sky
     ctx.globalAlpha = 1;
   }
   drawExo(t, (e) => chartProject(e));                           // the habitable worlds, if he has them on
