@@ -709,3 +709,9 @@ body.run #crumb, body.active #crumb { opacity: 0.85; }
 }
 body:not(.run):not(.active) #bEngage.open .cap { animation: startGlow 3s ease-in-out infinite; }
 body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
+
+/* the builder writing back, under the ask it answers */
+.ideaReply { margin: 2px 0 8px 14px; padding-left: 8px; border-left: 2px solid rgba(255,196,107,0.35);
+  color: #a8d8ff; font-size: 10px; line-height: 1.45; }
+.ideaReply b { color: var(--amber); }
+#ideaMsg { width: 100%; margin-top: 4px; }

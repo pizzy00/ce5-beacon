@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=10" />
+<link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body class="intro introHud">
 
@@ -486,6 +486,11 @@
     <textarea id="ideaTxt" maxlength="240" placeholder="YOUR IDEA (A FEW WORDS TO A FEW LINES)"></textarea>
     <div class="bdBtns" style="margin-top:8px"><span class="setBtn" id="bIdeaSend">SEND IT UP</span></div>
     <div class="setStat" id="ideaStat"></div>
+    <div class="setLbl" style="margin-top:14px">SENDING A GREETING TO THEM INSTEAD?</div>
+    <div class="setStat">THAT IS NOT AN IDEA FOR ME \u2014 IT IS THE MESSAGE YOUR BEACON TRANSMITS IN MORSE. SET IT HERE AND IT GOES OUT ON YOUR NEXT TRIP.</div>
+    <input id="ideaMsg" maxlength="80" autocomplete="off" spellcheck="false" placeholder="ONE HUMAN. ZERO FEAR. NO ORBS." />
+    <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bIdeaMsg">MAKE IT MY MESSAGE</span></div>
+    <div class="setStat" id="ideaMsgStat"></div>
     <div class="setLbl" style="margin-top:12px">WHAT OTHERS ASKED FOR — READ BEFORE SENDING A TWIN</div>
     <div id="ideaList"><div class="setStat">READING THE BOARD…</div></div>
   </div>
@@ -586,7 +591,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true,
-  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false } };
+  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
@@ -600,10 +605,13 @@ const SYSTEMS_ALL = [                                             // every syste
   { id: "orio", az: 4.888, name: "ORION · RIGEL", ly: 860, tag: "ORION GROUP", x: 0.72, y: 0.504, c: "#ff8e5e" },
   { id: "andr", az: 5.786, name: "ANDROMEDA", ly: 2537000, tag: "ANDROMEDANS", x: 0.09, y: 0.232, c: "#d9c9ff", galaxy: true },
   { id: "proc", az: 1.75, name: "PROCYON", ly: 11.5, tag: "NORDICS \u00b7 PROCYON", x: 0.45, y: 0.33, c: "#fff3d6", opt: 1 },        // from the package: the Lear circle's "Swedes"
-  { id: "drac", az: 4.44, name: "THUBAN \u00b7 DRACO", ly: 303, tag: "REPTILIANS", x: 0.40, y: 0.27, c: "#9cff8a", opt: 1 }             // and the 1990s Draco story
+  { id: "drac", az: 4.44, name: "THUBAN \u00b7 DRACO", ly: 303, tag: "REPTILIANS", x: 0.40, y: 0.27, c: "#9cff8a", opt: 1 },            // and the 1990s Draco story
+  { id: "erid", az: 2.60, name: "40 ERIDANI A", ly: 16.3, tag: "KEID \u00b7 ASKED FOR BY A TRAVELLER", x: 0.24, y: 0.55, c: "#ffd9a8", opt: 1 },   // a real triple 16 ly out, and the star Star Trek gave to Vulcan
+  { id: "acen", az: 3.55, name: "ALPHA CENTAURI B", ly: 4.37, tag: "OUR NEAREST NEIGHBOUR", x: 0.55, y: 0.62, c: "#ffcf8f", opt: 1 }      // the closest star system there is
 ];
 const STAR_POS = { zeta: [3.30, -62.5, "G2.5 V + G1 V"], plei: [3.79, 24.1, "OPEN CLUSTER"], siri: [6.75, -16.7, "A1 V + DA2"], arct: [14.26, 19.2, "K1.5 III"],
-  vega: [18.62, 38.8, "A0 V"], orio: [5.24, -8.2, "B8 IA"], andr: [0.71, 41.3, "SB GALAXY"], proc: [7.65, 5.2, "F5 IV-V + DQZ"], drac: [14.07, 64.4, "A0 III"] };
+  vega: [18.62, 38.8, "A0 V"], orio: [5.24, -8.2, "B8 IA"], andr: [0.71, 41.3, "SB GALAXY"], proc: [7.65, 5.2, "F5 IV-V + DQZ"], drac: [14.07, 64.4, "A0 III"],
+  erid: [4.2545, -7.65, "K0.5 V"], acen: [14.6597, -60.84, "K1 V"] };
 for (const s of SYSTEMS_ALL) { s.az0 = s.az; const q = STAR_POS[s.id]; if (q) { s.ra = q[0]; s.dec = q[1]; s.sp = q[2]; } }
 function applySky() {                                            // true sky: each system at its real right ascension round the turntable (they bunch up, as the real sky does)
   for (const s of SYSTEMS_ALL) s.az = S.trueSky && s.ra !== undefined ? (s.ra / 24) * 6.2832 + 0.35 : s.az0;
@@ -5873,6 +5881,13 @@ function ideaBuild() {
     const d = document.createElement("div"), b = document.createElement("b");
     b.textContent = (x.n || "SOMEONE") + " · "; d.appendChild(b);
     d.appendChild(document.createTextNode(x.txt || "")); el.appendChild(d);
+    for (const r of (Array.isArray(x.r) ? x.r : [])) {           // the builder wrote back: it belongs under the ask
+      const a = document.createElement("div"), t = document.createElement("b");
+      a.className = "ideaReply";
+      t.textContent = "\u21b3 " + ((r.by || "THE BUILDER").toUpperCase()) + " \u00b7 ";
+      a.appendChild(t); a.appendChild(document.createTextNode(r.txt || ""));
+      el.appendChild(a);
+    }
   }
 }
 const LANGS = [
@@ -6013,6 +6028,17 @@ for (const cid of ["setCard", "sysCard"]) {
 }
 $("bIdea").onclick = () => { ideaBuild(); $("ideaStat").textContent = ""; $("ideaPick").classList.remove("hide"); };
 $("bIdeaClose").onclick = () => $("ideaPick").classList.add("hide");
+$("bIdeaMsg").onclick = () => {                                  // the greeting people kept typing into the ideas box
+  sfx("key");
+  const v = ($("ideaMsg").value || "").trim();
+  if (v.length < 2) { $("ideaMsgStat").textContent = "TYPE THE WORDS YOU WANT SENT FIRST"; return; }
+  S.msg = v;
+  const mi = $("msgIn"); if (mi) mi.value = v;
+  const mm = $("msgMorse"); if (mm) mm.textContent = morseString(v) || "\u2014";
+  saveSettings();
+  $("ideaMsgStat").textContent = "SET \u00b7 YOUR BEACON WILL SEND IT IN MORSE ON THE NEXT TRIP";
+  log("BEACON MESSAGE SET \u00b7 \"" + v + "\"", "cy");
+};
 $("ideaPick").addEventListener("click", (e) => { if (e.target === $("ideaPick")) $("ideaPick").classList.add("hide"); });
 $("bIdeaSend").onclick = () => {
   const txt = ($("ideaTxt").value || "").replace(/\s+/g, " ").trim().slice(0, 240);
