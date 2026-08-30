@@ -421,19 +421,19 @@
   @keyframes hintFlash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) and (min-width: 99999px) { #hintDT { animation: none; opacity: 0.9; } }
   #tapBegin { position: fixed; inset: 0; z-index: 30; background: #000; display: flex; align-items: flex-start; justify-content: center;
-    padding: 20px 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    padding: 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
   #tapBegin > div { margin: auto 0; }   /* auto margins centre it AND let it scroll when the phone is short */
   #tapBegin.hide { display: none; }
-  #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.34em; text-shadow: 0 0 12px rgba(125,251,168,0.55); }
+  #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.28em; text-shadow: 0 0 12px rgba(125,251,168,0.55); }
   /* only the headline breathes - the warning and the note below have to stay readable */
   #tapBegin .lead { display: block; animation: beginPulse 4.5s ease-in-out infinite; }
-  #tapBegin small { display: block; margin-top: 12px; font-size: 8px; letter-spacing: 0.22em; color: rgba(169,255,198,0.55); }
+  #tapBegin small { display: block; margin-top: 9px; font-size: 8px; letter-spacing: 0.22em; color: rgba(169,255,198,0.55); }
   @keyframes beginPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { #tapBegin .lead { animation: none; opacity: 0.95; } }
-  #tapBegin .warn { display: block; margin-top: 34px; animation: none; color: var(--amber, #ffc46b);
+  #tapBegin .warn { display: block; margin-top: 22px; animation: none; color: var(--amber, #ffc46b);
     font-size: 10px; letter-spacing: 0.2em; opacity: 0.9; }
-  #tapBegin .warn em { display: block; margin: 10px auto 0; max-width: 320px; font-style: normal;
-    font-size: 8.5px; letter-spacing: 0.14em; line-height: 1.8; color: rgba(255,196,107,0.75); }
+  #tapBegin .warn em { display: block; margin: 7px auto 0; max-width: 372px; font-style: normal;
+    font-size: 8.6px; letter-spacing: 0.08em; line-height: 1.58; color: rgba(255,196,107,0.75); }
   #bEngage:active .cap { filter: brightness(1.08); }
   body.run #bEngage, body.active #bEngage { --cs: 62px; width: 88px; }   /* height stays: the console must not jump when START becomes STOP */
   body.run #bEngage .cap, body.active #bEngage .cap {            /* the same button, smaller and red */
@@ -735,10 +735,18 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
 
 /* why the flash and why the morse: said before anyone presses a thing.
    Green, not amber - this is the reason for the thing, not a warning about it. */
-#tapBegin .why { display: block; margin-top: 22px; animation: none; color: rgba(169,255,198,0.8);
-  font-size: 9px; letter-spacing: 0.2em; }
-#tapBegin .why em { display: block; margin: 9px auto 0; max-width: 340px; font-style: normal;
-  font-size: 8.5px; letter-spacing: 0.13em; line-height: 1.85; color: rgba(169,255,198,0.6); }
+#tapBegin .why { display: block; margin-top: 15px; animation: none; color: rgba(169,255,198,0.8);
+  font-size: 8.5px; letter-spacing: 0.15em; }
+#tapBegin .why em { display: block; margin: 6px auto 0; max-width: 372px; font-style: normal;
+  font-size: 8.6px; letter-spacing: 0.08em; line-height: 1.58; color: rgba(169,255,198,0.6); }
+
+/* a phone has to hold all of this without the reader fighting it */
+@media (max-width: 430px) {
+  #tapBegin > div { font-size: 13px; letter-spacing: 0.22em; }
+  #tapBegin .warn { margin-top: 18px; }
+  #tapBegin .why { margin-top: 12px; font-size: 8px; letter-spacing: 0.12em; }
+  #tapBegin .why em, #tapBegin .warn em { font-size: 8.2px; line-height: 1.5; letter-spacing: 0.045em; }
+}
 
 /* the telescope card: same furniture as the privacy card, it is long so it scrolls */
 #seePick { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.86);
