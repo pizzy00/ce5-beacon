@@ -424,9 +424,12 @@
     padding: 20px 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   #tapBegin > div { margin: auto 0; }   /* auto margins centre it AND let it scroll when the phone is short */
   #tapBegin.hide { display: none; }
-  #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.34em; text-shadow: 0 0 12px rgba(125,251,168,0.55); animation: beginPulse 1.8s ease-in-out infinite; }
+  #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.34em; text-shadow: 0 0 12px rgba(125,251,168,0.55); }
+  /* only the headline breathes - the warning and the note below have to stay readable */
+  #tapBegin .lead { display: block; animation: beginPulse 4.5s ease-in-out infinite; }
   #tapBegin small { display: block; margin-top: 12px; font-size: 8px; letter-spacing: 0.22em; color: rgba(169,255,198,0.55); }
-  @keyframes beginPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+  @keyframes beginPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #tapBegin .lead { animation: none; opacity: 0.95; } }
   #tapBegin .warn { display: block; margin-top: 34px; animation: none; color: var(--amber, #ffc46b);
     font-size: 10px; letter-spacing: 0.2em; opacity: 0.9; }
   #tapBegin .warn em { display: block; margin: 10px auto 0; max-width: 320px; font-style: normal;

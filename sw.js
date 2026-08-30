@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v3";
+const VER = "ce5-v4";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -11,7 +11,7 @@ const LIVE = VER + "-live";
 const PRECACHE = [
   "./",
   "./index.html",
-  "./styles.css?v=12",
+  "./styles.css?v=13",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
