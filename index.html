@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=13" />
+<link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body class="intro introHud">
 
@@ -163,6 +163,7 @@
     <div class="setBox">
     <div class="setSec">THE EARTH</div>
     <div class="setRow">
+      <label class="setChk"><input type="checkbox" id="ckPoles" checked />THE ARCTIC AND THE ANTARCTIC: BOTH POLAR CIRCLES ON THE GLOBE AT THEIR REAL 66.57°, NAMED WHEN YOU LEAN IN · BETWEEN THEM, THE LEAST-WATCHED GROUND ON EARTH</label>
       <label class="setChk"><input type="checkbox" id="ckSites" checked />THE OLD ONES' SKY-ALIGNED PLACES — GIZA, STONEHENGE, TEOTIHUACAN AND 12 MORE · TAP ONE FOR ITS STORY</label>
       <div class="setLbl">THE GLOBE'S SURFACE</div>
       <select id="selEarth">
@@ -365,7 +366,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
-    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span></div>
+    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -378,6 +379,14 @@
       <div class="infoP">I have sat outside, run the whole protocol, and had nothing come back. I built this console anyway, because I do not think one person's empty night settles anything. It might work for you. It might work for somebody in a country I will never visit, on a night I will never hear about.</div>
       <div class="infoP">That is why every trip lands on a public board. We are not each doing this alone in the dark. If enough of us stand outside on the same steps, on purpose, and one of us gets something real, that counts for far more than anything I could turn up by myself. Our own governments have spent seventy years telling us there was nothing to see while they quietly kept the files. Whatever the truth is, they were never going to be the ones to hand it over. So we go and look for ourselves.</div>
       <div class="infoP">No promises and no claims. Go outside, breathe, be polite, and see what happens.</div>
+    </div>
+    <div class="setRow">
+      <div class="setLbl">COULD WE EVEN SEE THEM?</div>
+      <div class="infoP">People assume that if something were flying around up there, a big enough telescope would have photographed it by now. That turns out to be a much weaker argument than it sounds, and not for the reason most people give. It is not about the size of the mirror.</div>
+      <div class="infoP">Something crossing the sky near the speed of light arrives almost with its own light: from a light-year out at 99% of c you get 3.7 days of warning, and at 99.9% under nine hours. It sweeps 45 degrees per second at the Moon's distance, so it crosses Hubble's whole field in about a thousandth of a second and leaves a faint streak rather than a picture. And the Doppler shift moves it out of visible light altogether: reflected light off something inbound at 99% of c is boosted around 199 times, so green light arrives as an X-ray. An optical telescope is simply blind to it. Radar is worse.</div>
+      <div class="infoP">What you would actually catch is the wake, not the hull. Anything moving that fast through interstellar hydrogen is hitting protons at billions of electron-volts, dumping megawatts per square metre and throwing off gamma rays. It would look like a moving gamma-ray source with a bow shock, which is a job for Fermi or CTA, not for Hubble.</div>
+      <div class="infoP">None of that is evidence that anything is out there. It only means the absence of a photograph is close to worthless as an argument. We are not looking with the right instruments, in the right band, on the right timescale.</div>
+      <div class="bdBtns" style="margin-top:8px"><span class="setBtn" id="bSee2">THE WHOLE THING, WITH THE NUMBERS AND THE PAPERS</span></div>
     </div>
     <div class="setRow">
       <div class="setLbl">HOW THIS WAS MADE</div>
@@ -476,6 +485,97 @@
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
     <div id="langList"></div>
     <div class="setStat" id="langNote">CORE CONTROLS ARE TRANSLATED · THE DEEP TEXT IS STILL ENGLISH FOR NOW</div>
+  </div>
+</div>
+<div id="seePick" class="hide">
+  <div id="seeCard">
+    <div class="setHead display">WHAT OUR TELESCOPES CAN AND CANNOT DO <span id="bSeeClose">✕</span></div>
+    <div class="setStat">REAL PHYSICS, NOT LORE. SOURCES AT THE BOTTOM. THE CONCLUSION IS NARROW ON PURPOSE.</div>
+
+    <div class="setRow">
+      <div class="setLbl">01 · YOU CANNOT SEE IT COMING</div>
+      <div class="infoP">At exactly the speed of light an object arrives together with its own light: zero
+        warning. Just below it, the warning time is the distance divided by c, times (1/β − 1).
+        From one light-year out that is <b>3.7 days at 0.99c</b>, <b>8.8 hours at 0.999c</b>, and 41 days
+        at 0.9c. So the scenario where somebody spots it early and points a telescope at it does not exist.
+        You only ever see it during or after the pass.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">02 · IT CROSSES THE FIELD IN A MILLISECOND</div>
+      <div class="infoP">Angular rate is c divided by distance. At the Moon's distance that is
+        <b>45 degrees per second</b>. Hubble's ACS has a 3 arcminute field, so the object is across it in
+        <b>1.1 milliseconds</b>, and each 0.05 arcsecond pixel gets about <b>310 nanoseconds</b> of exposure.</div>
+      <div class="infoP">Run the photons for a 100 m hull at 50% albedo at lunar distance, which would be
+        about magnitude +10 if it held still: roughly 3.5 million photons per second into a 2.4 m mirror,
+        times 310 ns, is about <b>one photon per pixel</b>. The trail covers some 3,600 pixels, so around
+        2,000 electrons total against read noise of about 240 electrons — a matched-filter signal-to-noise
+        near <b>8</b>. Detectable as a streak, if you already knew where to look and were filtering for
+        tracks. That is Rubin's job, not Hubble's.</div>
+      <div class="infoP">The counter-intuitive part: trailing loss turns the usual inverse-square law into
+        an inverse-<i>linear</i> one. Farther away means slower angular motion means longer dwell per pixel.
+        Distance hurts you half as fast as instinct says.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">03 · THEN RELATIVITY TAKES IT AWAY</div>
+      <div class="infoP">Reflected light off an inbound object gets a <i>double</i> Doppler boost:
+        (1+β)/(1−β), which at 0.99c is <b>199 times</b>. Green light at 500 nm arrives at
+        <b>2.5 nm</b>, around 500 electron-volts. Your optical telescope sees nothing; you wanted Chandra,
+        XMM or NuSTAR. The reflection is also beamed into a cone about 8 degrees wide, so off-axis there is
+        nothing at all. On the way out the same effect dims it by <b>11.5 magnitudes</b> and drags it to
+        about 7 micrometres — JWST's band, at hopeless flux.</div>
+      <div class="infoP">Radar fails harder. A 10 GHz X-band ping returns near <b>2 terahertz</b>. No
+        receiver is listening there, and the target has left long before the round trip finishes.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">04 · WHAT YOU WOULD ACTUALLY DETECT IS THE WAKE</div>
+      <div class="infoP">At a Lorentz factor of 10 through one proton per cubic centimetre, the craft sees a
+        proton flux around 3×10<sup>15</sup> per square metre per second at 8.4 GeV each: roughly
+        <b>4 megawatts per square metre</b> of frontal area, so 400 MW across a 100 m² cross-section.
+        8.4 GeV is well over the pion threshold, and neutral pions decay to gamma rays.</div>
+      <div class="infoP">So it is a <b>moving GeV gamma-ray point source with a bow shock</b>, beamed
+        forward. Fermi-LAT and CTA territory. And any real relativistic drive is far brighter than the hull
+        it is pushing — which is exactly the channel serious SETI proposals have argued for.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">05 · GENUINELY FASTER THAN LIGHT WOULD LOOK STRANGE</div>
+      <div class="infoP"><b>Ballistic FTL:</b> it would appear suddenly at closest approach and then
+        <b>split into two images running in opposite directions</b> along its track, preceded by a light
+        boom. Unmistakable. Nothing in the sky does this.</div>
+      <div class="infoP"><b>A warp bubble</b> is locally subluminal, so no image doubling. Its collapse
+        would ring a short, very high frequency gravitational-wave burst — above LIGO's band, needing
+        detectors nobody has funded. And a bubble sweeps up interstellar particles and dumps them forward
+        on arrival, so the arrival would read as a gamma-ray burst rather than a landing.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">06 · WE ALREADY PHOTOGRAPH APPARENT FTL ROUTINELY</div>
+      <div class="infoP">VLBI images show jet knots in M87 and 3C 279 moving at an apparent
+        <b>5 to 20 times light speed</b>. That is pure light-travel-time projection, a solved and frankly
+        boring problem. Resolving apparent superluminal motion is not the hard part. The real thing is.</div>
+    </div>
+
+    <div class="setRow">
+      <div class="setLbl">WHAT THIS DOES AND DOES NOT SHOW</div>
+      <div class="infoP">It does <b>not</b> show that anything is out there. It shows that "no telescope has
+        ever photographed one" is a far weaker argument than it is usually made to carry. Wrong instruments,
+        wrong band, wrong timescale. Absence of evidence, from instruments that were never built to look for
+        this, is close to no evidence at all.</div>
+      <div class="infoP">One caveat stated plainly: section 04 assumes a compact solid craft with an
+        ordinary drive. A craft decelerating on a magnetic sail would instead be a bright synchrotron
+        source — arguably the loudest signature of all, because it is deliberately coupling to the
+        interstellar medium.</div>
+    </div>
+
+    <div class="infoFoot">SOURCES · CLOUGH, DIETRICH &amp; KHAN (2024), OPEN J. ASTROPHYS. 7, arXiv:2406.02466 ·
+      YURTSEVER &amp; WILKINSON, LIMITS AND SIGNATURES OF RELATIVISTIC SPACEFLIGHT, arXiv:1503.05845 ·
+      LUBIN ET AL., RADIATION EFFECTS FROM ISM AND COSMIC RAY IMPACTS ON RELATIVISTIC SPACECRAFT, ApJ (2022),
+      doi:10.3847/1538-4357/ac6a50 · McMONIGAL, LEWIS &amp; O’BYRNE (2012), PRD 85, 064024 ·
+      ZUBRIN (1995), DETECTION OF ETI VIA SPECTRAL SIGNATURE OF ADVANCED INTERSTELLAR SPACECRAFT ·
+      THIS CARD IS IN ENGLISH ONLY FOR NOW</div>
   </div>
 </div>
 <div id="privPick" class="hide">
@@ -609,7 +709,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -2942,6 +3042,31 @@ function drawEarthHub(t) {
     ctx.globalAlpha = 0.85; ctx.fillStyle = pin.c; ctx.textAlign = al;
     ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
     ctx.globalAlpha = 1; ctx.textAlign = "left";
+  }
+  if (S.poles) {                                                // the two ends of the world, drawn where they really are
+    const bigP = earthZoom > 1.25 || gvK() > 0.5;
+    for (const pole of [{ lat: 66.57, n: "ARCTIC CIRCLE", tag: "ARCTIC", c: "#9be8ff", ly: 78 },
+                        { lat: -66.57, n: "ANTARCTIC CIRCLE", tag: "ANTARCTIC", c: "#a8d8ff", ly: -78 }]) {
+      ctx.strokeStyle = pole.c; ctx.globalAlpha = 0.22; ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]); ctx.beginPath();                 // the circle itself, only where the globe faces us
+      let drawing = false;
+      for (let lon = -180; lon <= 180; lon += 3) {
+        const q = orthPt(lon, pole.lat, sx, sy, RZ, earthTiltDraw);
+        if (!q.v) { drawing = false; continue; }
+        if (drawing) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); drawing = true; }
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+      const lp = orthPt(-earthRot, pole.ly, sx, sy, RZ, earthTiltDraw);   // the name rides the meridian facing you
+      if (lp.v && bigP) {
+        ctx.globalAlpha = 0.85; ctx.fillStyle = pole.c;
+        ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+        ctx.fillText(pole.tag, lp.x, lp.y);
+        ctx.globalAlpha = 0.45; ctx.font = "5.5px ui-monospace, Menlo, monospace";
+        ctx.fillText(pole.n + " \u00b7 66.57\u00b0", lp.x, lp.y + 9);
+        ctx.textAlign = "left";
+      }
+    }
+    ctx.globalAlpha = 1;
   }
   siteHit = [];
   if (S.sites) {                                                // the old ones' sky-aligned places: gold pyramids, names when you lean in
@@ -5898,7 +6023,7 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
@@ -6189,6 +6314,11 @@ function openAppLog() {
 $("bAppLog").onclick = () => { sfx("cover"); openAppLog(); };
 $("bPriv").onclick = () => { sfx("cover"); $("info").classList.add("hide"); $("privPick").classList.remove("hide"); };
 $("bPrivClose").onclick = () => { sfx("cover"); $("privPick").classList.add("hide"); };
+const openSee = () => { sfx("cover"); $("info").classList.add("hide"); $("seePick").classList.remove("hide"); };
+$("bSee").onclick = openSee;
+$("bSee2").onclick = openSee;
+$("bSeeClose").onclick = () => { sfx("cover"); $("seePick").classList.add("hide"); };
+$("seePick").addEventListener("click", (e) => { if (e.target === $("seePick")) $("seePick").classList.add("hide"); });
 $("privPick").addEventListener("click", (e) => { if (e.target === $("privPick")) $("privPick").classList.add("hide"); });
 $("bLogClose").onclick = () => { sfx("cover"); $("logPick").classList.add("hide"); };
 $("logPick").addEventListener("click", (e) => { if (e.target === $("logPick")) $("logPick").classList.add("hide"); });
@@ -6344,7 +6474,7 @@ function applyS() {                                             // push S into e
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster); chk("ckIso", S.iso);
-  set("rFleetN", S.fleetN); txt("vFleetN", S.fleetN); chk("ckFleetTag", S.fleetTag);
+  set("rFleetN", S.fleetN); txt("vFleetN", S.fleetN); chk("ckFleetTag", S.fleetTag); chk("ckPoles", S.poles);
   set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
   set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
@@ -6446,6 +6576,7 @@ $("rShip").oninput = (e) => { S.shipSpd = +e.target.value / 100; $("vShip").text
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rFleetN").oninput = (e) => { S.fleetN = +e.target.value; $("vFleetN").textContent = S.fleetN; };
 $("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
+$("ckPoles").onchange = (e) => (S.poles = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
 $("rBcn").oninput = (e) => { S.bcnHold = 10 - +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };

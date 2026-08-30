@@ -739,3 +739,12 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
   font-size: 9px; letter-spacing: 0.2em; }
 #tapBegin .why em { display: block; margin: 9px auto 0; max-width: 340px; font-style: normal;
   font-size: 8.5px; letter-spacing: 0.13em; line-height: 1.85; color: rgba(169,255,198,0.6); }
+
+/* the telescope card: same furniture as the privacy card, it is long so it scrolls */
+#seePick { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.86);
+  display: flex; align-items: flex-start; justify-content: center; padding: 18px 12px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#seePick.hide { display: none; }
+#seeCard { margin: auto 0; width: min(92vw, 560px); background: #07090c;
+  border: 1px solid rgba(255,196,107,0.28); border-radius: 8px; padding: 16px 16px 12px; }
+#seeCard .infoP sup { font-size: 0.75em; }
