@@ -40,14 +40,14 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=11" />
+<link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body class="intro introHud">
 
 <div id="map"></div>
 <canvas id="space"></canvas>
 <div id="reticle"></div>
-<div id="cue" class="display"><div class="stage"></div><div class="breath"></div></div>
+<div id="cue" class="display"><div class="stage"></div><div class="breath"></div><div class="bar"><i></i></div></div>
 <div id="settings" class="hide">
   <div id="setCard">
     <div class="setHead display">CONSOLE SETTINGS <span class="setBtns"><span id="bSave" class="setBtn">SAVE</span><span id="bFresh" class="setBtn">FRESH COPY</span><span id="bReset" class="setBtn dim">RESET</span><span id="bClose">✕</span></span></div>
@@ -194,6 +194,7 @@
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="6.8" />
       <div class="setStat">LEFT = BIG SLOW LUNGS · RIGHT = QUICK BREATHS</div>
+      <label class="setChk"><input type="checkbox" id="ckBar" checked />A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT</label>
     </div>
     <div class="setRow">
       <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · ISS · EARTH)</span></div>
@@ -367,6 +368,13 @@
         (early 1990s). What follows is a plain-language summary in our own words.</div>
     </div>
     <div class="setRow">
+      <div class="setLbl">FROM THE PERSON WHO BUILT THIS</div>
+      <div class="infoP"><b>It has never worked for me.</b></div>
+      <div class="infoP">I have sat outside, run the whole protocol, and had nothing come back. I built this console anyway, because I do not think one person's empty night settles anything. It might work for you. It might work for somebody in a country I will never visit, on a night I will never hear about.</div>
+      <div class="infoP">That is why every trip lands on a public board. We are not each doing this alone in the dark. If enough of us stand outside on the same steps, on purpose, and one of us gets something real, that counts for far more than anything I could turn up by myself. Our own governments have spent seventy years telling us there was nothing to see while they quietly kept the files. Whatever the truth is, they were never going to be the ones to hand it over. So we go and look for ourselves.</div>
+      <div class="infoP">No promises and no claims. Go outside, breathe, be polite, and see what happens.</div>
+    </div>
+    <div class="setRow">
       <div class="setLbl">THE CORE STEPS</div>
       <div class="infoStep"><span class="n">01</span><span><span class="t">SETTLE</span>Sit outside,
         ideally with a group, at a dark-sky spot away from city light. Get comfortable, screens dim,
@@ -496,7 +504,7 @@
   </div>
 </div>
 <div id="tapBegin" class="hide"><div>TAP TO BEGIN<small>SOUND ON · BEST WITH THE VOLUME UP</small>
-<span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span></div></div>
+<span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span><span class="why">WHY A NUCLEAR FLASH, AND WHY MORSE<em>THE SIGHTINGS THAT KEEP COMING BACK ARE THE ONES OVER OUR MISSILE FIELDS AND TEST SITES. SO THE FLASH HERE IS BAIT, ON PURPOSE: A FALSE ALARM, A HONEYPOT. IF THEY CAN SEE WHAT WE SEE, IT IS THE ONE SIGNAL WE KNOW HAS DRAWN THEM OUT BEFORE. NOTHING REAL DETONATES · AND MORSE BECAUSE IT IS THE OLDEST CODE WE STILL SEND: IF ANYONE HAS BEEN LISTENING TO THIS PLANET FOR A HUNDRED YEARS, IT IS THE ONE THEY HAVE HEARD THE MOST.</em></span></div></div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
@@ -590,7 +598,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -4614,12 +4622,23 @@ function cueStage(txt) {
   $("cue").querySelector(".stage").textContent = txt || "";
 }
 function cueSub(txt) { $("cue").querySelector(".breath").textContent = txt || ""; }
+function breathBar(on, inhale) {                                 // something to breathe WITH, not just words to read
+  const c = $("cue"); if (!c) return;
+  const b = c.querySelector(".bar"), i = b && b.querySelector("i");
+  if (!i) return;
+  if (!on || !S.bBar) { c.classList.remove("breathing"); i.classList.remove("in"); return; }
+  i.style.transitionDuration = Math.max(0.4, S.breath) + "s";     // it always takes exactly as long as the pace they set
+  if (!c.classList.contains("breathing")) { c.classList.add("breathing"); void b.offsetWidth; }   // let the first breath open, not jump
+  i.classList.toggle("in", !!inhale);
+}
 function startBreath() {
   let inhale = true;
-  const set = () =>
-    ($("cue").querySelector(".breath").textContent = inhale ? "BREATHE IN" : "BREATHE OUT");
-  set();
+  const set = () => {
+    $("cue").querySelector(".breath").textContent = inhale ? "BREATHE IN" : "BREATHE OUT";
+    breathBar(true, inhale);
+  };
   clearInterval(breathTimer);                                    // never leave a previous cue running
+  set();
   breathTimer = setInterval(() => { inhale = !inhale; set(); }, S.breath * 1000);
 }
 function startDive() {
@@ -4667,7 +4686,7 @@ function skipStep() {
 function arrive() {
   if (phase !== "dive") return;
   setPhase("active", "BEACON ACTIVE");
-  clearInterval(breathTimer); breathTimer = 0;
+  clearInterval(breathTimer); breathTimer = 0; breathBar(false);
   $("cue").classList.remove("on");
   $("reticle").classList.remove("on");
   lockMap(false);
@@ -4699,7 +4718,7 @@ function arrive() {
 function replay() {
   flyStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
-  ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer); breathTimer = 0;
+  ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer); breathTimer = 0; breathBar(false);
   ++bermToken; clearTimeout(bermHold); clearTimeout(bermGuard); stopFlash(); closeFlash(); bermStep = -1; flashAfter = null;
   cancelAnimationFrame(raf);                               // never run two loops
   $("bStop").classList.add("hide"); $("reticle").classList.remove("on");
@@ -5745,7 +5764,7 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
@@ -5898,6 +5917,8 @@ const L10N = {
   begin:   { en: "TAP TO BEGIN", es: "TOCA PARA EMPEZAR", zh: "轻点开始", hi: "शुरू करने के लिए टैप करें", ar: "انقر للبدء", pt: "TOQUE PARA COMEÇAR", fr: "TOUCHEZ POUR COMMENCER", ru: "КОСНИТЕСЬ, ЧТОБЫ НАЧАТЬ", de: "TIPPEN ZUM STARTEN", ja: "タップして開始" },
   beginSub:{ en: "SOUND ON · BEST WITH THE VOLUME UP", es: "CON SONIDO · MEJOR CON VOLUMEN ALTO", zh: "开启声音·音量调高效果最佳", hi: "ध्वनि चालू · आवाज़ बढ़ाकर सुनें", ar: "الصوت مفعّل · ارفع مستوى الصوت", pt: "SOM LIGADO · MELHOR COM VOLUME ALTO", fr: "SON ACTIVÉ · MONTEZ LE VOLUME", ru: "СО ЗВУКОМ · ГРОМЧЕ — ЛУЧШЕ", de: "TON AN · AM BESTEN LAUT", ja: "サウンドON・音量を上げて" },
   warnHead:{ en: "⚠ PHOTOSENSITIVITY WARNING", es: "⚠ AVISO DE FOTOSENSIBILIDAD", zh: "⚠ 光敏感警告", hi: "⚠ प्रकाश संवेदनशीलता चेतावनी", ar: "⚠ تحذير لمرضى الحساسية للضوء", pt: "⚠ AVISO DE FOTOSSENSIBILIDADE", fr: "⚠ AVERTISSEMENT PHOTOSENSIBILITÉ", ru: "⚠ ФОТОЧУВСТВИТЕЛЬНОСТЬ", de: "⚠ WARNUNG: LICHTEMPFINDLICHKEIT", ja: "⚠ 光過敏性に関する警告" },
+  whyHead:{ en: "WHY A NUCLEAR FLASH, AND WHY MORSE", es: "POR QU\u00c9 UN DESTELLO NUCLEAR, Y POR QU\u00c9 MORSE", zh: "\u4e3a\u4ec0\u4e48\u6709\u6838\u95ea\u5149\uff0c\u4e3a\u4ec0\u4e48\u7528\u83ab\u5c14\u65af", hi: "\u092a\u0930\u092e\u093e\u0923\u0941 \u091a\u092e\u0915 \u0914\u0930 \u092e\u094b\u0930\u094d\u0938 \u0915\u094d\u092f\u094b\u0902", ar: "\u0644\u0645\u0627\u0630\u0627 \u0648\u0645\u0636\u0629 \u0646\u0648\u0648\u064a\u0629\u060c \u0648\u0644\u0645\u0627\u0630\u0627 \u0645\u0648\u0631\u0633", pt: "POR QUE UM CLAR\u00c3O NUCLEAR, E POR QUE MORSE", fr: "POURQUOI UN FLASH NUCL\u00c9AIRE, ET POURQUOI LE MORSE", ru: "\u041f\u041e\u0427\u0415\u041c\u0423 \u042f\u0414\u0415\u0420\u041d\u0410\u042f \u0412\u0421\u041f\u042b\u0428\u041a\u0410 \u0418 \u041f\u041e\u0427\u0415\u041c\u0423 \u041c\u041e\u0420\u0417\u0415", de: "WARUM EIN NUKLEARBLITZ, UND WARUM MORSE", ja: "\u306a\u305c\u6838\u306e\u95c3\u5149\u304b\u3001\u306a\u305c\u30e2\u30fc\u30eb\u30b9\u304b" },
+  whyBody:{ en: "THE SIGHTINGS THAT KEEP COMING BACK ARE THE ONES OVER OUR MISSILE FIELDS AND TEST SITES. SO THE FLASH HERE IS BAIT, ON PURPOSE: A FALSE ALARM, A HONEYPOT. IF THEY CAN SEE WHAT WE SEE, IT IS THE ONE SIGNAL WE KNOW HAS DRAWN THEM OUT BEFORE. NOTHING REAL DETONATES \u00b7 AND MORSE BECAUSE IT IS THE OLDEST CODE WE STILL SEND: IF ANYONE HAS BEEN LISTENING TO THIS PLANET FOR A HUNDRED YEARS, IT IS THE ONE THEY HAVE HEARD THE MOST.", es: "LOS AVISTAMIENTOS QUE SIEMPRE VUELVEN SON LOS DE NUESTROS SILOS Y CAMPOS DE PRUEBAS. POR ESO EL DESTELLO DE AQU\u00cd ES CEBO, A PROP\u00d3SITO: UNA FALSA ALARMA, UN SE\u00d1UELO. SI PUEDEN VER LO QUE NOSOTROS VEMOS, ES LA \u00daNICA SE\u00d1AL QUE SABEMOS QUE YA LOS HA ATRA\u00cdDO. NADA REAL DETONA \u00b7 Y MORSE PORQUE ES EL C\u00d3DIGO M\u00c1S ANTIGUO QUE SEGUIMOS ENVIANDO: SI ALGUIEN LLEVA CIEN A\u00d1OS ESCUCHANDO ESTE PLANETA, ES EL QUE M\u00c1S HA O\u00cdDO.", zh: "\u4e00\u518d\u51fa\u73b0\u7684\u76ee\u51fb\uff0c\u90fd\u5728\u6211\u4eec\u7684\u5bfc\u5f39\u57fa\u5730\u548c\u8bd5\u9a8c\u573a\u4e0a\u7a7a\u3002\u6240\u4ee5\u8fd9\u91cc\u7684\u95ea\u5149\u662f\u6545\u610f\u653e\u7684\u9975\uff1a\u4e00\u6b21\u5047\u8b66\u62a5\uff0c\u4e00\u4e2a\u871c\u7f50\u3002\u5982\u679c\u4ed6\u4eec\u80fd\u770b\u5230\u6211\u4eec\u6240\u770b\u5230\u7684\uff0c\u90a3\u5c31\u662f\u6211\u4eec\u5df2\u77e5\u628a\u4ed6\u4eec\u5f15\u51fa\u6765\u8fc7\u7684\u4fe1\u53f7\u3002\u6ca1\u6709\u4efb\u4f55\u771f\u7684\u7206\u70b8 \u00b7 \u7528\u83ab\u5c14\u65af\uff0c\u662f\u56e0\u4e3a\u5b83\u662f\u6211\u4eec\u81f3\u4eca\u4ecd\u5728\u53d1\u9001\u7684\u6700\u53e4\u8001\u7684\u7f16\u7801\uff1a\u5982\u679c\u6709\u4eba\u542c\u4e86\u8fd9\u9897\u661f\u7403\u4e00\u767e\u5e74\uff0c\u90a3\u5c31\u662f\u4ed6\u4eec\u542c\u5f97\u6700\u591a\u7684\u3002", hi: "\u091c\u094b \u0928\u091c\u093c\u093e\u0930\u0947 \u092c\u093e\u0930-\u092c\u093e\u0930 \u0932\u094c\u091f\u0924\u0947 \u0939\u0948\u0902, \u0935\u0947 \u0939\u092e\u093e\u0930\u0947 \u092e\u093f\u0938\u093e\u0907\u0932 \u0905\u0921\u094d\u0921\u094b\u0902 \u0914\u0930 \u092a\u0930\u0940\u0915\u094d\u0937\u0923 \u0938\u094d\u0925\u0932\u094b\u0902 \u0915\u0947 \u090a\u092a\u0930 \u0915\u0947 \u0939\u0948\u0902\u0964 \u0907\u0938\u0932\u093f\u090f \u092f\u0939\u093e\u0901 \u0915\u0940 \u091a\u092e\u0915 \u091c\u093e\u0928\u092c\u0942\u091d\u0915\u0930 \u0930\u0916\u093e \u0917\u092f\u093e \u091a\u093e\u0930\u093e \u0939\u0948: \u090f\u0915 \u091d\u0942\u0920\u0940 \u091a\u0947\u0924\u093e\u0935\u0928\u0940, \u090f\u0915 \u092a\u094d\u0930\u0932\u094b\u092d\u0928\u0964 \u0905\u0917\u0930 \u0935\u0947 \u0935\u0939\u0940 \u0926\u0947\u0916 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902 \u091c\u094b \u0939\u092e \u0926\u0947\u0916\u0924\u0947 \u0939\u0948\u0902, \u0924\u094b \u092f\u0939\u0940 \u0935\u0939 \u0938\u0902\u0915\u0947\u0924 \u0939\u0948 \u091c\u094b \u092a\u0939\u0932\u0947 \u092d\u0940 \u0909\u0928\u094d\u0939\u0947\u0902 \u0916\u0940\u0902\u091a \u091a\u0941\u0915\u093e \u0939\u0948\u0964 \u0915\u0941\u091b \u092d\u0940 \u0938\u091a\u092e\u0941\u091a \u0928\u0939\u0940\u0902 \u092b\u091f\u0924\u093e \u00b7 \u0914\u0930 \u092e\u094b\u0930\u094d\u0938 \u0907\u0938\u0932\u093f\u090f \u0915\u093f \u092f\u0939 \u0938\u092c\u0938\u0947 \u092a\u0941\u0930\u093e\u0928\u093e \u0915\u094b\u0921 \u0939\u0948 \u091c\u094b \u0939\u092e \u0906\u091c \u092d\u0940 \u092d\u0947\u091c\u0924\u0947 \u0939\u0948\u0902\u0964", ar: "\u0627\u0644\u0645\u0634\u0627\u0647\u062f\u0627\u062a \u0627\u0644\u062a\u064a \u062a\u062a\u0643\u0631\u0631 \u0647\u064a \u0627\u0644\u062a\u064a \u062a\u0642\u0639 \u0641\u0648\u0642 \u062d\u0642\u0648\u0644 \u0635\u0648\u0627\u0631\u064a\u062e\u0646\u0627 \u0648\u0645\u0648\u0627\u0642\u0639 \u062a\u062c\u0627\u0631\u0628\u0646\u0627. \u0644\u0630\u0644\u0643 \u0641\u0625\u0646 \u0627\u0644\u0648\u0645\u0636\u0629 \u0647\u0646\u0627 \u0637\u064f\u0639\u0645 \u0645\u062a\u0639\u0645\u0651\u062f: \u0625\u0646\u0630\u0627\u0631 \u0643\u0627\u0630\u0628\u060c \u0641\u062e \u0639\u0633\u0644. \u0625\u0646 \u0643\u0627\u0646\u0648\u0627 \u064a\u0631\u0648\u0646 \u0645\u0627 \u0646\u0631\u0627\u0647\u060c \u0641\u0647\u064a \u0627\u0644\u0625\u0634\u0627\u0631\u0629 \u0627\u0644\u0648\u062d\u064a\u062f\u0629 \u0627\u0644\u062a\u064a \u0646\u0639\u0631\u0641 \u0623\u0646\u0647\u0627 \u0627\u0633\u062a\u062f\u0631\u062c\u062a\u0647\u0645 \u0645\u0646 \u0642\u0628\u0644. \u0644\u0627 \u0634\u064a\u0621 \u062d\u0642\u064a\u0642\u064a \u064a\u0646\u0641\u062c\u0631 \u00b7 \u0648\u0645\u0648\u0631\u0633 \u0644\u0623\u0646\u0647 \u0623\u0642\u062f\u0645 \u0634\u0641\u0631\u0629 \u0645\u0627 \u0632\u0644\u0646\u0627 \u0646\u0631\u0633\u0644\u0647\u0627.", pt: "OS AVISTAMENTOS QUE SEMPRE VOLTAM S\u00c3O OS QUE OCORREM SOBRE OS NOSSOS SILOS E CAMPOS DE TESTE. POR ISSO O CLAR\u00c3O AQUI \u00c9 ISCA, DE PROP\u00d3SITO: UM ALARME FALSO, UMA ARMADILHA. SE ELES CONSEGUEM VER O QUE VEMOS, \u00c9 O \u00daNICO SINAL QUE SABEMOS J\u00c1 T\u00ca-LOS ATRA\u00cdDO. NADA REAL DETONA \u00b7 E MORSE PORQUE \u00c9 O C\u00d3DIGO MAIS ANTIGO QUE AINDA ENVIAMOS: SE ALGU\u00c9M OUVE ESTE PLANETA H\u00c1 CEM ANOS, \u00c9 O QUE MAIS OUVIU.", fr: "LES OBSERVATIONS QUI REVIENNENT SANS CESSE SONT CELLES AU-DESSUS DE NOS SILOS ET DE NOS SITES D\u2019ESSAIS. LE FLASH ICI EST DONC UN APP\u00c2T, EXPR\u00c8S : UNE FAUSSE ALERTE, UN PI\u00c8GE. S\u2019ILS VOIENT CE QUE NOUS VOYONS, C\u2019EST LE SEUL SIGNAL DONT NOUS SAVONS QU\u2019IL LES A D\u00c9J\u00c0 FAIT SORTIR. RIEN DE R\u00c9EL N\u2019EXPLOSE \u00b7 ET LE MORSE PARCE QUE C\u2019EST LE PLUS VIEUX CODE QUE NOUS \u00c9METTONS ENCORE : SI QUELQU\u2019UN \u00c9COUTE CETTE PLAN\u00c8TE DEPUIS CENT ANS, C\u2019EST CELUI QU\u2019IL A LE PLUS ENTENDU.", ru: "\u041d\u0410\u0411\u041b\u042e\u0414\u0415\u041d\u0418\u042f, \u041a\u041e\u0422\u041e\u0420\u042b\u0415 \u041f\u041e\u0412\u0422\u041e\u0420\u042f\u042e\u0422\u0421\u042f, \u2014 \u042d\u0422\u041e \u0422\u0415, \u0427\u0422\u041e \u041d\u0410\u0414 \u041d\u0410\u0428\u0418\u041c\u0418 \u0420\u0410\u041a\u0415\u0422\u041d\u042b\u041c\u0418 \u0411\u0410\u0417\u0410\u041c\u0418 \u0418 \u041f\u041e\u041b\u0418\u0413\u041e\u041d\u0410\u041c\u0418. \u041f\u041e\u042d\u0422\u041e\u041c\u0423 \u0412\u0421\u041f\u042b\u0428\u041a\u0410 \u0417\u0414\u0415\u0421\u042c \u2014 \u041d\u0410\u0416\u0418\u0412\u041a\u0410, \u041d\u0410\u041c\u0415\u0420\u0415\u041d\u041d\u0410\u042f: \u041b\u041e\u0416\u041d\u0410\u042f \u0422\u0420\u0415\u0412\u041e\u0413\u0410, \u041f\u0420\u0418\u041c\u0410\u041d\u041a\u0410. \u0415\u0421\u041b\u0418 \u041e\u041d\u0418 \u0412\u0418\u0414\u042f\u0422 \u0422\u041e \u0416\u0415, \u0427\u0422\u041e \u0418 \u041c\u042b, \u042d\u0422\u041e \u0415\u0414\u0418\u041d\u0421\u0422\u0412\u0415\u041d\u041d\u042b\u0419 \u0421\u0418\u0413\u041d\u0410\u041b, \u041a\u041e\u0422\u041e\u0420\u042b\u0419 \u0423\u0416\u0415 \u0412\u042b\u041c\u0410\u041d\u0418\u0412\u0410\u041b \u0418\u0425. \u041d\u0418\u0427\u0415\u0413\u041e \u041d\u0410\u0421\u0422\u041e\u042f\u0429\u0415\u0413\u041e \u041d\u0415 \u0412\u0417\u0420\u042b\u0412\u0410\u0415\u0422\u0421\u042f \u00b7 \u0410 \u041c\u041e\u0420\u0417\u0415 \u2014 \u041f\u041e\u0422\u041e\u041c\u0423 \u0427\u0422\u041e \u042d\u0422\u041e \u0421\u0410\u041c\u042b\u0419 \u0421\u0422\u0410\u0420\u042b\u0419 \u041a\u041e\u0414, \u041a\u041e\u0422\u041e\u0420\u042b\u0419 \u041c\u042b \u0412\u0421\u0401 \u0415\u0429\u0401 \u041f\u0415\u0420\u0415\u0414\u0410\u0401\u041c.", de: "DIE SICHTUNGEN, DIE IMMER WIEDERKEHREN, SIND DIE \u00dcBER UNSEREN RAKETENFELDERN UND TESTGEL\u00c4NDEN. DER BLITZ HIER IST DESHALB ABSICHTLICH EIN K\u00d6DER: EIN FALSCHER ALARM, EIN HONIGTOPF. WENN SIE SEHEN, WAS WIR SEHEN, IST ES DAS EINE SIGNAL, VON DEM WIR WISSEN, DASS ES SIE SCHON HERAUSGEHOLT HAT. NICHTS ECHTES DETONIERT \u00b7 UND MORSE, WEIL ES DER \u00c4LTESTE CODE IST, DEN WIR IMMER NOCH SENDEN.", ja: "\u4f55\u5ea6\u3082\u623b\u3063\u3066\u304f\u308b\u76ee\u6483\u306f\u3001\u3044\u3064\u3082\u30df\u30b5\u30a4\u30eb\u57fa\u5730\u3084\u5b9f\u9a13\u5834\u306e\u4e0a\u7a7a\u3060\u3002\u3060\u304b\u3089\u3053\u3053\u306e\u95c3\u5149\u306f\u610f\u56f3\u7684\u306a\u9927\u3067\u3042\u308a\u3001\u507d\u306e\u8b66\u5831\u3001\u30cf\u30cb\u30fc\u30dd\u30c3\u30c8\u3060\u3002\u5f7c\u3089\u304c\u79c1\u305f\u3061\u3068\u540c\u3058\u3082\u306e\u3092\u898b\u3066\u3044\u308b\u306a\u3089\u3001\u305d\u308c\u306f\u4ee5\u524d\u306b\u5f7c\u3089\u3092\u5f15\u304d\u51fa\u3057\u305f\u3068\u308f\u304b\u3063\u3066\u3044\u308b\u552f\u4e00\u306e\u5408\u56f3\u3060\u3002\u672c\u7269\u306f\u4f55\u3082\u7206\u767a\u3057\u306a\u3044 \u00b7 \u30e2\u30fc\u30eb\u30b9\u306a\u306e\u306f\u3001\u4eca\u3082\u9001\u308a\u7d9a\u3051\u3066\u3044\u308b\u6700\u3082\u53e4\u3044\u7b26\u53f7\u3060\u304b\u3089\u3060\u3002" },
   warnBody:{ en: "THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.", es: "ESTA EXPERIENCIA CONTIENE DESTELLOS DE LUZ: UN DESTELLO NUCLEAR SIMULADO Y UNA BALIZA MORSE PULSANTE. AMBOS PUEDEN APAGARSE O AJUSTARSE EN ⚙ AJUSTES.", zh: "本体验包含闪光：模拟核闪光与脉冲莫尔斯信标。两者均可在 ⚙ 设置中关闭或调低。", hi: "इस अनुभव में प्रकाश की चमक है: एक नकली परमाणु चमक और मोर्स संकेत। दोनों को ⚙ सेटिंग्स में बंद या कम किया जा सकता है।", ar: "تحتوي هذه التجربة على ومضات ضوئية: ومضة نووية محاكاة وإشارة مورس نابضة. يمكن إيقافهما أو خفضهما من الإعدادات ⚙.", pt: "ESTA EXPERIÊNCIA CONTÉM FLASHES DE LUZ: UM CLARÃO NUCLEAR SIMULADO E UM FAROL MORSE PULSANTE. AMBOS PODEM SER DESLIGADOS OU AJUSTADOS EM ⚙ AJUSTES.", fr: "CETTE EXPÉRIENCE CONTIENT DES ÉCLAIRS DE LUMIÈRE : UN FLASH NUCLÉAIRE SIMULÉ ET UNE BALISE MORSE PULSÉE. LES DEUX SE DÉSACTIVENT OU SE RÈGLENT DANS ⚙ RÉGLAGES.", ru: "ЭТОТ ОПЫТ СОДЕРЖИТ ВСПЫШКИ СВЕТА: ИМИТАЦИЮ ЯДЕРНОЙ ВСПЫШКИ И ПУЛЬСИРУЮЩИЙ МАЯК МОРЗЕ. ОБА ОТКЛЮЧАЮТСЯ В ⚙ НАСТРОЙКАХ.", de: "DIESES ERLEBNIS ENTHÄLT LICHTBLITZE: EINEN SIMULIERTEN NUKLEARBLITZ UND EIN PULSIERENDES MORSE-LEUCHTFEUER. BEIDES LÄSST SICH IN ⚙ EINSTELLUNGEN ABSCHALTEN ODER DÄMPFEN.", ja: "この体験には光の点滅が含まれます：核爆発のフラッシュ再現とモールス信号。どちらも ⚙ 設定でオフ・調整できます。" },
   fsHint:  { en: "CLICK HERE FOR FULL SCREEN ▸", es: "PULSA AQUÍ PARA PANTALLA COMPLETA ▸", zh: "点此全屏 ▸", hi: "पूर्ण स्क्रीन के लिए यहाँ दबाएँ ▸", ar: "اضغط هنا لملء الشاشة ▸", pt: "CLIQUE AQUI PARA TELA CHEIA ▸", fr: "CLIQUEZ ICI POUR PLEIN ÉCRAN ▸", ru: "НАЖМИТЕ ДЛЯ ПОЛНОГО ЭКРАНА ▸", de: "HIER FÜR VOLLBILD ▸", ja: "全画面はこちら ▸" },
   muteHint:{ en: "MUTE EVERY SOUND ▸", es: "SILENCIAR TODO ▸", zh: "静音 ▸", hi: "सभी ध्वनि बंद करें ▸", ar: "كتم كل الأصوات ▸", pt: "SILENCIAR TUDO ▸", fr: "COUPER TOUS LES SONS ▸", ru: "ВЫКЛЮЧИТЬ ЗВУК ▸", de: "ALLE TÖNE STUMM ▸", ja: "すべてミュート ▸" },
@@ -5949,7 +5970,7 @@ function walkTranslate() {
 function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
-  fetch("lang/" + uiLang + ".json?v=2")
+  fetch("lang/" + uiLang + ".json?v=3")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { langDict = d; langDictFor = uiLang; walkTranslate(); })
     .catch(() => { langDict = null; walkTranslate(); });
@@ -5961,6 +5982,8 @@ function applyLang() {
   const sm = document.querySelector("#tapBegin small"); if (sm) sm.textContent = tr("beginSub");
   const w = document.querySelector("#tapBegin .warn");
   if (w) { w.childNodes[0].textContent = tr("warnHead"); const em = w.querySelector("em"); if (em) em.textContent = tr("warnBody"); }
+  const y = document.querySelector("#tapBegin .why");
+  if (y) { y.childNodes[0].textContent = tr("whyHead"); const em = y.querySelector("em"); if (em) em.textContent = tr("whyBody"); }
   put("fsHint", "fsHint"); put("muteHint", "muteHint"); put("ideaHint", "ideaHint"); put("langHint", "langHint");
   put("hintDT", "hintDT"); put("tapHint", "tapHint"); put("langNote", "note");
   const go = document.querySelector("#bEngage .lbl.go"), st = document.querySelector("#bEngage .lbl.stop");
@@ -6139,7 +6162,7 @@ function applyS() {                                             // push S into e
   const set = (id, v) => { const el = $(id); if (el) el.value = v; };
   const txt = (id, v) => { const el = $(id); if (el) el.textContent = v; };
   const chk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
-  set("rBreath", 10 - S.breath); txt("vBreath", S.breath.toFixed(1));
+  set("rBreath", 10 - S.breath); txt("vBreath", S.breath.toFixed(1)); chk("ckBar", S.bBar);
   set("rSpace", 2.5 - S.spaceMul); txt("vSpace", S.spaceMul.toFixed(1));
   set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
@@ -6201,7 +6224,11 @@ $("bCopy").onclick = () => {
 $("rBreath").oninput = (e) => {
   S.breath = 10 - +e.target.value;
   $("vBreath").textContent = S.breath.toFixed(1);
-  if (breathTimer) { clearInterval(breathTimer); startBreath(); }
+  if (breathTimer) { clearInterval(breathTimer); startBreath(); }   // the bar re-times itself along with the words
+};
+$("ckBar").onchange = (e) => {
+  S.bBar = e.target.checked;
+  if (breathTimer) { clearInterval(breathTimer); startBreath(); } else breathBar(false);
 };
 $("rSpace").oninput = (e) => { S.spaceMul = 2.5 - +e.target.value; $("vSpace").textContent = S.spaceMul.toFixed(1); };
 $("rFly").oninput = (e) => { S.flyby = 27 - +e.target.value; $("vFly").textContent = S.flyby.toFixed(1); };
@@ -6318,6 +6345,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("GOLD PYRAMIDS ON THE GLOBE = THE OLD ONES\u2019 SKY-ALIGNED PLACES \u00b7 PINCH IN FOR NAMES, TAP ONE FOR ITS STORY", "cy");
   log("DOUBLE-TAP THE WORLD TO BRING IT UP FRONT", "cy");
   log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
+  log("IT HAS NEVER WORKED FOR ME \u00b7 IT MIGHT FOR YOU \u00b7 THE i KEY SAYS WHY I BUILT IT ANYWAY", "cy");
 if (0 && reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
 updateShareLink();
