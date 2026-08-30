@@ -152,7 +152,7 @@
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS WHERE THEY REALLY ARE TODAY (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckIso" checked />VISITORS FROM ANOTHER STAR: 3I/ATLAS, 1I/ʻOUMUAMUA AND 2I/BORISOV TAKE TURNS CROSSING THE CHART ON THE REAL HYPERBOLA THAT BROUGHT THEM THROUGH · THEY PASS ONCE AND NEVER RETURN</label>
-      <label class="setChk"><input type="checkbox" id="ckAges" />HOW OLD IS EACH ONE — AGE SINCE THE BIG BANG, AS A BAR AGAINST THE UNIVERSE’S 13.787 BILLION YEARS, WITH A TICK WHERE OUR SUN FALLS · GOLD = OLDER THAN THE SUN, CYAN = YOUNGER · REAL PUBLISHED AGES</label>
+      <label class="setChk"><input type="checkbox" id="ckAges" />HOW OLD IS EACH ONE — AGE SINCE THE BIG BANG, AS A BAR AGAINST THE UNIVERSE’S 13.787 BILLION YEARS, WITH A TICK WHERE OUR SUN FALLS · GOLD = OLDER THAN THE SUN, CYAN = YOUNGER · REAL PUBLISHED AGES · IT IS THE AGE OF THE STAR, NOT OF ANYONE WHO MIGHT BE THERE</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
       <label class="setChk"><input type="checkbox" id="ckDeep" />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
@@ -1092,7 +1092,7 @@ const SYS_AGE = {
   drac: { g: 0.28,  w: "OUR POLE STAR WHEN THE PYRAMIDS WERE BUILT" },
   siri: { g: 0.242, w: "ITS COMPANION IS ALREADY A WHITE DWARF" },
   plei: { g: 0.1,   w: "STILL INSIDE THE DUST IT FORMED FROM" },
-  orio: { g: 0.008, w: "YOUNGER THAN THE HUMAN GENUS \u00b7 IT WILL EXPLODE" }
+  orio: { g: 0.008, w: "YOUNGER THAN THE HUMAN GENUS \u00b7 IT WILL EXPLODE" }   // a fact about the star, not about who may be at it
 };
 function ageOf(id) { return SYS_AGE[id]; }
 function ageLine(id) {
@@ -1120,6 +1120,7 @@ function ageBar(x, y, id, align, k) {                            // length = age
 function ageTell() {                                             // the ranking, once, when they switch it on
   const r = SYSTEMS.filter((q) => SYS_AGE[q.id]).sort((a, b) => SYS_AGE[b.id].g - SYS_AGE[a.id].g);
   log("OLDEST FIRST \u00b7 AGE SINCE THE BIG BANG \u00b7 THE SUN IS 4.57 BYR, THE UNIVERSE 13.787", "cy");
+  log("THIS IS HOW LONG THE STAR HAS BEEN BURNING \u00b7 IT DOES NOT SAY WHERE ANYONE CAME FROM, OR WHEN THEY GOT THERE \u00b7 A YOUNG STAR CAN STILL HAVE VISITORS, AND AN OLD ONE CAN BE EMPTY \u00b7 WE DO NOT KNOW, AND THAT IS THE POINT", "cy");
   for (const q of r) log("  " + q.name + " \u00b7 " + ageLine(q.id) + " \u00b7 " + SYS_AGE[q.id].w, "cy");
 }
 function label(x, y, main, sub, color, align, sz) {
