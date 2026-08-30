@@ -5943,8 +5943,18 @@ const L10N = {
   },
   note: { en: "CORE CONTROLS ARE TRANSLATED · THE DEEP TEXT IS STILL ENGLISH FOR NOW", es: "LOS CONTROLES PRINCIPALES ESTÁN TRADUCIDOS · EL TEXTO PROFUNDO SIGUE EN INGLÉS POR AHORA", zh: "核心控件已翻译·深层文本暂为英文", hi: "मुख्य नियंत्रण अनुवादित हैं · गहरा पाठ अभी अंग्रेज़ी में है", ar: "تمت ترجمة عناصر التحكم الأساسية · النص العميق ما زال بالإنجليزية", pt: "OS CONTROLES PRINCIPAIS ESTÃO TRADUZIDOS · O TEXTO PROFUNDO AINDA ESTÁ EM INGLÊS", fr: "LES COMMANDES PRINCIPALES SONT TRADUITES · LE TEXTE PROFOND RESTE EN ANGLAIS POUR L'INSTANT", ru: "ОСНОВНЫЕ ЭЛЕМЕНТЫ ПЕРЕВЕДЕНЫ · ГЛУБОКИЙ ТЕКСТ ПОКА НА АНГЛИЙСКОМ", de: "DIE KERN-BEDIENUNG IST ÜBERSETZT · DER TIEFE TEXT IST VORERST ENGLISCH", ja: "主要な操作は翻訳済み・詳細テキストは当面英語" },
 };
-let uiLang = "en"; try { uiLang = localStorage.getItem("ce5.lang") || "en"; } catch (e) {}
+let uiLang = "";
+const langURL = (location.search.match(/[?&]lang=([a-zA-Z-]+)/) || [])[1] || "";
+try { uiLang = localStorage.getItem("ce5.lang") || ""; } catch (e) {}
+if (langURL) uiLang = langURL.toLowerCase().split("-")[0];        // a link can arrive already in its own language
+if (!uiLang) {                                                    // nobody has chosen: use the one their device speaks
+  for (const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""])) {
+    const c = String(l).toLowerCase().split("-")[0];
+    if (LANGS.some((x) => x[0] === c)) { uiLang = c; break; }
+  }
+}
 if (!LANGS.some((x) => x[0] === uiLang)) uiLang = "en";
+if (langURL) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
 const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "bdCard", "infoCard"];
