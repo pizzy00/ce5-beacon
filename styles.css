@@ -415,7 +415,7 @@
   }
   @keyframes rotHint { 0%, 20% { transform: rotate(-90deg); } 55%, 100% { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) and (min-width: 99999px) { #rotate .ph { animation: none; } }
-  #hintDT { margin-left: 10px; font-size: 8px; letter-spacing: 0.12em; color: #f4eeda; white-space: nowrap;
+  #hintDT { margin-left: 10px; font-size: 0.67em; letter-spacing: 0.12em; color: #f4eeda; white-space: nowrap;
     text-shadow: 0 0 8px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.95), 0 0 10px rgba(255,214,128,0.35); animation: hintFlash 3.2s ease-in-out infinite; }
   body.run #hintDT, body.active #hintDT { display: none; }        /* the hint belongs to the chart alone */
   @keyframes hintFlash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -723,10 +723,10 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
 
 /* the breathing bar: it opens while you breathe in and closes while you let go, taking exactly
    as long as the pace slider says. Faint on purpose - the words above it stay the readable thing. */
-#cue .bar { margin: 0 auto; width: min(70vw, 300px); height: 0; opacity: 0; overflow: hidden;
+#cue .bar { margin: 0 auto; width: min(92vw, 900px); height: 0; opacity: 0; overflow: hidden;
   border-radius: 4px; background: rgba(107,227,255,0.05);
   box-shadow: inset 0 0 0 1px rgba(107,227,255,0.13); transition: opacity 0.5s; }
-#cue.breathing .bar { height: 5px; margin-top: 9px; opacity: 1; }
+#cue.breathing .bar { height: 6px; margin-top: 10px; opacity: 1; }
 #cue .bar i { display: block; height: 100%; width: 9%; margin: 0 auto; border-radius: 4px;
   background: linear-gradient(90deg, rgba(107,227,255,0) 0%, rgba(107,227,255,0.34) 24%,
     rgba(107,227,255,0.62) 50%, rgba(107,227,255,0.34) 76%, rgba(107,227,255,0) 100%);
@@ -778,3 +778,23 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 
 #shapeCard .setRow { margin-top: 16px; }
 #shapeCard .setRow > .setLbl:first-child { margin-bottom: 4px; }
+
+/* Long-labelled buttons must not share a row: four of them in a flex line turn
+   into 75px columns on a tablet and 140px on a phone. Stacked, each is one row. */
+.bdBtns.col { flex-direction: column; align-items: stretch; }
+.bdBtns.col .setBtn { text-align: left; padding: 7px 11px; line-height: 1.5; }
+
+/* The moulded beige keycap is the CONSOLE's look. Inside a card the same button
+   goes flat and light blue, and loses half its height. */
+#setCard .btn, #ideaCard .btn, #bdCard .btn, #sysCard .btn {
+  background: rgba(107,227,255,0.07); color: var(--cyan);
+  border: 1px solid rgba(107,227,255,0.5); border-radius: 4px;
+  padding: 7px 10px; font-size: 10px; letter-spacing: 0.14em;
+  text-shadow: none; box-shadow: none; transition: background 0.12s linear, border-color 0.12s linear; }
+#setCard .btn.cy, #ideaCard .btn.cy, #bdCard .btn.cy, #sysCard .btn.cy { color: var(--cyan); }
+#setCard .btn:active, #ideaCard .btn:active, #bdCard .btn:active, #sysCard .btn:active,
+#setCard .btn.on, #ideaCard .btn.on {
+  transform: none; background: rgba(107,227,255,0.2); border-color: var(--cyan);
+  box-shadow: inset 0 0 10px rgba(107,227,255,0.22); color: #d8f6ff; }
+#setCard .btn.rd, #ideaCard .btn.rd {                            /* the one that undoes things stays warm */
+  background: rgba(205,107,86,0.1); border-color: rgba(205,107,86,0.55); color: #e59480; }

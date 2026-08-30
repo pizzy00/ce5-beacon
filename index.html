@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=16" />
+<link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body class="intro introHud">
 
@@ -367,7 +367,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
-    <div class="bdBtns" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span></div>
+    <div class="bdBtns col" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -958,6 +958,7 @@ function setPhase(p, label) {
   if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
   $("phaseTxt").textContent = label;
+  fitHud();
   if (typeof retShow === "function") retShow();                  // the crosshair re-decides on every stage, not only where someone remembered to ask
   const c = $("crumb");
   if (c) {
@@ -3406,6 +3407,12 @@ function drawClaims(cx, y, s, alpha) {                           // the claims u
   }
   ctx.fillStyle = "rgba(240,236,226,0.45)";
   if (yy <= (ctlTop || H * 0.72) - 24) { ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillText("WHAT THEY CLAIMED \u00b7 NOT WHAT IS KNOWN", cx, yy + 3); yy += 12; }
+  if (yy <= (ctlTop || H * 0.72) - 26) {                          // the chart grows from what people send in
+    ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(107,227,255,0.62)";
+    ctx.fillText("KNOW MORE ABOUT THEM, OR A SPECIES THAT IS NOT HERE?", cx, yy + 4);
+    ctx.fillText("SEND IT WITH THE IDEAS KEY \u00b7 IF THE LORE HOLDS UP IT GOES ON THE CHART", cx, yy + 15);
+    yy += 27;
+  }
   ctx.globalAlpha = 1; ctx.textAlign = "left"; return yy - y;
 }
 function drawSystemView(t) {
@@ -4970,6 +4977,30 @@ function cueStage(txt) {
   $("cue").querySelector(".stage").textContent = txt || "";
 }
 function cueSub(txt) { $("cue").querySelector(".breath").textContent = txt || ""; }
+/* The phase line is centred and never wraps, so when it runs wider than the
+   screen it overflows BOTH sides and the first word is the one that vanishes.
+   Pull the tracking in first - it reads better than shrinking - then the size. */
+const HUD_FIT = [["phase", 0.94, 7.5], ["tapHint", 0.94, 6.5]];
+function fitHud() {
+  for (const [id, frac, floor] of HUD_FIT) {
+    const el = document.getElementById(id); if (!el || !el.offsetParent) continue;
+    el.style.letterSpacing = ""; el.style.fontSize = "";
+    const room = innerWidth * frac;
+    if (el.getBoundingClientRect().width <= room) continue;
+    for (const ls of [0.22, 0.16, 0.11, 0.07, 0.04]) {           // tracking first
+      el.style.letterSpacing = ls + "em";
+      if (el.getBoundingClientRect().width <= room) break;
+    }
+    const w = el.getBoundingClientRect().width;
+    if (w > room) {                                              // still too wide: take the size down
+      const base = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = Math.max(floor, base * room / w).toFixed(2) + "px";
+    }
+  }
+}
+addEventListener("resize", fitHud);
+addEventListener("orientationchange", () => setTimeout(fitHud, 120));
+try { document.fonts.ready.then(fitHud); } catch (e) {}
 function breathBar(on, inhale) {                                 // something to breathe WITH, not just words to read
   const c = $("cue"); if (!c) return;
   const b = c.querySelector(".bar"), i = b && b.querySelector("i");
@@ -6363,6 +6394,7 @@ function applyLang() {
   const go = document.querySelector("#bEngage .lbl.go"), st = document.querySelector("#bEngage .lbl.stop");
   if (go) go.textContent = tr("start"); if (st) st.textContent = tr("stop");
   if (phase === "chart") $("phaseTxt").textContent = tr("chart");
+  fitHud();
   const secs = document.querySelectorAll("#setCard .setSec"), names = L10N.secs[uiLang] || L10N.secs.en;
   secs.forEach((el, i) => { if (names[i]) el.textContent = names[i]; });
   loadDict();
