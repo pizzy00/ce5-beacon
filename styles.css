@@ -748,3 +748,25 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
 #seeCard { margin: auto 0; width: min(92vw, 560px); background: #07090c;
   border: 1px solid rgba(255,196,107,0.28); border-radius: 8px; padding: 16px 16px 12px; }
 #seeCard .infoP sup { font-size: 0.75em; }
+
+/* the shape field guide */
+#shapePick { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.86);
+  display: flex; align-items: flex-start; justify-content: center; padding: 18px 12px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#shapePick.hide { display: none; }
+#shapeCard { margin: auto 0; width: min(92vw, 560px); background: #07090c;
+  border: 1px solid rgba(255,196,107,0.28); border-radius: 8px; padding: 16px 16px 12px; }
+.shpRow { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0;
+  padding-bottom: 12px; border-bottom: 1px solid rgba(255,196,107,0.10); }
+.shpRow:last-child { border-bottom: 0; }
+.shpArt { flex: 0 0 72px; }
+svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
+  stroke-width: 1.4; stroke-linejoin: round; opacity: 0.9; }
+.shpTxt b { display: block; font-size: 10px; letter-spacing: 0.16em; color: var(--amber, #ffc46b); }
+.shpTxt i { display: block; margin-top: 3px; font-style: normal; font-size: 8px;
+  letter-spacing: 0.14em; color: var(--cyan, #6be3ff); }
+.shpTxt span { display: block; margin-top: 5px; font-size: 9px; line-height: 1.65;
+  color: rgba(232,226,212,0.72); letter-spacing: 0.04em; }
+
+#shapeCard .setRow { margin-top: 16px; }
+#shapeCard .setRow > .setLbl:first-child { margin-bottom: 4px; }
