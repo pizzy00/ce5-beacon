@@ -627,7 +627,7 @@
     <div class="setLbl">WHAT STAYS ON YOUR DEVICE ONLY</div>
     <div class="setStat">YOUR SETTINGS, YOUR CALL-SIGN, YOUR TRIP LOG AND YOUR TARGET SPOT LIVE IN THIS BROWSER'S OWN STORAGE AND NEVER LEAVE IT · IF YOU USE THE GPS KEY, YOUR POSITION IS READ BY YOUR OWN BROWSER, DRAWN ON YOUR OWN SCREEN, AND SENT TO NO SERVER OF OURS · THE ONE EXCEPTION IS THE PICTURE ITSELF: LIKE EVERY MAP APP EVER MADE, YOUR BROWSER ASKS A PUBLIC MAP SERVICE (ESRI WORLD IMAGERY) FOR THE IMAGE TILES OVER THAT AREA, AND IF YOU TYPE AN ADDRESS INSTEAD IT IS LOOKED UP BY OPENSTREETMAP · CLEARING BROWSER DATA ERASES ALL OF IT</div>
     <div class="setLbl">THE ONLY THINGS THAT EVER LEAVE</div>
-    <div class="setStat">THE PUBLIC TRAVELLERS BOARD RECEIVES: ONE ANONYMOUS "VISIT" MARK PER DEVICE PER DAY (A RANDOM ID AND A DATE, NOTHING ELSE) · EACH TRIP YOU COMPLETE (YOUR MADE-UP CALL-SIGN + THE DESTINATION) · ANY IDEA YOU CHOOSE TO SEND (YOUR CALL-SIGN + YOUR WORDS) · ALL OF THAT IS PUBLIC BY DESIGN AND CONTAINS NOTHING ABOUT WHO YOU REALLY ARE</div>
+    <div class="setStat">THE PUBLIC TRAVELLERS BOARD RECEIVES: ONE ANONYMOUS "VISIT" MARK PER DEVICE PER DAY (A RANDOM ID, A DATE, AND THE TWO-LETTER CODE OF THE LANGUAGE THIS CONSOLE IS SET TO — SO WE CAN SEE WHICH TRANSLATIONS ARE ACTUALLY BEING READ, AND NOTHING ELSE) · EACH TRIP YOU COMPLETE (YOUR MADE-UP CALL-SIGN + THE DESTINATION) · ANY IDEA YOU CHOOSE TO SEND (YOUR CALL-SIGN + YOUR WORDS) · ALL OF THAT IS PUBLIC BY DESIGN AND CONTAINS NOTHING ABOUT WHO YOU REALLY ARE</div>
     <div class="setLbl">THE PLUMBING</div>
     <div class="setStat">THE SITE AND THE BOARD ARE HOSTED ON GITHUB, AND YOUR BROWSER TALKS TO GITHUB TO LOAD THEM · LIKE ANY WEB HOST, GITHUB KEEPS ORDINARY SERVER LOGS UNDER ITS OWN PRIVACY POLICY · THIS APP ADDS NOTHING ON TOP · THE WHOLE SOURCE IS PUBLIC AT GITHUB.COM/PIZZY00/CE5-BEACON, SO NONE OF THIS IS A PROMISE YOU HAVE TO TAKE ON FAITH</div>
   </div>
@@ -5966,6 +5966,7 @@ const BOARD_TOKEN = ["github_", "pat_", "11AJEIWCQ0G9GrjsTsiG", "2Q_37K2EnOkOq0M
 const BOARD_API = "https://api.github.com/repos/" + BOARD_REPO + "/contents/board.json?ref=main";   // fresh; the raw file is the fallback
 let boardDead = 0;                                               // 401/403/404 from filing: the key is dead or throttled, stop trying this session
 const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign", PEND_KEY = "ce5.pending.v1";
+var uiLangSeen = "";                                            // which language this console ended up in, for the head-count
 const CS_A = ["ZETA", "ORION", "LYRAN", "SIRIAN", "VEGAN", "ARCTURIAN", "PLEIADIAN", "ANDROMEDAN", "NORDIC", "GREY", "MANTID",
   "TALL WHITE", "VENUSIAN", "MARTIAN", "LUNAR", "DEEP", "POLARIS", "SOLAR", "TRIANGLE", "TAU CETI"];
 const CS_B = ["PILOT", "WATCHER", "SIGNAL", "BEACON", "DRIFTER", "ENVOY", "NAVIGATOR", "LANTERN", "WANDERER", "ORBITER", "SCOUT",
@@ -5998,7 +5999,7 @@ function flushPending() {
   fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
     method: "POST",
     headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify(trip.v ? { title: "VISIT", body: JSON.stringify({ id: trip.id, v: 1, day: trip.day }) }
+    body: JSON.stringify(trip.v ? { title: "VISIT", body: JSON.stringify({ id: trip.id, v: 1, day: trip.day, l: uiLangSeen }) }
                         : trip.txt ? { title: "IDEA", body: JSON.stringify({ id: trip.id, n: trip.n, txt: trip.txt }) }
                                  : { title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ id: trip.id, n: trip.n, d: trip.d }) })
   }).then((r) => {
@@ -6108,6 +6109,18 @@ function openBoard() {
           if (top.length) h += line("WHERE EVERYONE GOES", top.map((d) => esc(d) + " (" + byD[d] + ")").join(" · "));
           if (rank) h += line("YOUR PLACE ON THE BOARD", "#" + rank + " OF " + ((b && b.leaders) || []).length);
           if (bd) h += line("BUSIEST DAY AT THE CONSOLE", bd + " · " + bn + " DEVICE" + (bn === 1 ? "" : "S"));
+          const LG = (v && v.langs) || null;                       // which console each one was reading
+          if (LG) {
+            const NM = { en: "ENGLISH", es: "SPANISH", zh: "CHINESE", hi: "HINDI", ar: "ARABIC",
+                         pt: "PORTUGUESE", fr: "FRENCH", ru: "RUSSIAN", de: "GERMAN", ja: "JAPANESE" };
+            const ks = Object.keys(LG).filter((k) => LG[k] > 0).sort((a2, b2) => LG[b2] - LG[a2]);
+            const tot = ks.reduce((n2, k) => n2 + LG[k], 0);
+            if (ks.length) {
+              h += '<div class="setLbl" style="margin-top:8px">CONSOLES BY LANGUAGE</div>'
+                 + '<div class="setStat">' + ks.map((k) => (NM[k] || k.toUpperCase()) + " " + LG[k]).join(" · ") + "</div>";
+              if (ks.length > 1) h += line("READING IT TRANSLATED", (100 - Math.round((LG.en || 0) / tot * 100)) + "% OF THEM");
+            }
+          }
           h += '<div class="setStat">RECENT COUNTS READ THE LAST ' + trips.length + " TRIPS ON FILE · THE TOTALS COUNT EVERYTHING EVER</div>";
           h += '<div class="setLbl" style="margin-top:10px">LEADERS</div>';
         }
@@ -6119,7 +6132,7 @@ function openBoard() {
       const v = b && b.visits;
       if (v && v.total) {
         const today = new Date().toISOString().slice(0, 10);
-        h += '<div class="setStat">SEEN BY ' + v.total + ' DEVICE-DAY' + (v.total === 1 ? "" : "S") + ' ALL TOLD \u00b7 ' + ((v.days && v.days[today]) || 0) + ' TODAY (ONE COUNT PER DEVICE PER DAY, NOTHING ELSE RECORDED)</div>';
+        h += '<div class="setStat">SEEN BY ' + v.total + ' DEVICE-DAY' + (v.total === 1 ? "" : "S") + ' ALL TOLD \u00b7 ' + ((v.days && v.days[today]) || 0) + ' TODAY (ONE COUNT PER DEVICE PER DAY, PLUS THE LANGUAGE THE CONSOLE WAS SET TO)</div>';
       }
       if (b && b.updated) h += '<div class="setStat">BOARD WRITTEN ' + bdWhen(Date.parse(b.updated)) + ' \u00b7 IT CATCHES UP A FEW MINUTES AFTER EACH TRIP</div>';
       $("bdAll").innerHTML = h;
@@ -6341,7 +6354,8 @@ if (!uiLang) {                                                    // nobody has 
   }
 }
 if (!LANGS.some((x) => x[0] === uiLang)) uiLang = "en";
-if (langURL) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }   // and it sticks for next time
+if (langURL) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }
+uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
 const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "bdCard", "infoCard"];
@@ -6367,7 +6381,7 @@ function walkTranslate() {
 function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
-  fetch("lang/" + uiLang + ".json?v=4")
+  fetch("lang/" + uiLang + ".json?v=5")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { langDict = d; langDictFor = uiLang; walkTranslate(); })
     .catch(() => { langDict = null; walkTranslate(); });
