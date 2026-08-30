@@ -152,6 +152,7 @@
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS WHERE THEY REALLY ARE TODAY (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckIso" checked />VISITORS FROM ANOTHER STAR: 3I/ATLAS, 1I/ʻOUMUAMUA AND 2I/BORISOV TAKE TURNS CROSSING THE CHART ON THE REAL HYPERBOLA THAT BROUGHT THEM THROUGH · THEY PASS ONCE AND NEVER RETURN</label>
+      <label class="setChk"><input type="checkbox" id="ckAges" />HOW OLD IS EACH ONE — AGE SINCE THE BIG BANG, AS A BAR AGAINST THE UNIVERSE’S 13.787 BILLION YEARS, WITH A TICK WHERE OUR SUN FALLS · GOLD = OLDER THAN THE SUN, CYAN = YOUNGER · REAL PUBLISHED AGES</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
       <label class="setChk"><input type="checkbox" id="ckDeep" />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
@@ -709,7 +710,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1075,6 +1076,51 @@ function star(x, y, r, color) {
   glow(x, y, r * 5, color, 0.55);
   ctx.fillStyle = "#fff";
   ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
+}
+/* ---------------- how old is it, since the Big Bang ----------------
+   Published stellar ages. The Sun is 4.57 and the universe is 13.787, both in
+   billions of years, so every one of these is a real head start or a real deficit. */
+const T_UNIVERSE = 13.787, T_SUN = 4.57;
+const SYS_AGE = {
+  andr: { g: 10.0,  w: "THE GALAXY ITSELF, NOT ONE STAR" },
+  arct: { g: 7.1,   w: "AN OLD HALO STAR, POOR IN METALS" },
+  erid: { g: 6.0,   w: "A QUIET ORANGE DWARF, STILL BURNING" },
+  acen: { g: 5.3,   w: "OUR NEAREST NEIGHBOUR, OLDER THAN US" },
+  zeta: { g: 2.0,   w: "A YOUNG SUN-LIKE PAIR" },
+  proc: { g: 1.87,  w: "ITS COMPANION ALREADY DIED AND IS A WHITE DWARF" },
+  vega: { g: 0.455, w: "SPINNING SO FAST IT IS SQUASHED" },
+  drac: { g: 0.28,  w: "OUR POLE STAR WHEN THE PYRAMIDS WERE BUILT" },
+  siri: { g: 0.242, w: "ITS COMPANION IS ALREADY A WHITE DWARF" },
+  plei: { g: 0.1,   w: "STILL INSIDE THE DUST IT FORMED FROM" },
+  orio: { g: 0.008, w: "YOUNGER THAN THE HUMAN GENUS \u00b7 IT WILL EXPLODE" }
+};
+function ageOf(id) { return SYS_AGE[id]; }
+function ageLine(id) {
+  const a = SYS_AGE[id]; if (!a) return "";
+  const d = a.g - T_SUN;
+  return a.g.toFixed(a.g < 1 ? 3 : 1) + " BYR \u00b7 " +
+    (Math.abs(d) < 0.05 ? "THE SUN'S AGE" :
+     d > 0 ? "+" + d.toFixed(1) + " BYR ON THE SUN" : d.toFixed(1) + " BYR ON THE SUN");
+}
+function ageBar(x, y, id, align, k) {                            // length = age against the age of everything
+  const a = SYS_AGE[id]; if (!a) return;
+  const kk = k === undefined ? 1 : k, W0 = 42 * kk, h = 2.2 * kk;
+  const f = Math.max(0.012, Math.min(1, a.g / T_UNIVERSE));
+  const x0 = align === "right" ? x - W0 : x;
+  ctx.save();
+  ctx.globalAlpha = 0.22; ctx.fillStyle = "#e8e2d4";
+  ctx.fillRect(x0, y, W0, h);                                    // the whole 13.787 billion years
+  const old = f > 0.33;                                          // gold for old, cyan for young
+  ctx.globalAlpha = 0.9; ctx.fillStyle = old ? "#ffc46b" : "#6be3ff";
+  ctx.fillRect(x0, y, W0 * f, h);
+  ctx.globalAlpha = 0.55; ctx.fillStyle = "#e8e2d4";             // where our own Sun falls
+  ctx.fillRect(x0 + W0 * (T_SUN / T_UNIVERSE) - 0.5, y - 1.5 * kk, 1, h + 3 * kk);
+  ctx.restore(); ctx.globalAlpha = 1;
+}
+function ageTell() {                                             // the ranking, once, when they switch it on
+  const r = SYSTEMS.filter((q) => SYS_AGE[q.id]).sort((a, b) => SYS_AGE[b.id].g - SYS_AGE[a.id].g);
+  log("OLDEST FIRST \u00b7 AGE SINCE THE BIG BANG \u00b7 THE SUN IS 4.57 BYR, THE UNIVERSE 13.787", "cy");
+  for (const q of r) log("  " + q.name + " \u00b7 " + ageLine(q.id) + " \u00b7 " + SYS_AGE[q.id].w, "cy");
 }
 function label(x, y, main, sub, color, align, sz) {
   const fs = sz || 10;
@@ -3423,7 +3469,8 @@ function drawChart(t) {
     }
     const right = s.x > 0.55;
     label(x + (right ? -12 : 12), y - 8, s.name,
-      fmtLy(s.ly) + " · " + s.tag, s.c, right ? "right" : "left");
+      fmtLy(s.ly) + " · " + s.tag + (S.ages ? " · " + ageLine(s.id) : ""), s.c, right ? "right" : "left");
+    if (S.ages) ageBar(x + (right ? -12 : 12), y + 8, s.id, right ? "right" : "left", 1);
   }
 
   drawExo(t, (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }), introK().sky);
@@ -3658,7 +3705,8 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
-    label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))));   // the words breathe with the depth: near = bigger and brighter, far = small and dim, never gone
+    label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, S.ages ? ageLine(s.id) : s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))));
+    if (S.ages) ageBar(x + (right ? -12 : 12) * kk, y + 6 * kk, s.id, right ? "right" : "left", kk);   // the words breathe with the depth: near = bigger and brighter, far = small and dim, never gone
     ctx.globalAlpha = 1;
   }
   const IKs = introK();
@@ -6023,7 +6071,7 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
@@ -6454,7 +6502,7 @@ function applyS() {                                             // push S into e
   set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
-  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites);
+  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckAges", S.ages);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
@@ -6580,6 +6628,7 @@ $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rFleetN").oninput = (e) => { S.fleetN = +e.target.value; $("vFleetN").textContent = S.fleetN; };
 $("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
 $("ckPoles").onchange = (e) => (S.poles = e.target.checked);
+$("ckAges").onchange = (e) => { S.ages = e.target.checked; if (S.ages) ageTell(); };
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
 $("rBcn").oninput = (e) => { S.bcnHold = 10 - +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
