@@ -145,6 +145,10 @@
       <div class="setLbl">HOW FAST THE SHIPS RUN — <span id="vShip">1.0</span>×</div>
       <input type="range" id="rShip" min="10" max="1000" step="10" value="100" />
       <label class="setChk"><input type="checkbox" id="ckShipRnd" />RANDOM — EVERY SHIP AT ITS OWN SPEED · WHO KNOWS HOW FAST THEY REALLY GO</label>
+      <div class="setLbl">NAMED TRAVELLERS ON THE CHART — <span id="vFleetN">3</span> AT A TIME</div>
+      <input type="range" id="rFleetN" min="0" max="6" step="1" value="3" />
+      <div class="setStat">REAL PEOPLE OFF THE PUBLIC BOARD, FLYING THE ROUTE THEY ACTUALLY TOOK, WITH THEIR CALL-SIGN ON THE SHIP · EACH ONE HANDS OVER TO THE NEXT TRAVELLER · LEFT = NONE</div>
+      <label class="setChk"><input type="checkbox" id="ckFleetTag" checked />SHOW WHERE THEY WENT UNDER THE CALL-SIGN</label>
       <label class="setChk"><input type="checkbox" id="ckPlanets" checked />THE SOLAR SYSTEM — SUN ON THE LEFT, THE PLANETS WHERE THEY REALLY ARE TODAY (NOT TO SCALE)</label>
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckIso" checked />VISITORS FROM ANOTHER STAR: 3I/ATLAS, 1I/ʻOUMUAMUA AND 2I/BORISOV TAKE TURNS CROSSING THE CHART ON THE REAL HYPERBOLA THAT BROUGHT THEM THROUGH · THEY PASS ONCE AND NEVER RETURN</label>
@@ -605,7 +609,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
 const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -2994,6 +2998,59 @@ function landAt(i, sx, sy) {                                    // each route la
   const G = earthGeom(), RZ = G.R * earthZoom;
   return { x: sx + Math.cos(i * 2.39) * RZ * 0.42, y: sy + (0.08 + Math.abs(Math.sin(i * 1.7)) * 0.3) * RZ };
 }
+/* ---------------- named travellers ----------------
+   Real people off the public board, flying the route they actually took. Each slot
+   carries one traveller from the system they invited back toward Earth, then swaps
+   itself for the next name on the board. Limited on purpose. */
+function drawFleetShips(t, posOf, px, py, sx, sy) {
+  const N = Math.max(0, Math.min(6, S.fleetN | 0));
+  if (!N || !fleetTrips || !fleetTrips.length) return;
+  const LAP = 26;                                                 // one crossing takes this long
+  for (let k = 0; k < N; k++) {
+    const phase01 = ((t / LAP) + k / N) % 1;                      // the slots are spread out, never bunched
+    const lap = Math.floor((t / LAP) + k / N);
+    const trip = fleetTrips[(lap * N + k) % fleetTrips.length];   // a different traveller each lap
+    if (!trip || !trip.n) continue;
+    const sys = SYSTEMS.find((q) => bare(q.name) === bare(trip.d));
+    let ax, ay, col;
+    if (sys) {
+      const a = posOf(sys);
+      if (!a || a.x === undefined) continue;
+      if (sys.ik !== undefined && sys.ik <= 0) continue;
+      ax = a.x; ay = a.y; col = sys.c;
+    } else {                                                      // LUNA, THE DEEP, THE TRIANGLE: they never left home
+      ax = sx + (px - sx) * 0.35 - 40 + ((k * 53) % 80);
+      ay = sy - 90 - ((k * 37) % 60); col = "#9be8ff";
+    }
+    const u = phase01;
+    const x = ax + (sx - ax) * u, y = ay + (sy - ay) * u;
+    const fade = Math.min(1, Math.min(u, 1 - u) * 8);              // in at one end, out at the other
+    if (fade <= 0.02) continue;
+
+    ctx.save();
+    const tx = ax + (sx - ax) * Math.max(0, u - 0.06);             // a short trail behind it
+    const ty = ay + (sy - ay) * Math.max(0, u - 0.06);
+    ctx.globalAlpha = 0.30 * fade; ctx.strokeStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+
+    ctx.globalAlpha = 0.9 * fade; ctx.fillStyle = col;
+    ctx.fillRect(x - 1.4, y - 1.4, 2.8, 2.8);
+    glow(x, y, 5, col, 0.35 * fade);
+
+    if (u < 0.26 || u > 0.78) { ctx.restore(); ctx.globalAlpha = 1; continue; }   // near either end the words would land on a system label or on Earth
+    ctx.globalAlpha = 0.85 * fade;
+    ctx.fillStyle = "rgba(240,236,226,0.92)";
+    ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+    const lx = Math.max(48, Math.min(W - 48, x));                  // the words never run off the edge
+    ctx.fillText(String(trip.n).toUpperCase().slice(0, 22), lx, y - 7);
+    if (S.fleetTag) {
+      ctx.globalAlpha = 0.6 * fade; ctx.fillStyle = col;
+      ctx.font = "5.5px ui-monospace, Menlo, monospace";
+      ctx.fillText("\u2192 " + String(trip.d).toUpperCase().slice(0, 24), lx, y + 10);
+    }
+    ctx.textAlign = "left"; ctx.restore(); ctx.globalAlpha = 1;
+  }
+}
 function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels running the routes, both ways
   if (!S.traffic) return;
   const spd = (i, k) => (S.shipSpd || 1) *                      // his slider, and in random mode every lane has its own idea of fast
@@ -3209,6 +3266,7 @@ function drawChart(t) {
   const gate = S.polaris;                                        // routes only bend through the gate if it is in the run
   for (const o of origins) dashLine(o.x * W, o.y * H, gate ? px : sx, gate ? py : sy, o.c, t);
   if (gate) dashLine(px, py, sx, sy, "#ffe9a6", t);
+  drawFleetShips(t, (s) => ({ x: s.x * W, y: s.y * H }), gate ? px : sx, gate ? py : sy, sx, sy);
   drawTraffic(t, (s) => ({ x: s.x * W, y: s.y * H }), gate ? px : sx, gate ? py : sy, sx, sy,
     (e) => ({ x: (0.5 + 0.44 * Math.sin(e.az)) * W, y: e.y * H, k: 1 }));
 
@@ -3447,6 +3505,7 @@ function drawChart3D(t) {
   }
   if (gate && IKD >= 0.98) dashLine(px, py, ex, ey, "#ffe9a6", t);   // the gate waits for the sky, like the routes do
   drawTraffic(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey, (e) => chartProject(e));
+  drawFleetShips(t, (s) => ({ x: s.px, y: s.py }), gate ? px : ex, gate ? py : ey, ex, ey);   // and the ones with names on them
   if (gate) {
     star(px, py, 3.2, POLARIS.c);
     glow(px, py, 26 + 6 * Math.sin(t * 2), "#ffe9a6", 0.25);
@@ -5839,7 +5898,7 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
@@ -6285,6 +6344,7 @@ function applyS() {                                             // push S into e
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster); chk("ckIso", S.iso);
+  set("rFleetN", S.fleetN); txt("vFleetN", S.fleetN); chk("ckFleetTag", S.fleetTag);
   set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
   set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
@@ -6384,6 +6444,8 @@ $("ckIso").onchange = (e) => (S.iso = e.target.checked);
 $("ckShipRnd").onchange = (e) => (S.shipRnd = e.target.checked);
 $("rShip").oninput = (e) => { S.shipSpd = +e.target.value / 100; $("vShip").textContent = S.shipSpd.toFixed(1); };
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
+$("rFleetN").oninput = (e) => { S.fleetN = +e.target.value; $("vFleetN").textContent = S.fleetN; };
+$("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
 $("rBcn").oninput = (e) => { S.bcnHold = 10 - +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
@@ -6440,6 +6502,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");
   log("GOLD PYRAMIDS ON THE GLOBE = THE OLD ONES\u2019 SKY-ALIGNED PLACES \u00b7 PINCH IN FOR NAMES, TAP ONE FOR ITS STORY", "cy");
   log("DOUBLE-TAP THE WORLD TO BRING IT UP FRONT", "cy");
+  log("SHIPS WITH NAMES ON THEM ARE REAL EARLIER TRAVELLERS \u00b7 SET HOW MANY IN \u2699", "cy");
   log("THREE THINGS HAVE EVER PASSED THROUGH FROM ANOTHER STAR \u00b7 THEY TAKE TURNS CROSSING THE CHART", "cy");
   log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
   log("IT HAS NEVER WORKED FOR ME \u00b7 IT MIGHT FOR YOU \u00b7 THE i KEY SAYS WHY I BUILT IT ANYWAY", "cy");
