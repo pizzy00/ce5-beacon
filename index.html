@@ -6407,7 +6407,7 @@ if (langURL) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "bdCard", "infoCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 function walkTranslate() {
   for (const rid of L10N_ROOTS) {
