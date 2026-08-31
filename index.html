@@ -34,7 +34,7 @@
 <meta property="og:url" content="https://pizzy00.github.io/ce5-beacon/" />
 <meta property="og:title" content="CE-5 Beacon — Contact Console" />
 <meta property="og:description" content="Pick a departure system, ride Polaris to Sol to Luna to Earth, then a slow satellite descent onto your own spot. Set your target, share the link, breathe." />
-<meta property="og:image" content="https://pizzy00.github.io/ce5-beacon/og-image.png" />
+<meta property="og:image" content="https://pizzy00.github.io/ce5-beacon/og-image.png?v=2" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -741,6 +741,7 @@
 /* ---------------- target ---------------- */
 const ADDRESS = "Monument Circle, Indianapolis (default)";
 let TARGET = { lat: 39.76849, lon: -86.15806, exact: true }; // public default — set your own in ⚙
+let targetIsMine = false;                                         // true only once THIS device chooses a spot
 const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, detail: "rapid",
   arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
@@ -2881,10 +2882,14 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
     ctx.globalAlpha = Math.min(1, zt * 1.4);
     ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
     const cxT = (P3[0].x + P3[1].x + P3[2].x) / 3, topY = Math.min(P3[0].y, P3[1].y, P3[2].y);   // captions clear of the pins
+    const cap1 = "MOBILE CONSTRUCTION UNIT · " + UNIT_KM.toFixed(1) + " KM ACROSS · 2-3× AN OFFSHORE PLATFORM";
+    const cap2 = UNIT_KN + " KNOTS · TIME ×" + (S.uTime || 1) + " · DARK · THE DOT IS IT";
+    const capW = Math.max(ctx.measureText(cap1).width, ctx.measureText(cap2).width) / 2 + 6;
+    const cxC = Math.max(capW, Math.min(W - capW, cxT));         // centred on the Triangle while it fits, nudged in when it does not
     ctx.fillStyle = "#9fd8ff";
-    ctx.fillText("MOBILE CONSTRUCTION UNIT · " + UNIT_KM.toFixed(1) + " KM ACROSS · 2-3× AN OFFSHORE PLATFORM", cxT, topY - 27);
+    ctx.fillText(cap1, cxC, topY - 27);
     ctx.fillStyle = "rgba(232,226,212,0.75)";
-    ctx.fillText(UNIT_KN + " KNOTS · TIME ×" + (S.uTime || 1) + " · DARK · THE DOT IS IT", cxT, topY - 18);
+    ctx.fillText(cap2, cxC, topY - 18);
     ctx.textAlign = "left";
     if (unitOrbs.length < 3 && Math.sin(t * 0.55) > 0.995) unitOrbs.push({ t0: t, x: u.x, y: u.y });
     for (let i = unitOrbs.length - 1; i >= 0; i--) {             // and what it lets go of
@@ -3103,12 +3108,16 @@ function drawEarthHub(t) {
     ctx.globalAlpha = 1;
   }
   if (zt > 0.12) drawTriangleZoom(sx, sy, RZ, zt, t);           // the Triangle, and what lives in it
+  /* how big the place names should be right now: 1x the moment they appear at 1.25, rising to
+     about 2.1x with the world against the glass (1.8 pinched, 2.6 in the pop-up world) */
+  const nameK = Math.max(1, Math.min(2.1, 1 + (Math.max(earthZoom, gvK() > 0.5 ? 1.75 : 0) - 1.25) * 1.15));
+  const nameFont = (base) => (base * nameK).toFixed(2) + "px ui-monospace, Menlo, monospace";
   const site = nearestSite();                                   // the two spots you can leave from, on the world itself
   const pins = [
     { id: "berm", lat: BERMUDA.lat, lon: BERMUDA.lon, c: "#ff8e5e", n: "TRIANGLE" },
     { id: "uso", lat: site.lat, lon: site.lon, c: "#5ee0c0", n: "THE DEEP" }
   ];
-  ctx.font = "7px ui-monospace, Menlo, monospace";
+  ctx.font = nameFont(7);
   for (const pin of pins) {
     const p = orthPt(pin.lon, pin.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
     modeHit.push({ id: pin.id, x: p.x, y: p.y });
@@ -3147,10 +3156,10 @@ function drawEarthHub(t) {
       const lp = orthPt(-earthRot, pole.ly, sx, sy, RZ, earthTiltDraw);   // the name rides the meridian facing you
       if (lp.v && bigP) {
         ctx.globalAlpha = 0.85; ctx.fillStyle = pole.c;
-        ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+        ctx.font = nameFont(7); ctx.textAlign = "center";
         ctx.fillText(pole.tag, lp.x, lp.y);
-        ctx.globalAlpha = 0.45; ctx.font = "5.5px ui-monospace, Menlo, monospace";
-        ctx.fillText(pole.n + " \u00b7 66.57\u00b0", lp.x, lp.y + 9);
+        ctx.globalAlpha = 0.45; ctx.font = nameFont(5.5);
+        ctx.fillText(pole.n + " \u00b7 66.57\u00b0", lp.x, lp.y + 9 * nameK);
         ctx.textAlign = "left";
       }
     }
@@ -3159,7 +3168,7 @@ function drawEarthHub(t) {
   siteHit = [];
   if (S.sites) {                                                // the old ones' sky-aligned places: gold pyramids, names when you lean in
     const big = earthZoom > 1.25 || gvK() > 0.5, r = big ? 4 : 3;   // names when you lean in, and always on the pop-up world
-    ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ffd27a";
+    ctx.font = nameFont(6.5); ctx.fillStyle = "#ffd27a";
     for (const q of SKY_SITES) {
       if (q.claim && !S.lore) continue;                            // the claim pins go with the lore setting
       const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
@@ -3169,7 +3178,7 @@ function drawEarthHub(t) {
       if (q.claim) { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); }   // orange diamond = a claim, not an alignment
       else { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y + r * 0.8); ctx.lineTo(p.x - r, p.y + r * 0.8); }
       ctx.closePath(); ctx.fill();
-      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.n, p.x + (p.x > sx ? 7 : -7), p.y + 2.5); }
+      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.n, p.x + (p.x > sx ? 7 : -7) * nameK, p.y + 2.5 * nameK); }
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
@@ -3186,14 +3195,14 @@ function drawEarthHub(t) {
   pursueHit = [];
   if (S.pursue && PURSUE && PURSUE.groups.length) {             // the released UAP records: cyan squares, a count when you lean in
     const big = earthZoom > 1.25 || gvK() > 0.5;
-    ctx.font = "6.5px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#8ff0ff";
+    ctx.font = nameFont(6.5); ctx.fillStyle = "#8ff0ff";
     for (const q of PURSUE.groups) {
       const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
       pursueHit.push({ q, x: p.x, y: p.y });
       const r = Math.min(4.5, 2 + Math.sqrt(q.recs.length) * 0.45);
       ctx.globalAlpha = 0.85; ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.globalAlpha = 0.35; ctx.strokeStyle = "#8ff0ff"; ctx.lineWidth = 1; ctx.strokeRect(p.x - r - 1.5, p.y - r - 1.5, r * 2 + 3, r * 2 + 3);
-      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.recs.length + (q.recs.length === 1 ? " FILE" : " FILES"), p.x + (p.x > sx ? 8 : -8), p.y + 2.5); }
+      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.recs.length + (q.recs.length === 1 ? " FILE" : " FILES"), p.x + (p.x > sx ? 8 : -8) * nameK, p.y + 2.5 * nameK); }
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
@@ -3785,7 +3794,9 @@ function drawChart3D(t) {
       ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(m.x, m.y, rr + 7, 0, 6.29); ctx.stroke();
       ctx.globalAlpha = 1; ctx.lineWidth = 1;
       label(m.x, m.y - rr - 28, "DEPARTURE: " + selected.name, sub, selected.c, "center");
-    } else label(sx, sy - 30, "DEPARTURE: " + selected.name, sub, selected.c, "center");   // (the Moon is round the back)
+    } else if (earthZoom <= 1.25 && gvK() <= 0.5) {                 // round the back: say so - but never across a world you have leaned into
+      label(sx, sy - 30, "DEPARTURE: " + selected.name, sub, selected.c, "center");
+    }
   }
 }
 
@@ -4684,7 +4695,12 @@ function engage() {
 /* ---------------- Bermuda: the trigger sequence ---------------- */
 let bermToken = 0, bermHold = 0, bermGuard = 0, bermStep = -1, bermLayer = null, tourPlan = [];
 function bermudaCall() {
-  if (!map) { failNoMap(); setTimeout(replay, 2200); return; }   // no map: say so, then hand the chart back rather than strand the run
+  if (!map) {                                                   // no map: say so, then hand the chart back rather than strand the run
+    failNoMap();
+    const tk = ++diveToken;                                       // owned, so it cannot abort a run started in the meantime
+    setTimeout(() => { if (tk === diveToken) replay(); }, 2200);
+    return;
+  }
   cancelAnimationFrame(raf);
   $("space").classList.add("gone");
   lockMap(true);
@@ -5034,9 +5050,15 @@ function startDive() {
   cancelAnimationFrame(raf);
   setPhase("dive", "SLOW DESCENT");
   $("space").classList.add("gone");
-  if (!map) { failNoMap(); setTimeout(replay, 2200); return; }   // no map: say so, then hand the chart back rather than strand the run
+  if (!map) {                                                   // no map: say so, then hand the chart back rather than strand the run
+    failNoMap();
+    const tk = ++diveToken;                                       // owned, so it cannot abort a run started in the meantime
+    setTimeout(() => { if (tk === diveToken) replay(); }, 2200);
+    return;
+  }
   lockMap(true);
   divePlan = activeDescent();
+  diveStep = -1;                                                // this flight starts at the top, not where the last one stopped
   const wet = modeOf() === "ocean" || modeOf() === "bermuda";
   if (wet) map.setView([usoSite.lat, usoSite.lon], 6, { animate: false });
   else map.setView([55, -95], 3, { animate: false });
@@ -5069,7 +5091,7 @@ function skipStep() {
   clearTimeout(holdTimer);
   const token = ++diveToken;
   map.stop();
-  runStep(diveStep + 1, token);
+  runStep(Math.max(0, diveStep + 1), token);                    // never past the end from a stale index
 }
 
 function arrive() {
@@ -5882,7 +5904,7 @@ const endPtr = (e) => {
   if (!ptrs.has(e.pointerId)) return;
   const wasSingle = ptrs.size === 1;
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinchD = 0;
-  if (phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
+  if (e.type === "pointerup" && phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
     const r = cvs.getBoundingClientRect(), G = earthGeom(), px = e.clientX - r.left, py = e.clientY - r.top;
     const onEarth = Math.hypot(px - G.cx, py - G.cy) < G.R * earthZoom * 1.04, now = performance.now();
     if (onEarth && now - lastEarthTap < 350) { lastEarthTap = 0; globeToggle(); }   // double-tap the world: up front, or back
@@ -5915,7 +5937,8 @@ cvs.addEventListener("wheel", (e) => {
   if (e.deltaY < 0 && chartZoom >= 1.349) sysTry();
 }, { passive: false });
 
-function skipCurrent() {                                        // a tap anywhere mid-run: on to the next stage
+function skipCurrent() {
+  if (retargetMode) return;                                       // the user is aiming at a roof, not asking to skip                                        // a tap anywhere mid-run: on to the next stage
   if (phase === "dive") return skipStep();
   if (phase === "triangle" || phase === "sites" || phase === "flash") return bermSkip();
   if (phase === "active") {                                     // the hold before the flash is the one stage that used to ignore a tap
@@ -5926,7 +5949,7 @@ function skipCurrent() {                                        // a tap anywher
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   skipCurrent();
 });
 $("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
@@ -5943,6 +5966,8 @@ function setTargetTo(lat, lon, name) {
   $("addrStatus").textContent = "LOCKED: " + fmtLL(lat, lon) + (name ? " — " + name : "");
   log("TARGET SET — " + fmtLL(lat, lon), "cy");
   updateShareLink();
+  targetIsMine = true;                                            // chosen here, so it is worth keeping
+  autoSave();                                                     // GPS, an address and a map tap all stick now
   if (phase === "active" && map) { placeBeacon(); map.flyTo([lat, lon], 17); }
 }
 function locate() {
@@ -6006,6 +6031,11 @@ function flushPending() {
   const P = readPending(); if (!P.length) return;
   flushing = true;
   const trip = P[0];
+  if (trip.sent && Date.now() - trip.sent < 60000) { flushing = false; return; }  // already in flight
+  try {                                                           // mark it before the post, so a reload mid-request cannot re-file it
+    localStorage.setItem(PEND_KEY, JSON.stringify(readPending().map((x) =>
+      (x.id === trip.id ? Object.assign({}, x, { sent: Date.now() }) : x))));
+  } catch (e) {}
   fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
     method: "POST",
     headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
@@ -6018,7 +6048,15 @@ function flushPending() {
       try { localStorage.setItem(PEND_KEY, JSON.stringify(Q)); } catch (e) {}
     } else if (r.status === 401 || r.status === 403 || r.status === 404) boardDead = r.status;
     flushing = false; if (r.ok && readPending().length) setTimeout(flushPending, 1500);
-  }).catch(() => { flushing = false; });
+  }).catch(() => {                                                // it never landed: let it be retried
+    try {
+      localStorage.setItem(PEND_KEY, JSON.stringify(readPending().map((x) => {
+        if (x.id !== trip.id) return x;
+        const y = Object.assign({}, x); delete y.sent; return y;
+      })));
+    } catch (e) {}
+    flushing = false;
+  });
 }
 addEventListener("online", flushPending);
 const firstTouch = () => { audioUnlock(); ambStart(); audioGuard(); };
@@ -6252,6 +6290,7 @@ function setupApply(o, quiet) {                                  // the factory 
   return n > 0;
 }
 function shareLink() { const v = ($("shareIn") && $("shareIn").value) || ""; return v || location.href.split("#")[0]; }
+function publicLink() { return location.origin + location.pathname; }   // never the #ll= spot: this one goes to strangers
 const SHARE_TEXT = "CE-5 Beacon: a free retro console for inviting a close encounter. Pick a system, press START, ride the route to your own roof.";
 $("bFresh").onclick = () => { sfx("cover"); freshCopy(); };
 $("bSetupGet").onclick = () => {
@@ -6273,10 +6312,10 @@ $("bSetupUse").onclick = () => {
 };
 document.querySelectorAll("#shareRow .shBtn").forEach((b) => (b.onclick = () => {
   sfx("key");
-  const u = encodeURIComponent(shareLink()), t = encodeURIComponent(SHARE_TEXT), k = b.dataset.sh;
+  const u = encodeURIComponent(publicLink()), t = encodeURIComponent(SHARE_TEXT), k = b.dataset.sh;
   if (k === "native") {
-    if (navigator.share) { navigator.share({ title: "CE-5 Beacon", text: SHARE_TEXT, url: shareLink() }).catch(() => {}); return; }
-    try { navigator.clipboard.writeText(shareLink()); log("SHARE LINK COPIED", "cy"); } catch (e) {}
+    if (navigator.share) { navigator.share({ title: "CE-5 Beacon", text: SHARE_TEXT, url: publicLink() }).catch(() => {}); return; }
+    try { navigator.clipboard.writeText(publicLink()); log("SHARE LINK COPIED", "cy"); } catch (e) {}
     return;
   }
   const dest = k === "fb" ? "https://www.facebook.com/sharer/sharer.php?u=" + u
@@ -6480,7 +6519,13 @@ let autoSaveT = 0;
 function autoSave() {                                            // every change keeps itself: no one loses their setup
   clearTimeout(autoSaveT);
   autoSaveT = setTimeout(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ S, target: { lat: TARGET.lat, lon: TARGET.lon }, sel: selected.id })); } catch (e) {}
+    try {
+      const d = { S, sel: selected.id };
+      if (targetIsMine) d.target = { lat: TARGET.lat, lon: TARGET.lon };  // never persist a spot that arrived in someone else's link
+      const prev = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      if (!targetIsMine && prev && prev.target) d.target = prev.target;   // and never lose the one you did set
+      localStorage.setItem(SAVE_KEY, JSON.stringify(d));
+    } catch (e) {}
   }, 400);
 }
 for (const cid of ["setCard", "sysCard"]) {
@@ -6590,9 +6635,12 @@ async function freshCopy() {                                     // the newest b
   location.replace(u + (u.indexOf("?") < 0 ? "?" : "&") + "fresh=" + (performance.now() | 0));
 }
 function resetSettings() {
+  clearTimeout(autoSaveT);                                        // a queued save must not write the old console back
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-  $("saveStat").textContent = "SAVED SETTINGS CLEARED — RELOAD THE PAGE FOR DEFAULTS";
-  log("SAVED SETTINGS CLEARED — RELOAD FOR DEFAULTS", "cy");
+  for (const k of Object.keys(S_FACTORY)) S[k] = JSON.parse(JSON.stringify(S_FACTORY[k]));
+  applySystems(); applySky(); applyS(); applyScreen(); applyMute();
+  $("saveStat").textContent = "SETTINGS BACK TO THE BENCH DEFAULTS";
+  log("SETTINGS BACK TO THE BENCH DEFAULTS", "cy");
 }
 function loadSettings() {
   let d = null;

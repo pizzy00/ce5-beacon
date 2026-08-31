@@ -233,6 +233,7 @@
   }
   @media (prefers-reduced-motion: reduce) and (min-width: 99999px) { body.ctlSlide #ctl { animation: none; } }
   body.intro #bFull, body.intro #bMute, body.intro #bIdea, body.introHud #hud { opacity: 0 !important; }
+  body.intro #bFull, body.intro #bMute, body.intro #bIdea { pointer-events: none !important; }
   #bFull, #hud { transition: opacity 0.9s ease; }
   #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
     padding: 3px 10px calc(7px + env(safe-area-inset-bottom));
@@ -669,7 +670,7 @@
 #bLang.callout { animation: fsPulse 1.6s ease-out infinite; }
 #bLang #langGlyph { font: 700 13px ui-monospace, Menlo, monospace; }
 body.run #bLang, body.active #bLang { opacity: 0.3; }
-body.intro #bLang { opacity: 0 !important; }
+body.intro #bLang { opacity: 0 !important; pointer-events: none !important; }
 #langHint { position: fixed; right: 48px; top: calc(123px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
   color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
   background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
