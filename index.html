@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=17" />
+<link rel="stylesheet" href="styles.css?v=18" />
 </head>
 <body class="intro introHud">
 
@@ -3634,20 +3634,30 @@ function fpsTick(t) {
   if (t - fpsT >= 500) { $("fps").textContent = Math.round((fpsN * 1000) / (t - fpsT)) + " FPS"; fpsT = t; fpsN = 0; }
   fpsRaf = requestAnimationFrame(fpsTick);
 }
-let fsShown = false;
-function fsCallout() {                                           // the ring + the words on all three corner keys, once
+let fsShown = false, calloutQueue = [];
+const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]];
+function fsCallout() {                                           // the corner keys introduce themselves one at a time
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;
-  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]]) {
-    const h = $(hid); if (h) h.classList.remove("hide");
-    $(bid).classList.add("callout");
-  }
-  setTimeout(fsCalloutOff, 3000);                               // three seconds, then the sky gets the crown back
+  const HOLD = 2000, GAP = 200;                                 // long enough to read one line, then hand over
+  CORNER_KEYS.forEach(([hid, bid], i) => {
+    const at = i * (HOLD + GAP);
+    calloutQueue.push(setTimeout(() => {
+      const h = $(hid); if (h) h.classList.remove("hide");
+      const b = $(bid); if (b) b.classList.add("callout");
+    }, at));
+    calloutQueue.push(setTimeout(() => {
+      const h = $(hid); if (h) h.classList.add("hide");
+      const b = $(bid); if (b) b.classList.remove("callout");
+    }, at + HOLD));
+  });
 }
-function fsCalloutOff() {
-  for (const [hid, bid] of [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]]) {
+function fsCalloutOff() {                                        // whatever is still queued must not surface later
+  for (const t of calloutQueue) clearTimeout(t);
+  calloutQueue = [];
+  for (const [hid, bid] of CORNER_KEYS) {
     const h = $(hid); if (h) h.classList.add("hide");
-    $(bid).classList.remove("callout");
+    const b = $(bid); if (b) b.classList.remove("callout");
   }
 }
 function introAfter() {                                         // everything else preloads once the opening is done
