@@ -584,6 +584,9 @@
   .setBtn { padding: 4px 10px; border: 1px solid var(--cyan); color: var(--cyan); border-radius: 3px; font-size: 11px; }
   .setBtn.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
   #saveStat { margin: -6px 0 12px; min-height: 12px; }
+  .infoCr { margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,196,107,0.18);
+    font-size: 8px; letter-spacing: 0.18em; line-height: 1.7; color: var(--amber-dim);
+    margin-bottom: 6px; }
   .setRow { margin-bottom: 14px; }
   .setBox { border: 1px solid rgba(255,196,107,0.22); border-radius: 6px; padding: 10px 12px 2px; margin: 0 0 14px;
     background: rgba(255,196,107,0.025); }                    /* one card per section: easier to read down the page */
