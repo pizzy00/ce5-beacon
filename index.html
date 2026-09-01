@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=18" />
+<link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body class="intro introHud">
 
@@ -61,7 +61,7 @@
     <div class="setRow">
       <div class="setLbl">TARGET — ADDRESS OR "LAT, LON"</div>
       <div class="setFlex">
-        <input id="addrIn" autocomplete="off" placeholder="123 Main St, Yourtown — or 39.76, -86.15" />
+        <input id="addrIn" dir="auto" autocomplete="off" placeholder="123 Main St, Yourtown — or 39.76, -86.15" />
         <button class="btn" id="bLocate">Set</button>
         <button class="btn cy" id="bGps2">GPS</button>
       </div>
@@ -70,13 +70,13 @@
     <div class="setRow">
       <div class="setLbl">SHARE THIS TARGET</div>
       <div class="setFlex">
-        <input id="shareIn" readonly />
+        <input id="shareIn" dir="ltr" readonly />
         <button class="btn cy" id="bCopy">Copy</button>
       </div>
       <div class="setStat">SEND THE LINK — IT OPENS AIMED AT YOUR SPOT</div>
       <div class="setLbl">SHARE YOUR WHOLE SETUP</div>
       <div class="setFlex">
-        <input id="setupIn" placeholder="PASTE A SETUP CODE HERE" />
+        <input id="setupIn" dir="ltr" placeholder="PASTE A SETUP CODE HERE" />
         <button class="btn cy" id="bSetupGet">COPY MINE</button>
         <button class="btn cy" id="bSetupUse">USE IT</button>
       </div>
@@ -332,7 +332,7 @@
     <div class="setSec">MESSAGE</div>
     <div class="setRow">
       <div class="setLbl">SENT IN MORSE WHEN THE BEACON LOCKS</div>
-      <input id="msgIn" maxlength="80" autocomplete="off" spellcheck="false" value="ONE HUMAN. ZERO FEAR. NO ORBS." />
+      <input id="msgIn" dir="auto" maxlength="80" autocomplete="off" spellcheck="false" value="ONE HUMAN. ZERO FEAR. NO ORBS." />
       <div class="setStat" id="msgMorse"></div>
       <label class="setChk"><input type="checkbox" id="ckMorse" checked />SEND IT — THE SCREEN PULSES THE CODE</label>
       <label class="setChk"><input type="checkbox" id="ckMorseTone" checked />KEY A 600 HZ TONE WITH THE LIGHT</label>
@@ -350,7 +350,7 @@
     <div class="setHead display">TRAVELLERS — WHO WENT WHERE <span id="bBoardClose">✕</span></div>
     <div class="setRow">
       <div class="setLbl">YOU ARE</div>
-      <div class="bdBtns"><input id="bdName" maxlength="24" autocomplete="off" spellcheck="false" /><span id="bdRoll" class="setBtn">NEW NAME</span><span id="bdKeep" class="setBtn dim">KEEP</span></div>
+      <div class="bdBtns"><input id="bdName" dir="auto" maxlength="24" autocomplete="off" spellcheck="false" /><span id="bdRoll" class="setBtn">NEW NAME</span><span id="bdKeep" class="setBtn dim">KEEP</span></div>
       <div class="setStat">A CALL-SIGN IS MADE UP FOR YOU · TYPE YOUR OWN IF YOU LIKE · IT IS SHOWN ON THE PUBLIC BOARD WITH EVERY TRIP YOU FILE · YOUR LOG BELOW STAYS ON THIS DEVICE</div>
     </div>
     <div class="setRow">
@@ -643,12 +643,12 @@
   <div id="ideaCard">
     <div class="setHead display">IDEAS FOR THE BEACON <span id="bIdeaClose">✕</span></div>
     <div class="setStat">TELL ME WHAT TO ADD — DATA, OPTIONS, SETTINGS, ANYTHING. IT LANDS ON THE PUBLIC BOARD WITH YOUR CALL-SIGN.</div>
-    <textarea id="ideaTxt" maxlength="240" placeholder="YOUR IDEA (A FEW WORDS TO A FEW LINES)"></textarea>
+    <textarea id="ideaTxt" dir="auto" maxlength="240" placeholder="YOUR IDEA (A FEW WORDS TO A FEW LINES)"></textarea>
     <div class="bdBtns" style="margin-top:8px"><span class="setBtn" id="bIdeaSend">SEND IT UP</span></div>
     <div class="setStat" id="ideaStat"></div>
     <div class="setLbl" style="margin-top:14px">SENDING A GREETING TO THEM INSTEAD?</div>
     <div class="setStat">THAT IS NOT AN IDEA FOR ME \u2014 IT IS THE MESSAGE YOUR BEACON TRANSMITS IN MORSE. SET IT HERE AND IT GOES OUT ON YOUR NEXT TRIP.</div>
-    <input id="ideaMsg" maxlength="80" autocomplete="off" spellcheck="false" placeholder="ONE HUMAN. ZERO FEAR. NO ORBS." />
+    <input id="ideaMsg" dir="auto" maxlength="80" autocomplete="off" spellcheck="false" placeholder="ONE HUMAN. ZERO FEAR. NO ORBS." />
     <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bIdeaMsg">MAKE IT MY MESSAGE</span></div>
     <div class="setStat" id="ideaMsgStat"></div>
     <div class="setLbl" style="margin-top:12px">WHAT OTHERS ASKED FOR — READ BEFORE SENDING A TWIN</div>
@@ -701,7 +701,7 @@
   <div id="crumb" class="display"></div>
 </div>
 
-<div id="ctl">
+<div id="ctl" dir="ltr">
   <div id="chips"></div>
   <div id="btns">
     <button class="btn" id="bEngage" aria-label="Start"><i class="cap"></i><span class="lbl go">START</span><span class="lbl stop">STOP</span><i class="cover"></i></button>
@@ -786,7 +786,10 @@ function applySystems(boot) {                                    // S.sysOn -> S
   SYSTEMS = SYSTEMS_ALL.filter((s) => (s.id in on ? !!on[s.id] : !s.opt));
   if (!SYSTEMS.length) { SYSTEMS = [SYSTEMS_ALL[0]]; on.zeta = true; }   // at least one stays on
   if (boot) return;
-  if (phase === "chart" && selected && !selected.mode && !SYSTEMS.includes(selected)) { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }   // never mid-flight: the board would file the wrong destination
+  if (selected && !selected.mode && !SYSTEMS.includes(selected)) {   // never mid-flight: the board would file the wrong destination
+    if (phase === "chart") { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }
+    else pendingResel = true;                                   // put it right the moment the chart is back
+  }
   CHIP_SRC.length = 0; CHIP_SRC.push(...SYSTEMS, ...MODES);
   locBuild();
   const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", ");
@@ -1098,11 +1101,12 @@ function resize() {
   cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR);   // whole device pixels: the layer is never resampled
   cvs.style.width = W + "px"; cvs.style.height = H + "px";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  let sd = 1337;                                                // a fixed seed: the whole sky must not re-shuffle when you turn the tablet
+  const rnd = () => ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   bgStars = Array.from({ length: 220 }, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    r: Math.random() * 1.1 + 0.2, tw: Math.random() * 6.28
+    x: rnd() * W, y: rnd() * H, r: rnd() * 1.1 + 0.2, tw: rnd() * 6.28
   }));
-  buildDeepSky();
+  if (S.deep && S.deepA > 0) buildDeepSky(); else deepCvs = null;   // off by default: do not bake a full screen nobody draws
   measureCtl();
 }
 addEventListener("resize", resize); resize();
@@ -1204,6 +1208,7 @@ const PLANETS = [                                               // real order ou
   { n: "URANUS", au: 19.2, r: 3.2, c: "#a8e8ff", L: 67.4 }, { n: "NEPTUNE", au: 30.1, r: 3.0, c: "#7aa8ff", L: 3.1 },
   { n: "STARMAN", au: 1.61, r: 1.3, c: "#ff3b30", L: 345, car: true }   // the Roadster: 1.61 AU out today, a few degrees ahead of Earth (approx.)
 ];
+let pendingResel = false;                                        // a departure was switched off while we were away from the chart
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
 let siteHit = [];                                                // the sky-aligned places on the globe, for a tap
 const SKY_SITES = [                                              // where the old ones watched the sky, and what they lined up with
@@ -1809,7 +1814,7 @@ var GLOBE_MAXBUF    = 576;     // starting buffer diameter cap, device px (adapt
 var GLOBE_MAXBUF_HI = 1024;    // the cap may grow to this on a device that renders fast
 var GLOBE_MINBUF    = 448;     // and shrink to this on one that does not
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
-var GLOBE_GEOCACHE  = 4;       // how many (size,tilt) geometries to keep
+var GLOBE_GEOCACHE  = 6;       // how many (size,tilt) geometries to keep - the Moon and the Earth were evicting each other
 var GL_DBG = /[?&]dbg=1/.test(location.search);              // ?dbg=1: one readout line above the globe
 var glFrameMs = 0, glGeoBuilds = 0;
 
@@ -2742,7 +2747,7 @@ function mtRays(buf, w, h, rowsHit, clonD, clatD, maxDeg, nRays, amp, seed) {
 let earthTex = null, earthNight = null, earthClouds = null, moonTex = null, earthAssets = 0;
 const EZ_HOME = 0.85;                                            // at rest the whole world shows: the fully zoomed-out look he liked
 let globeCv = null, moonCv = null, moonRot = 0, moonOrbit = 0.7, earthVel = 0, lastMoveT = 0, earthZoom = EZ_HOME;
-let earthTilt = 0, earthTiltDraw = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
+let earthTilt = 0, earthTiltDraw = 0, earthTiltWas = 0, unitOrbs = [], PLANET_FRONT = null, zoomT = -99, cloudDrift = 0;
 let procTex = null, procNight = null, procClouds = null;        // the drawn Earth (always built: the fallback)
 let photoTex = null, photoNight = null, photoClouds = null, photoState = 0;   // NASA's pictures: 0 idle 1 loading 2 in 3 failed
 function buildEarthAssets() {                                   // built in stages so nothing locks up
@@ -2982,7 +2987,9 @@ function drawEarthHub(t) {
     earthRot += gd * Math.min(1, dt * 2.2);
     if (Math.abs(gd) < 1.5) { earthGoal = null; earthAuto = true; }
   }
-  earthTiltDraw = Math.round(earthTilt / 0.25) * 0.25;           // quarter-degree steps: fewer geometry builds, no visible difference
+  const tiltStep = Math.abs(earthTilt - earthTiltWas) > 0.02 ? 1 : 0.25;   // whole degrees while it moves, quarter degrees once it settles
+  earthTiltWas = earthTilt;
+  earthTiltDraw = Math.round(earthTilt / tiltStep) * tiltStep;   // nobody can see a quarter degree on a world that is still tilting
   if (earthZoom > EZ_HOME + 0.02 && t - zoomT > 14 && !globeView) {   // after a long look it pulls back by itself
     earthZoom += (EZ_HOME - earthZoom) * Math.min(1, dt * 0.8);
     if (earthZoom < EZ_HOME + 0.02) { earthZoom = EZ_HOME; earthAuto = true; }
@@ -4652,6 +4659,9 @@ raf = requestAnimationFrame(loop);
 function engage() {
   introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
+  if (globeView && !globeView.out) {                            // the close key belongs to the world view, not to a flight
+    gvFx(false); $("gvX").classList.add("hide"); globeView.out = performance.now() / 1000;
+  }
   ambStop();                                                    // the music yields to the crossing
   flyStart();                                                   // the wind of the crossing
   wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
@@ -5127,6 +5137,7 @@ function arrive() {
 }
 
 function replay() {
+  if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
   flyStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
   ++diveToken; clearTimeout(holdTimer); clearInterval(breathTimer); breathTimer = 0; breathBar(false);
@@ -5870,7 +5881,7 @@ cvs.addEventListener("pointermove", (e) => {
     if (pinchD) {
       if (dragEarth) { earthZoom = Math.min(globeView ? 2.6 : 1.8, Math.max(0.85, earthZoom * d / pinchD)); zoomT = performance.now() / 1000; zoomFx(earthZoom, 0.85, globeView ? 2.6 : 1.8); }   // the camera moves in
       else {
-        chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));           // the sky barely needs it
+        if (S.chart3d) chartZoom = Math.min(1.35, Math.max(0.85, chartZoom * d / pinchD));   // the flat chart never moves, so it must not answer           // the sky barely needs it
         zoomFx(chartZoom, 0.85, 1.35);
         if (d > pinchD && chartZoom >= 1.349) sysTry();                               // and past that: into the front system
       }
@@ -6010,6 +6021,8 @@ function rollName() {
   return CS_A[Math.floor(Math.random() * CS_A.length)] + " " + CS_B[Math.floor(Math.random() * CS_B.length)] + " " + (10 + Math.floor(Math.random() * 90));
 }
 let callsign = "";
+let storeOK = true;                                              // some browsers block site data outright
+try { localStorage.setItem("ce5.probe", "1"); localStorage.removeItem("ce5.probe"); } catch (e) { storeOK = false; }
 try { callsign = localStorage.getItem(NAME_KEY) || ""; } catch (e) {}
 if (!callsign) { callsign = rollName(); try { localStorage.setItem(NAME_KEY, callsign); } catch (e) {} }
 function readLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]") || []; } catch (e) { return []; } }
@@ -6194,7 +6207,7 @@ function setName(v) {                                           // the same whit
   callsign = v; try { localStorage.setItem(NAME_KEY, v); } catch (e) {}
   openBoard();
 }
-$("gvX").onclick = () => { if (globeView && !globeView.out) globeToggle(); };
+$("gvX").onclick = () => { if (phase === "chart" && globeView && !globeView.out) globeToggle(); };
 function applyMute() {
   $("bMute").classList.toggle("on", muted);
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
@@ -6436,6 +6449,8 @@ function loadDict() {
     .catch(() => { langDict = null; walkTranslate(); });
 }
 function applyLang() {
+  document.documentElement.lang = uiLang || "en";               // Arabic was being laid out left to right
+  document.documentElement.dir = uiLang === "ar" ? "rtl" : "ltr";
   const put = (id, key) => { const el = $(id); if (el) el.textContent = tr(key); };
   const tb = document.querySelector("#tapBegin .lead");
   if (tb) tb.textContent = tr("begin");
@@ -6668,7 +6683,8 @@ function applyS() {                                             // push S into e
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
-  set("selCache", S.cache); set("selMotion", S.motion); reduced = false;
+  set("selCache", S.cache); set("selMotion", S.motion);
+  reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", 34 - S.bOrbit); txt("vOrbit", S.bOrbit);
   set("rHold", 28 - S.bHold); txt("vHold", S.bHold); set("rBFly", 18 - S.bFly); txt("vBFly", S.bFly);
@@ -6746,7 +6762,8 @@ $("rArr").oninput = (e) => { S.arrHold = 40 - +e.target.value; $("vArr").textCon
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
 $("selMotion").onchange = (e) => {
-  S.motion = e.target.value; reduced = false;                   // the knob stays but motion never shortens
+  S.motion = e.target.value;
+  reduced = S.motion === "auto" && reducedPref;                 // FULL means full whatever the phone says
   log("MOTION: " + (reduced ? "REDUCED — SHORT STAGES" : "FULL"), "cy");
 };
 $("rSites").oninput = (e) => { S.bSites = +e.target.value; $("vSites").textContent = S.bSites; };
@@ -6776,7 +6793,7 @@ $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
 $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
-$("ckDeep").onchange = (e) => (S.deep = e.target.checked);
+$("ckDeep").onchange = (e) => { S.deep = e.target.checked; if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
 $("rSys").oninput = (e) => { S.sysHold = 23 - +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
@@ -6791,7 +6808,8 @@ $("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
 $("ckPoles").onchange = (e) => (S.poles = e.target.checked);
 $("ckAges").onchange = (e) => { S.ages = e.target.checked; if (S.ages) ageTell(); };
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
-$("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value; };
+$("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value;
+  if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
 $("rBcn").oninput = (e) => { S.bcnHold = 10 - +e.target.value; $("vBcn").textContent = String(+S.bcnHold.toFixed(2)); };
 $("ckBcnStay").onchange = (e) => (S.bcnStay = e.target.checked);
 $("selFinal").onchange = (e) => (S.finalZ = +e.target.value);
@@ -6850,8 +6868,11 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("THREE THINGS HAVE EVER PASSED THROUGH FROM ANOTHER STAR \u00b7 THEY TAKE TURNS CROSSING THE CHART", "cy");
   log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
   log("IT HAS NEVER WORKED FOR ME \u00b7 IT MIGHT FOR YOU \u00b7 THE i KEY SAYS WHY I BUILT IT ANYWAY", "cy");
-if (0 && reducedPref) { log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert"); log("SET MOTION: FULL IN ⚙ FOR THE SLOW RUN", "alert");
-  $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — PICK FULL FOR THE SLOW RUN"; }
+if (reducedPref) {                                              // only ever a note: FULL is the default and stays full
+  $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — MOTION: FOLLOW THE PHONE WOULD SHORTEN THE STAGES";
+  if (S.motion === "auto") log("REDUCE MOTION IS ON — STAGES ARE SHORTENED", "alert");
+}
+if (!storeOK) log("THIS BROWSER IS BLOCKING SITE DATA · YOUR SETTINGS, CALL SIGN AND TRIP LOG WILL NOT SURVIVE A RELOAD", "alert");
 updateShareLink();
 </script>
 </body>

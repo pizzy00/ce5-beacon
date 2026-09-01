@@ -55,8 +55,7 @@
   #log .alert { color: var(--alert); text-shadow: 0 0 6px rgba(255,92,57,0.6); }
   #log .cy { color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
   @keyframes typein { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-  #log div { animation: typein 0.35s steps(24) both; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; }
+  #log div { animation: typein 0.35s steps(24) both; overflow-wrap: anywhere; }   /* it used to cut every line off a third of the way across */
 
   #data { display: flex; flex: none; flex-wrap: nowrap; gap: 0 9px; font-size: 9px; line-height: 1.2; letter-spacing: 0.02em;
     overflow: hidden; white-space: nowrap;
@@ -578,9 +577,10 @@
     background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px;
     box-shadow: 0 0 30px rgba(255,196,107,0.15); }
   .setHead { display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; row-gap: 6px; overflow-wrap: anywhere;     /* the long languages wrap instead of pushing the keys off the edge */
     color: var(--amber); font-size: 12px; margin-bottom: 12px; }
   #bClose { padding: 4px 10px; border: 1px solid var(--amber-dim); border-radius: 3px; }
-  .setBtns { display: flex; gap: 8px; align-items: center; }
+  .setBtns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; row-gap: 6px; margin-left: auto; }
   .setBtn { padding: 4px 10px; border: 1px solid var(--cyan); color: var(--cyan); border-radius: 3px; font-size: 11px; }
   .setBtn.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
   #saveStat { margin: -6px 0 12px; min-height: 12px; }

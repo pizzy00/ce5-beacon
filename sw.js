@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v12";
+const VER = "ce5-v13";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -11,7 +11,7 @@ const LIVE = VER + "-live";
 const PRECACHE = [
   "./",
   "./index.html",
-  "./styles.css?v=18",
+  "./styles.css?v=19",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
@@ -66,6 +66,21 @@ self.addEventListener("fetch", (e) => {
         }
         return res;
       }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  if (req.mode === "navigate") {                                 // the page itself: always ask the network first,
+    e.respondWith(                                               // or a returning visitor runs the previous build all session
+      fetch(req).then(function (res) {
+        if (res && res.ok) {
+          var copy = res.clone();
+          caches.open(SHELL).then(function (c) { c.put("./", copy); }).catch(function () {});
+        }
+        return res;
+      }).catch(function () {
+        return caches.match("./").then(function (hit) { return hit || caches.match(req); });
+      })
     );
     return;
   }
