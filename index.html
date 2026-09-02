@@ -38,9 +38,9 @@
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css?v=20" />
+<link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
+<script src="vendor/leaflet/leaflet.js?v=1"></script>
+<link rel="stylesheet" href="styles.css?v=21" />
 </head>
 <body class="intro introHud">
 
@@ -754,7 +754,8 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
-const hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+let hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+if (hashLL && !(Math.abs(+hashLL[1]) <= 90 && Math.abs(+hashLL[2]) <= 180)) hashLL = null;   // a spot off the globe is no spot: it killed the loop
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
 
 /* ---------------- lore chart ---------------- */
@@ -949,12 +950,12 @@ function crumbNext(p) {                                          // what the jou
       return (n && STAGE_LABEL[n]) || "TERRAN APPROACH";
     }
     case "earth": return "SLOW DESCENT";
-    case "dive": return m === "bermuda" ? "THE TRIANGLE" : flashOn ? "THE FLASH \u00b7 EYES CLOSED" : "TOUCHDOWN";
+    case "dive": return flashOn ? "TOUCHDOWN \u00b7 THEN THE FLASH" : "TOUCHDOWN";
     case "triangle": return S.bTrig === "film" ? "THE FLASH \u00b7 EYES CLOSED" : S.bTrig === "off" ? "THE DEEP RESPONDS" : "NUCLEAR SITES";
     case "sites": return "THE FLASH \u00b7 EYES CLOSED";
-    case "flash": return m === "bermuda" && S.bPhotos ? "THE ARSENAL" : m === "bermuda" ? "THE DEEP RESPONDS" : "TOUCHDOWN";
+    case "flash": return m === "bermuda" && S.bPhotos ? "THE ARSENAL" : m === "bermuda" ? "THE DEEP RESPONDS" : "THE CALL GOES OUT";
     case "photos": return "THE DEEP RESPONDS";
-    case "active": return "BACK TO THE CHART WHEN YOU STOP";
+    case "active": return document.body.classList.contains("holding") ? "THE FLASH \u00b7 EYES CLOSED" : "BACK TO THE CHART WHEN YOU STOP";
   }
   return null;
 }
@@ -1250,7 +1251,7 @@ function measureCtl() {
   const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
-let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null;   // the pop-up world: pan with two fingers, roll with one
+let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null, tapDefer = 0;   // the pop-up world: pan with two fingers, roll with one
 let fleetTrips = null, fleetIdx = 0, fleetPulse = null;          // earlier travellers, read from the board, told one at a time
 let boardIdeas = [], visitsTold = false;                         // everyone's ideas, and the head-count told once
 const bare = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");   // mangled dots and accents fall away
@@ -1652,7 +1653,7 @@ function buildEarthTexture(rings, w, h) {
 
       /* --- polar caps last: sea ice and the two ice sheets ride over everything --- */
       var wob = (n1 - 0.5) * 9 + (n2 - 0.5) * 3;
-      var capN = etSm(75, 84, lat + wob), capS = etSm(-68, -77, -(lat + wob));
+      var capN = etSm(75, 84, lat + wob), capS = etSm(-68, -77, lat + wob);   // the south cap was being painted over the north
       var cap = capN > capS ? capN : capS;
       if (cap > 0) {
         var ic = 232 + 16 * n2;
@@ -1815,7 +1816,7 @@ var GLOBE_MAXBUF    = 576;     // starting buffer diameter cap, device px (adapt
 var GLOBE_MAXBUF_HI = 1024;    // the cap may grow to this on a device that renders fast
 var GLOBE_MINBUF    = 448;     // and shrink to this on one that does not
 var GLOBE_STEP      = 64;      // buffer-size ladder; coarse = fewer rebuilds while zooming
-var GLOBE_GEOCACHE  = 6;       // how many (size,tilt) geometries to keep - the Moon and the Earth were evicting each other
+var GLOBE_GEOCACHE  = 4;       // how many (size,tilt) geometries to keep - the Moon and the Earth were evicting each other
 var GL_DBG = /[?&]dbg=1/.test(location.search);              // ?dbg=1: one readout line above the globe
 var glFrameMs = 0, glGeoBuilds = 0;
 
@@ -2925,7 +2926,7 @@ const ISO = [
     tag: "THE SECOND \u00b7 AN HONEST COMET \u00b7 2019",
     note: "2I/BORISOV \u00b7 FOUND 30 AUG 2019 BY GENNADIY BORISOV, AN AMATEUR, ON A TELESCOPE HE BUILT HIMSELF \u00b7 PLAINLY A COMET, PLAINLY FROM SOMEWHERE ELSE" }
 ];
-let isoSaid = -1;
+let isoSaid = -1; const isoSaidSet = new Set();                   // each interstellar visitor introduces itself once
 function drawISO(t, sunX, sunY, sx, sy, RZ, IK) {
   if (!S.iso || IK.planets <= 0) return;
   const CROSS = 30, REST = 9, CYCLE = CROSS + REST;              // one crossing, then the sky is empty a while
@@ -2976,7 +2977,7 @@ function drawISO(t, sunX, sunY, sx, sy, RZ, IK) {
     ctx.textAlign = "left";
   }
   ctx.restore(); ctx.globalAlpha = 1;
-  if (isoSaid !== which && u > 0.34 && u < 0.5) { isoSaid = which; log(o.note, "cy"); }
+  if (!isoSaidSet.has(which) && u > 0.34 && u < 0.5) { isoSaidSet.add(which); isoSaid = which; log(o.note, "cy"); }
 }
 function drawEarthHub(t) {
   const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
@@ -3455,11 +3456,13 @@ function drawSystemView(t) {
     label(cx, Math.max(cy - R * 2.15, skB), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center", 13);   // between the portrait and the star
     label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center", 12);
     const used = drawClaims(cx, cy + R * 3.4 + 54, s, (a - 0.6) / 0.4), qq = quoteFor(s);
-    if (S.lore && qq && cy + R * 3.4 + 54 + used + 20 < (ctlTop || H * 0.72) - 24) {   // a line in their own words, when there is one
+    const qLines = S.lore && qq ? wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))) : [];
+    const qTop = cy + R * 3.4 + 54 + used + 14, qBottom = qTop + 14 * qLines.length + 4;
+    if (qLines.length && qBottom < (ctlTop || H * 0.72) - 6) {   // a line in their own words, when the whole of it fits above the console
       ctx.globalAlpha = (a - 0.6) / 0.4; ctx.textAlign = "center"; ctx.font = "italic 11px Georgia, serif"; ctx.fillStyle = "rgba(255,240,200,0.9)";
-      for (const [k, l] of wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))).entries()) ctx.fillText(l, cx, cy + R * 3.4 + 54 + used + 14 + k * 14);
+      for (const [k, l] of qLines.entries()) ctx.fillText(l, cx, qTop + k * 14);
       ctx.font = "9px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
-      ctx.fillText("\u2014 " + qq[1] + ", " + qq[2], cx, cy + R * 3.4 + 54 + used + 14 + 14 * wrapLines("\u201c" + qq[0] + "\u201d", Math.max(26, Math.floor((W - 24) / 6.6))).length + 4);
+      ctx.fillText("\u2014 " + qq[1] + ", " + qq[2], cx, qBottom);
       ctx.globalAlpha = 1; ctx.textAlign = "left";
     }
     if (S.faces) drawSpecies(W * 0.5, pCy, pSz, s, t, (a - 0.6) / 0.4);   // the portrait sits centred over their star
@@ -3658,6 +3661,7 @@ function fsCallout() {                                           // the corner k
   fsShown = true;
   const HOLD = 2000, GAP = 200;                                 // long enough to read one line, then hand over
   CORNER_KEYS.forEach(([hid, bid], i) => {
+    if (hid === "fsHint" && standalone) return;                 // a home-screen app has no full-screen key to introduce
     const at = i * (HOLD + GAP);
     calloutQueue.push(setTimeout(() => {
       const h = $(hid); if (h) h.classList.remove("hide");
@@ -3837,7 +3841,7 @@ function drawWarp(p, t) {
 
   // range countdown
   label(W / 2, H * 0.17, allChannels ? "ALL CHANNELS \u2014 " + SYSTEMS.length + " SYSTEMS" : "FROM " + selected.name,
-    "\u2192 POLARIS GATE \u2192 SOL", selected.c, "center");
+    S.polaris ? "\u2192 POLARIS GATE \u2192 SOL" : "\u2192 SOL", selected.c, "center");
   const rem = selected.ly * Math.pow(1 - p, 3.2);
   let txt;
   if (rem > 0.05) txt = rem >= 1e6 ? (rem / 1e6).toFixed(2) + "M LY" : rem.toFixed(2) + " LY";
@@ -3901,11 +3905,12 @@ function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketc
   ctx.beginPath(); ctx.moveTo(-hw * 0.18, hy + hh * 0.55); ctx.lineTo(hw * 0.18, hy + hh * 0.55); ctx.stroke();
   ctx.restore();
   ctx.globalAlpha = a; ctx.textAlign = "center";
+  const tx = Math.max(150, Math.min(W - 150, cx));              // the caption stays on the phone even when the sketch sits at the edge
   ctx.font = "10px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
-  ctx.fillText(s.tag + " \u00b7 " + P.ht, cx, cy + size * 0.68 + 13);
+  ctx.fillText(s.tag + " \u00b7 " + P.ht, tx, cy + size * 0.68 + 13);
   ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.75)";
-  ctx.fillText(P.note, cx, cy + size * 0.68 + 22);
-  ctx.fillText("A FIELD SKETCH FROM WITNESS ACCOUNTS \u00b7 NOT A PHOTOGRAPH", cx, cy + size * 0.68 + 31);
+  ctx.fillText(P.note, tx, cy + size * 0.68 + 22);
+  ctx.fillText("A FIELD SKETCH FROM WITNESS ACCOUNTS \u00b7 NOT A PHOTOGRAPH", tx, cy + size * 0.68 + 31);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
 }
 function paintSystemArt(cx, cy, R, s, t, worlds) {              // a star (or cluster, or galaxy) and its worlds
@@ -3970,7 +3975,7 @@ function drawOrigin(p, t) {
   }
   if (p >= 0.55 && !wpHit.has("o3")) {
     wpHit.add("o3"); log("DEPARTURE \u2014 DRIVE ENGAGED", "cy");
-    cueStage("THEY ARE COMING WITH YOU"); cueSub("COURSE SET: POLARIS GATE");
+    cueStage("THEY ARE COMING WITH YOU"); cueSub(S.polaris ? "COURSE SET: POLARIS GATE" : "COURSE SET: SOL");
   }
   if (p > 0.92) { ctx.fillStyle = "rgba(0,0,0," + (p - 0.92) / 0.08 + ")"; ctx.fillRect(0, 0, W, H); }
   $("dRng").textContent = fmtLy(s.ly);
@@ -4399,11 +4404,13 @@ function drawEarth(p) {
   }
   ctx.globalAlpha = 1;
   // polar approach vector from Polaris down onto the pole
-  ctx.strokeStyle = "#ffe9a6"; ctx.setLineDash([3, 6]);
-  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - R); ctx.stroke();
-  ctx.setLineDash([]);
-  star(cx, Math.max(14, cy - R - 40), 2.5, "#ffe9a6");
-  label(cx + 10, Math.max(24, cy - R - 34), "POLARIS", "POLAR APPROACH", "#ffe9a6");
+  if (S.polaris) {                                              // no gate switched on = no gate drawn
+    ctx.strokeStyle = "#ffe9a6"; ctx.setLineDash([3, 6]);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - R); ctx.stroke();
+    ctx.setLineDash([]);
+    star(cx, Math.max(14, cy - R - 40), 2.5, "#ffe9a6");
+    label(cx + 10, Math.max(24, cy - R - 34), "POLARIS", "POLAR APPROACH", "#ffe9a6");
+  }
   // target latitude ring (live)
   const tla = (TARGET.lat * Math.PI) / 180;
   const ty = cy - Math.sin(tla) * R * 0.86, trx = Math.cos(tla) * R;
@@ -4663,9 +4670,12 @@ function engage() {
   if (globeView && !globeView.out) {                            // the close key belongs to the world view, not to a flight
     gvFx(false); $("gvX").classList.add("hide"); globeView.out = performance.now() / 1000;
   }
+  if (sysView) { if (!sysView.out) gvFx(false); sysView = null; }   // a lean-in must not survive into the flight
+  clearTimeout(tapDefer);
+  $("bEngage").setAttribute("aria-label", "STOP");
   ambStop();                                                    // the music yields to the crossing
   flyStart();                                                   // the wind of the crossing
-  wpHit.clear(); initWarp(); flashDone = false; flashAfter = null;
+  wpHit.clear(); initWarp(); flashDone = false; flashAfter = null; photosDone = false;
   precacheTiles();
   const mode = modeOf();
   if (mode === "moon") {
@@ -4690,7 +4700,7 @@ function engage() {
       Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM TO YOU");
   } else {
     log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
-    log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + " → POLARIS → SOL");
+    log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + (S.polaris ? " → POLARIS → SOL" : " → SOL"));
     log("STAGE 1: ORIGIN — " + selected.name, "cy");
     setPhase("origin", "ORIGIN SYSTEM");
     cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
@@ -4806,6 +4816,12 @@ function pickShot() {
 }
 function nukeFlash(token) {
   if (token !== bermToken) return;
+  if (modeOf() !== "bermuda" && !S.nukeAll) {                   // switched off during the hold: straight to the call
+    document.body.classList.remove("holding");
+    const cb = flashAfter; flashAfter = null; flashDone = true;
+    if (cb) cb();
+    return;
+  }
   document.body.classList.remove("holding");
   setPhase("flash", "THE FLASH");
   $("cue").classList.remove("on"); $("cue").classList.add("off"); $("reticle").classList.remove("on");
@@ -4823,6 +4839,12 @@ function warnThenFlash(token) {
   $("nukeWarn").classList.remove("hide");
   const tick = () => {
     if (token !== bermToken || phase !== "flash") return;
+    if (modeOf() !== "bermuda" && !S.nukeAll) {                 // switched off mid-countdown
+      $("nukeWarn").classList.add("hide"); stopFlash(); flashDone = true;
+      const cb = flashAfter; flashAfter = null;
+      if (cb) return cb();
+      setPhase("active", "BEACON ACTIVE"); document.body.classList.remove("holding"); return;
+    }
     left--;
     blip(300, 255, 0.1, 0.08);                                  // the countdown has a pulse
     if (left <= 0) { $("nukeWarn").classList.add("hide"); return runFlash(token); }
@@ -4870,7 +4892,8 @@ function endFlash(token) {
   }
   flashDone = true;
   log("THE LIGHT IS GONE · " + flashShot.name, "cy");
-  if (flashAfter) { const cb = flashAfter; flashAfter = null; bermHold = setTimeout(cb, 1500); return; }
+  if (flashAfter) { const cb = flashAfter; bermHold = setTimeout(() => { flashAfter = null; cb(); }, 1500); return; }   // stays armed until it runs: a tap in the gap skips straight to it
+  if (modeOf() !== "bermuda") return;                           // on your own spot the flash is the last stage before the call
   bermHold = setTimeout(() => bermNext(token), 1500);
 }
 function stopFlash() {
@@ -4915,8 +4938,14 @@ function bermSkip() {
   clearTimeout(bermHold); clearTimeout(bermGuard);
   const token = ++bermToken;
   if (map) map.stop();
-  if (phase === "flash") { stopFlash(); flashDone = true; if (flashAfter) { const cb = flashAfter; flashAfter = null; return cb(); } return bermNext(token); }
+  if (phase === "flash") {
+    stopFlash(); flashDone = true;
+    if (flashAfter) { const cb = flashAfter; flashAfter = null; return cb(); }
+    if (modeOf() !== "bermuda") { setPhase("active", "BEACON ACTIVE"); document.body.classList.remove("holding"); return; }
+    return bermNext(token);
+  }
   if (phase === "photos") return bermRise();
+  if (modeOf() !== "bermuda") return;                           // the Triangle chain belongs to the Triangle
   bermNext(token);
 }
 
@@ -5091,11 +5120,13 @@ function runStep(i, token) {
   retShow(true);
   const z = i === divePlan.length - 1 ? S.finalZ : s.z;         // the last hold lands exactly where the setting says, high or low
   map.flyTo([TARGET.lat, TARGET.lon], z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
-  map.once("moveend", () => {
+  const landed = () => {
     if (token !== diveToken || phase !== "dive") return;
+    if (Math.abs(map.getZoom() - z) > 0.05) { map.once("moveend", landed); return; }   // the stop() before a skip fires a stale moveend: not ours
     retShow(false);
     holdTimer = setTimeout(() => runStep(i + 1, token), (reduced ? 1 : s.hold * S.diveMul) * 1000);
-  });
+  };
+  map.once("moveend", landed);
 }
 function skipStep() {
   if (phase !== "dive" || !map) return;
@@ -5112,12 +5143,14 @@ function arrive() {
   $("cue").classList.remove("on");
   $("reticle").classList.remove("on");
   lockMap(false);
+  if (map && Math.abs(map.getZoom() - S.finalZ) > 0.05) map.flyTo([TARGET.lat, TARGET.lon], S.finalZ, { duration: 1.2 });   // skipped down: still land at the set height
   placeBeacon();
+  setTimeout(measureCtl, 50);                                   // the key row may have grown a second line
   log("BEACON ACTIVE — " + fmtLL(TARGET.lat, TARGET.lon), "alert");
   log("TOUCHDOWN — TARGET CONFIRMED", "cy");
   logTrip();                                                    // it counts on the travellers board
   log(modeOf() === "moon" ? "RELAY: LUNAR LINK OPEN" : modeOf() === "ocean" ? "RELAY: DEEP CHANNEL OPEN"
-    : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : "RELAY: POLARIS GATE OPEN");
+    : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : S.polaris ? "RELAY: POLARIS GATE OPEN" : "RELAY: SOLAR CHANNEL OPEN");
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
   ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
@@ -5133,6 +5166,7 @@ function arrive() {
     log("HOLD HERE — BREATHE · THE FLASH COMES BEFORE THE CALL", "cy");
     cueStage("HOLD HERE"); cueSub("THE FLASH COMES FIRST");
     tourPlan = []; flashAfter = callOut; document.body.classList.add("holding");
+    setPhase("active", "BEACON ACTIVE");                         // the breadcrumb now knows the flash comes next
     bermHold = setTimeout(() => nukeFlash(++bermToken), Math.max(0, S.arrHold) * 1000);
   } else callOut();
 }
@@ -5150,6 +5184,9 @@ function replay() {
   if (bermLayer && map) { map.removeLayer(bermLayer); bermLayer = null; }
   $("cue").classList.remove("on");
   if (map) { map.stop(); map.setView([55, -95], 3, { animate: false }); }
+  $("dLat").textContent = "--"; $("dLon").textContent = "--";  // the readout is yours, not the parked map's
+  $("bEngage").setAttribute("aria-label", "START");
+  setTimeout(measureCtl, 50);
   clearTimeout(beaconTimer); if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
   ["bReplay", "bTone", "bTarget", "bSend"].forEach((b) => $(b).classList.add("hide"));
@@ -5209,6 +5246,7 @@ try {
   });
   map.on("move", () => {
     const c = map.getCenter();
+    if (phase !== "dive" && phase !== "active") return;         // only a real flight writes the readout
     $("dLat").textContent = c.lat.toFixed(4) + "°";
     $("dLon").textContent = c.lng.toFixed(4) + "°";
     if (phase === "dive" || phase === "active") {
@@ -5410,8 +5448,11 @@ function useGps() {
   log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING...";
   navigator.geolocation.getCurrentPosition(
     (p) => setTargetTo(p.coords.latitude, p.coords.longitude, "GPS LOCK ±" + Math.round(p.coords.accuracy) + " M"),
-    () => { log("GPS DENIED — TARGET UNCHANGED", "alert");
-      $("addrStatus").textContent = "GPS DENIED — ALLOW LOCATION, OR TYPE AN ADDRESS"; },
+    (err) => {
+      const code = err && err.code;
+      if (code === 1) { log("GPS DENIED — TARGET UNCHANGED", "alert"); $("addrStatus").textContent = "GPS DENIED — ALLOW LOCATION, OR TYPE AN ADDRESS"; return; }
+      log((code === 3 ? "GPS TIMED OUT" : "GPS: NO FIX") + " \u2014 TARGET UNCHANGED", "alert");
+      $("addrStatus").textContent = (code === 3 ? "GPS TIMED OUT" : "GPS: NO FIX YET") + " \u2014 TRY AGAIN NEAR A WINDOW, OR TYPE AN ADDRESS"; },
     { enableHighAccuracy: true, timeout: 10000 }
   );
 }
@@ -5482,7 +5523,7 @@ function sendMorse(text) {
   const token = morseToken, unit = 1200 / S.mWpm;                 // PARIS standard: dot = 1200 / wpm ms
   const plan = [];                                                  // [on?, units]
   const up = String(text || "").toUpperCase();
-  const disp = up.split(/\s+/).filter((w) => [...w].some((c) => MORSE[c])).join(" ");   // what the sky actually gets
+  const disp = up.split(/\s+/).map((w) => [...w].filter((c) => MORSE[c]).join("")).filter((w) => w.length).join(" ");   // exactly what the sky gets, so the lit letter never drifts
   let pos = 0;
   words.forEach((w, wi) => {
     w.forEach((ch, ci) => {
@@ -5552,7 +5593,7 @@ function zoomFx(v, lo, hi) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(master()); zO.start(); }
     const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
     zO.frequency.setTargetAtTime(130 + n * 390, ac.currentTime, 0.03);   // in = higher, out = lower
@@ -5568,7 +5609,7 @@ function dragFx(kind, speed) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     let ch = dragCh[kind];
     if (!ch) {
       const len = ac.sampleRate, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
@@ -5593,7 +5634,7 @@ function blip(f0, f1, dur, vol) {                               // one small hon
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime, o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -5605,7 +5646,7 @@ function gvFx(up) {                                              // the world po
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime;
     const o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(up ? 240 : 560, t); o.frequency.exponentialRampToValueAtTime(up ? 560 : 240, t + 0.45);
@@ -5634,7 +5675,7 @@ function openFx(kind, i) {                                       // the opening'
   if (!S.sfx || introFxOff || muted) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(master());
     const tone = (type, f0, f1, dur, vol, at) => {
       const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
@@ -5679,7 +5720,7 @@ function sfxBlast(farK) {                                        // the blast: a
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();
+    if (ac.state === "suspended" && !document.hidden) ac.resume();
     const t = ac.currentTime, vol = 0.5 * Math.min(1, Math.max(0.15, farK || 1));
     const len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
     let last = 0;
@@ -5703,7 +5744,7 @@ function ambStart() {
   if (!S.amb || ambG || muted || phase !== "chart") return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();          // never bail: the resume lands inside the gesture
+    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(master());
     const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
     for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
@@ -5735,7 +5776,7 @@ function flyStart() {
   if (!S.flySnd || muted) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();
+    if (ac.state === "suspended" && !document.hidden) ac.resume();
     if (flyN) return;
     const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
     let last = 0;
@@ -5764,7 +5805,7 @@ function sfx(kind) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended") ac.resume();
+    if (ac.state === "suspended" && !document.hidden) ac.resume();
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 0.9; out.connect(master());
     const noise = (dur, hp, vol, at) => {
       const n = ac.createBufferSource(), b = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0);
@@ -5832,30 +5873,31 @@ function pickDeparture(o, auto) {                               // auto: attract
   if (auto) locGlide();
 }
 function chartTap(cx, cy) {
+  const cand = [];                                               // everything under the finger; the nearest (by its own reach) wins
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
-    if (Math.hypot(cx - m.x, cy - m.y) > 22) continue;
-    const o = MODES.find((q) => q.id === m.id);
-    if (o) { pickDeparture(o);
+    const d = Math.hypot(cx - m.x, cy - m.y); if (d > 22) continue;
+    const o = MODES.find((q) => q.id === m.id); if (!o) continue;
+    cand.push({ k: d / 22, act: () => { pickDeparture(o);
       if (o.id === "luna" && PURSUE && PURSUE.moon) log("THE PURSUE FILES HOLD " + PURSUE.moon + " RELEASED RECORDS ABOUT THE MOON AND " + PURSUE.orbit + " ABOUT LOW EARTH ORBIT", "cy");
       if (o.id === "berm" && S.lore) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
-      return; }
+    } });
   }
-  for (const h of pursueHit) if (Math.hypot(cx - h.x, cy - h.y) < 11) { blip(980, 980, 0.07, 0.04); pursueRead(h.q); return; }   // a tap on a cyan square: a released file
-  let ub = null, ud = 9;                                         // a tap on a teal dot: the nearest water sighting
-  for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < ud) { ud = d; ub = h; } }
-  if (ub) { blip(980, 980, 0.07, 0.04); usoRead(ub.r); return; }
-  for (const h of siteHit) if (Math.hypot(cx - h.x, cy - h.y) < 12) {   // a tap on an old place: its story on the tube
-    blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); return;
-  }
-  if ((globeView && !globeView.out) || earthZoom > 1.05) return;   // looking at the world: the sky is behind glass
+  for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
+  for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 9) cand.push({ k: d / 9, act: () => { blip(980, 980, 0.07, 0.04); usoRead(h.r); } }); }   // a teal dot: a water sighting
+  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); } }); }   // an old place: its story
+  if (cand.length) { cand.sort((a, b) => a.k - b.k)[0].act(); return true; }
+  if ((globeView && !globeView.out) || earthZoom > 1.05) return false;   // looking at the world: the sky is behind glass
+  const G = earthGeom();
   let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
     const hx = S.chart3d ? s.px : s.x * W, hy = S.chart3d ? s.py : s.y * H;
     if (hx === undefined) continue;
+    if (S.chart3d && Math.hypot(hx - G.cx, hy - (G.cy + introLift())) < G.R * earthZoom) continue;   // a star behind the world is not on offer
     const d = Math.hypot(cx - hx, cy - hy) - (S.chart3d ? (s.pk || 1) * 3 : 0);
     if (d < bd) { bd = d; best = s; }
   }
-  if (best) { pickDeparture(best); if (S.chart3d && S.tapLook !== false) sysEnter(best); }   // a tap on a star: pick it and lean straight in
+  if (best) { pickDeparture(best); if (S.chart3d && S.tapLook !== false) sysEnter(best); return true; }   // a tap on a star: pick it and lean straight in
+  return false;
 }
 cvs.addEventListener("pointerdown", (e) => {
   if (phase !== "chart") return;                                // a tap mid-run is skipCurrent()'s job (document handler)
@@ -5870,7 +5912,7 @@ cvs.addEventListener("pointerdown", (e) => {
   }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); pinchMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
   if (intro && intro.t0) { introSkip(); wasPinch = true; }       // the opening: this finger only skips, it never picks
-  if (sysView) { sysLeave(); wasPinch = true; }                  // any finger while looking in: come back out (no tap-pick)
+  if (sysView && !sysView.out) { sysLeave(); wasPinch = true; }  // any finger while looking in: come back out (no tap-pick); on the way out taps count again
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
 });
@@ -5919,10 +5961,18 @@ const endPtr = (e) => {
   if (e.type === "pointerup" && phase === "chart" && wasSingle && !wasPinch && dragMoved < 8) {   // a pinch or a swipe is never a tap
     const r = cvs.getBoundingClientRect(), G = earthGeom(), px = e.clientX - r.left, py = e.clientY - r.top;
     const onEarth = Math.hypot(px - G.cx, py - G.cy) < G.R * earthZoom * 1.04, now = performance.now();
-    if (onEarth && now - lastEarthTap < 350) { lastEarthTap = 0; globeToggle(); }   // double-tap the world: up front, or back
+    if (onEarth && now - lastEarthTap < 350) { lastEarthTap = 0; clearTimeout(tapDefer); globeToggle(); }   // double-tap the world: up front, or back
     else {
       lastEarthTap = onEarth ? now : 0;
       if (globeView && !globeView.out && !onEarth) globeToggle();   // a tap on the sky puts the world back
+      else if (onEarth) {                                        // a first tap on the world waits for a second before it picks anything
+        clearTimeout(tapDefer);
+        tapDefer = setTimeout(() => {
+          if (phase !== "chart") return;
+          const took = chartTap(px, py);
+          if (!took && globeView && !globeView.out && earthZoom > 1.6) globeToggle();   // leaned in so far there is no sky left to tap: the world itself gives way
+        }, 340);
+      }
       else chartTap(px, py);
     }
   }
@@ -5950,7 +6000,7 @@ cvs.addEventListener("wheel", (e) => {
 }, { passive: false });
 
 function skipCurrent() {
-  if (retargetMode) return;                                       // the user is aiming at a roof, not asking to skip                                        // a tap anywhere mid-run: on to the next stage
+  if (retargetMode && phase !== "flash") return;                  // aiming at a roof is not a skip; the flash still yields to a tap                                        // a tap anywhere mid-run: on to the next stage
   if (phase === "dive") return skipStep();
   if (phase === "triangle" || phase === "sites" || phase === "flash") return bermSkip();
   if (phase === "active") {                                     // the hold before the flash is the one stage that used to ignore a tap
@@ -5972,6 +6022,10 @@ function updateShareLink() {
     TARGET.lat.toFixed(6) + "," + TARGET.lon.toFixed(6);
 }
 function setTargetTo(lat, lon, name) {
+  if (!(isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) {
+    $("addrStatus").textContent = "THAT IS NOT A PLACE ON EARTH \u2014 LAT \u00b190, LON \u00b1180";
+    return log("TARGET REJECTED \u2014 OFF THE GLOBE", "alert");
+  }
   TARGET = { lat, lon, exact: true };
   precached = "";
   precacheTiles();
@@ -5990,15 +6044,16 @@ function locate() {
   $("addrStatus").textContent = "SEARCHING...";
   fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
     encodeURIComponent(v))
-    .then((r) => r.json())
+    .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((j) => {
       if (j && j[0])
         setTargetTo(+j[0].lat, +j[0].lon, (j[0].display_name || "").split(",")[0].toUpperCase());
       else $("addrStatus").textContent = "NOT FOUND — ADD CITY / STATE AND RETRY";
     })
     .catch(() => {
-      $("addrStatus").textContent =
-        "GEOCODER BLOCKED IN THIS PREVIEW — WORKS ON THE HOSTED SITE. OR PASTE: LAT, LON";
+      $("addrStatus").textContent = location.protocol === "file:"
+        ? "GEOCODER BLOCKED IN THIS PREVIEW — WORKS ON THE HOSTED SITE. OR PASTE: LAT, LON"
+        : "NO ANSWER FROM THE GEOCODER \u2014 CHECK YOUR SIGNAL AND RETRY, OR PASTE: LAT, LON";
     });
 }
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
@@ -6034,10 +6089,12 @@ function logTrip() {                                            // a run reached
   const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
   const P = readPending(); P.push(trip); while (P.length > 50) P.shift();
-  try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {}
+  writePending(P);
   flushPending();
 }
-function readPending() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || "[]") || []; } catch (e) { return []; } }
+let memPend = [];                                                // the queue when site data is blocked: this session only
+function readPending() { if (!storeOK) return memPend.slice(); try { return JSON.parse(localStorage.getItem(PEND_KEY) || "[]") || []; } catch (e) { return memPend.slice(); } }
+function writePending(P) { memPend = P; try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {} }
 let flushing = false;
 function flushPending() {
   if (!BOARD_HOME) return;                                      // test loads never touch the board                                       // file what this device still owes the board, one issue per trip
@@ -6046,10 +6103,8 @@ function flushPending() {
   flushing = true;
   const trip = P[0];
   if (trip.sent && Date.now() - trip.sent < 60000) { flushing = false; return; }  // already in flight
-  try {                                                           // mark it before the post, so a reload mid-request cannot re-file it
-    localStorage.setItem(PEND_KEY, JSON.stringify(readPending().map((x) =>
-      (x.id === trip.id ? Object.assign({}, x, { sent: Date.now() }) : x))));
-  } catch (e) {}
+  writePending(readPending().map((x) =>                           // mark it before the post, so a reload mid-request cannot re-file it
+    (x.id === trip.id ? Object.assign({}, x, { sent: Date.now() }) : x)));
   fetch("https://api.github.com/repos/" + BOARD_REPO + "/issues", {
     method: "POST",
     headers: { "Authorization": "Bearer " + BOARD_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
@@ -6058,17 +6113,14 @@ function flushPending() {
                                  : { title: "TRIP \u00b7 " + trip.d, body: JSON.stringify({ id: trip.id, n: trip.n, d: trip.d }) })
   }).then((r) => {
     if (r.ok || r.status === 422) {                               // filed (or refused for good): drop THIS trip by id, never a stale snapshot
-      const Q = readPending().filter((x) => x.id !== trip.id);
-      try { localStorage.setItem(PEND_KEY, JSON.stringify(Q)); } catch (e) {}
+      writePending(readPending().filter((x) => x.id !== trip.id));
     } else if (r.status === 401 || r.status === 403 || r.status === 404) boardDead = r.status;
     flushing = false; if (r.ok && readPending().length) setTimeout(flushPending, 1500);
   }).catch(() => {                                                // it never landed: let it be retried
-    try {
-      localStorage.setItem(PEND_KEY, JSON.stringify(readPending().map((x) => {
-        if (x.id !== trip.id) return x;
-        const y = Object.assign({}, x); delete y.sent; return y;
-      })));
-    } catch (e) {}
+    writePending(readPending().map((x) => {
+      if (x.id !== trip.id) return x;
+      const y = Object.assign({}, x); delete y.sent; return y;
+    }));
     flushing = false;
   });
 }
@@ -6085,13 +6137,13 @@ const BOARD_HOME = location.hostname === "pizzy00.github.io";   // only the real
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   if (!BOARD_HOME) return;
-  const today = new Date().toISOString().slice(0, 10);
+  const dd = new Date(), today = dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0");   // his day, not UTC's
   let seen = ""; try { seen = localStorage.getItem(VISIT_KEY) || ""; } catch (e) {}
   if (seen === today) return;
   try { localStorage.setItem(VISIT_KEY, today); } catch (e) {}
   const P = readPending();
   P.push({ id: "v-" + today + "-" + Math.random().toString(36).slice(2), v: 1, day: today }); while (P.length > 50) P.shift();
-  try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {}
+  writePending(P);
 }
 countVisit();
 setTimeout(flushPending, 4000);
@@ -6212,14 +6264,20 @@ $("gvX").onclick = () => { if (phase === "chart" && globeView && !globeView.out)
 function applyMute() {
   $("bMute").classList.toggle("on", muted);
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
-  if (muted) ambStop(); else ambStart();
+  if (muted) { ambStop(); flyStop(); }
+  else { ambStart(); if (document.body.classList.contains("run") && S.flySnd) flyStart(); }   // unmuted mid-flight: the wind comes back
 }
 /* ---------------- a whole tuning, carried as one short code ----------------
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
 const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages"];
-const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac"];
+const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"];   // appended, never reordered
+const SETUP_CLAMP = {                                            // a bent code cannot push a slider past its own ends
+  vol: [0, 1], breath: [2, 8], spaceMul: [0.5, 2], flyby: [2, 25], originMul: [0.5, 3], diveMul: [0.5, 2], arrHold: [0, 40],
+  nInt: [0.3, 1], nStretch: [0.5, 3], nRepeat: [1, 8], nWarn: [2, 15], pHold: [0.5, 5], bOrbit: [4, 30], bSites: [1, 8],
+  bHold: [3, 25], bFly: [3, 15], mWpm: [5, 90], mInt: [0.1, 1], sysHold: [3, 20], shipSpd: [0.1, 10], fleetN: [0, 6],
+  spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [12, 21], uTime: [1, 100000] };
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
   let t = (Math.round(v * 1000) / 1000).toString();
@@ -6245,7 +6303,8 @@ function setupPack() {                                           // only what he
     }
     if (bits !== base) parts.push("zy" + bits.toString(36));
   }
-  if (TARGET && TARGET.exact) parts.push("zt" + (+TARGET.lat.toFixed(4)) + "_" + (+TARGET.lon.toFixed(4)));
+  /* the target is deliberately NOT packed: COPY MINE goes to strangers and it carried his exact roof.
+     The share-this-spot link exists for the one person who should have it. Old codes with zt still open. */
   if (selected && selected.id) parts.push("zd" + selected.id);
   return "1" + parts.join("~");
 }
@@ -6273,7 +6332,7 @@ function setupUnpack(code) {
     if (!/^[0-9a-z]{2}$/.test(head)) continue;
     const k = SETUP_KEYS[parseInt(head, 36)];
     if (k === undefined) continue;
-    out.s[k] = decodeURIComponent(rest);
+    try { out.s[k] = decodeURIComponent(rest); } catch (e) { continue; }   // a bad %-escape used to abort the whole boot
     any = true;
   }
   return any ? out : null;
@@ -6286,7 +6345,7 @@ function setupApply(o, quiet) {                                  // the factory 
     if (f === undefined) continue;
     const v = o.s[k];
     if (typeof f === "boolean") { if (v === true || v === false) { S[k] = v; n++; } else if (v === "1" || v === "0") { S[k] = v === "1"; n++; } continue; }
-    if (typeof f === "number") { const x = parseFloat(v); if (isFinite(x)) { S[k] = x; n++; } continue; }
+    if (typeof f === "number") { let x = parseFloat(v); if (isFinite(x)) { const c = SETUP_CLAMP[k]; if (c) x = Math.max(c[0], Math.min(c[1], x)); S[k] = x; n++; } continue; }
     if (typeof f === "string") { S[k] = String(v); n++; continue; }
     if (f && typeof f === "object" && v && typeof v === "object") { S[k] = JSON.parse(JSON.stringify(v)); n++; }
   }
@@ -6294,8 +6353,10 @@ function setupApply(o, quiet) {                                  // the factory 
     for (let i = 0; i < SETUP_SYS.length; i++) S.sysOn[SETUP_SYS[i]] = !!(o.y & (1 << i));
     n++;
   }
-  if (o.t && isFinite(+o.t[0]) && isFinite(+o.t[1]) && Math.abs(+o.t[0]) <= 90 && Math.abs(+o.t[1]) <= 180)
-    TARGET = { lat: +o.t[0], lon: +o.t[1], exact: true };
+  if (o.t && isFinite(+o.t[0]) && isFinite(+o.t[1]) && Math.abs(+o.t[0]) <= 90 && Math.abs(+o.t[1]) <= 180) {
+    TARGET = { lat: +o.t[0], lon: +o.t[1], exact: true }; targetIsMine = false; precached = "";   // someone else's spot: used, never saved over yours
+    const as = $("addrStatus"); if (as) as.textContent = "TARGET FROM A SHARED CODE: " + fmtLL(TARGET.lat, TARGET.lon) + " \u2014 NOT SAVED \u00b7 SET YOUR OWN SPOT";
+  }
   applySystems(); applySky();
   if (o.d) { const pick = [...SYSTEMS, ...MODES].find((x) => x.id === o.d); if (pick) selected = pick; }
   applyS(); applyScreen();
@@ -6417,7 +6478,7 @@ if (!uiLang) {                                                    // nobody has 
   }
 }
 if (!LANGS.some((x) => x[0] === uiLang)) uiLang = "en";
-if (langURL) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }
+if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) { try { localStorage.setItem("ce5.lang", uiLang); } catch (e) {} }   // an unknown ?lang= must not overwrite the saved one
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
@@ -6440,14 +6501,24 @@ function walkTranslate() {
     const hit = langDict && langDict[nrm(d.dataset.en)];
     d.textContent = "\u25b8 " + (hit || d.dataset.en);
   }
+  fixCounts();
+}
+function fixCounts() {                                           // the labels were written when the lists were shorter
+  const fix = (id, from, to) => {
+    const el = $(id), l = el && el.closest("label"); if (!l) return;
+    for (const n of l.childNodes) if (n.nodeType === 3 && n.nodeValue.includes(from)) n.nodeValue = n.nodeValue.replace(from, String(to));
+  };
+  if (typeof EXOPLANETS !== "undefined") fix("ckExo", "17", EXOPLANETS.length);
+  if (typeof SKY_SITES !== "undefined") fix("ckSites", "12", SKY_SITES.length - 3);
 }
 function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
+  const want = uiLang;                                          // two quick switches: only the last one may land
   fetch("lang/" + uiLang + ".json?v=5")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
-    .then((d) => { langDict = d; langDictFor = uiLang; walkTranslate(); })
-    .catch(() => { langDict = null; walkTranslate(); });
+    .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
+    .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
 }
 function applyLang() {
   document.documentElement.lang = uiLang || "en";               // Arabic was being laid out left to right
@@ -6557,7 +6628,7 @@ $("bIdeaMsg").onclick = () => {                                  // the greeting
   S.msg = v;
   const mi = $("msgIn"); if (mi) mi.value = v;
   const mm = $("msgMorse"); if (mm) mm.textContent = morseString(v) || "\u2014";
-  saveSettings();
+  autoSave();                                                   // keeps the message; never writes a shared-link target over yours
   $("ideaMsgStat").textContent = "SET \u00b7 YOUR BEACON WILL SEND IT IN MORSE ON THE NEXT TRIP";
   log("BEACON MESSAGE SET \u00b7 \"" + v + "\"", "cy");
 };
@@ -6590,7 +6661,7 @@ $("bSysClose").onclick = () => $("sysPick").classList.add("hide");
 $("sysPick").addEventListener("click", (e) => { if (e.target === $("sysPick")) $("sysPick").classList.add("hide"); });
 document.querySelectorAll(".sysPre .setBtn").forEach((b) => (b.onclick = () => {
   const ids = SYS_PRESETS[b.dataset.pre] || []; SYSTEMS_ALL.forEach((s) => (S.sysOn[s.id] = ids.includes(s.id)));
-  applySystems(); sysListBuild(); log("SYSTEMS ON THE CHART: " + SYSTEMS.map((s) => s.name).join(" \u00b7 "), "cy");
+  applySystems(); sysListBuild(); autoSave(); log("SYSTEMS ON THE CHART: " + SYSTEMS.map((s) => s.name).join(" \u00b7 "), "cy");
 }));
 $("bdRoll").onclick = () => setName(rollName());
 $("bdKeep").onclick = () => setName($("bdName").value);
@@ -6608,6 +6679,11 @@ if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "c
     if (bDown && (Math.abs(e.clientX - bDown.x) > 8 || Math.abs(e.clientY - bDown.y) > 8)) bMoved = true;
   });
   tbEl.addEventListener("pointercancel", () => { bMoved = true; });   // the browser took it for a scroll
+  tbEl.setAttribute("role", "button"); tbEl.setAttribute("tabindex", "0");
+  tbEl.addEventListener("keydown", (e) => {                        // a keyboard raises the curtain too
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault(); beginTapped = true; audioUnlock(); ambStart(); tbEl.classList.add("hide");
+  });
   tbEl.addEventListener("pointerup", (e) => {                     // the tap that wakes the sound chip and raises the curtain
     e.stopPropagation();
     const had = bDown; bDown = null;
@@ -6619,7 +6695,7 @@ if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "c
     const waited = performance.now() / 1000 - intro.w0;
     const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3)) || waited > 9;   // the maps, the Moon, the fonts; or it has been long enough
     if (ready && !intro.t0) {
-      if (!beginTapped) { $("tapBegin").classList.remove("hide"); return; }   // the show holds for the hand
+      if (!beginTapped) { $("tapBegin").classList.remove("hide"); try { $("tapBegin").focus(); } catch (e) {} return; }   // the show holds for the hand
       intro.t0 = performance.now() / 1000; clearInterval(gate);
     }
   }, 100);
@@ -6686,6 +6762,8 @@ function applyS() {                                             // push S into e
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion);
   reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
+  if (S.deep && S.deepA > 0 && !deepCvs && typeof buildDeepSky === "function") buildDeepSky();   // a saved REAL GALAXIES layer bakes on load, not only on a resize
+  if (typeof useEarthSource === "function") useEarthSource();   // RESET and a shared code swap the Earth's skin too
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", 34 - S.bOrbit); txt("vOrbit", S.bOrbit);
   set("rHold", 28 - S.bHold); txt("vHold", S.bHold); set("rBFly", 18 - S.bFly); txt("vBFly", S.bFly);
@@ -6759,7 +6837,7 @@ $("ckIss").onchange = (e) => (S.iss = e.target.checked);
 $("ckStar").onchange = (e) => (S.starlink = e.target.checked);
 $("ckHubble").onchange = (e) => (S.hubble = e.target.checked);
 $("ckNukeAll").onchange = (e) => (S.nukeAll = e.target.checked);
-$("rArr").oninput = (e) => { S.arrHold = 40 - +e.target.value; $("vArr").textContent = e.target.value; };
+$("rArr").oninput = (e) => { S.arrHold = 40 - +e.target.value; $("vArr").textContent = String(S.arrHold); };
 $("selCache").onchange = (e) => { S.cache = e.target.value; precached = ""; };
 $("selTrig").onchange = (e) => (S.bTrig = e.target.value);
 $("selMotion").onchange = (e) => {
@@ -6838,7 +6916,7 @@ let setupCame = 0;
 if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApply(o, true) ? 1 : 0; }
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
-if (restored) applyS();
+applyS();                                                       // first visit too: every control shows what the console actually holds
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
 if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }
@@ -6875,6 +6953,25 @@ if (reducedPref) {                                              // only ever a n
 }
 if (!storeOK) log("THIS BROWSER IS BLOCKING SITE DATA · YOUR SETTINGS, CALL SIGN AND TRIP LOG WILL NOT SURVIVE A RELOAD", "alert");
 updateShareLink();
+(function a11yWire() {                                           // keys that are spans, controls without names, cards that are dialogs
+  document.querySelectorAll("span.setBtn, span.shBtn, span[id^='b'][onclick], .setBtn:not(button):not(a)").forEach((el) => {
+    if (!el.hasAttribute("role")) el.setAttribute("role", "button");
+    if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } });
+  });
+  document.querySelectorAll("#setCard input, #setCard select, #sysCard input, #boardCard input").forEach((c) => {
+    if (c.hasAttribute("aria-label") || c.hasAttribute("aria-labelledby") || c.closest("label")) return;
+    const row = c.closest(".setRow") || c.parentElement, lbl = row && row.querySelector(".setLbl");
+    const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
+    if (t) c.setAttribute("aria-label", t);
+  });
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard"].forEach((id) => {
+    const el = $(id); if (!el) return;
+    el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+    const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));
+  });
+  const be = $("bEngage"); if (be) be.setAttribute("aria-label", "START");
+})();
 </script>
 </body>
 </html>

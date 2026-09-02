@@ -84,8 +84,8 @@
     font-size: 12px; letter-spacing: 0.3em; color: #a8d8ff; white-space: nowrap; }
   #blink { animation: bl 1.1s steps(2) infinite; }
   #tapHint { position: absolute; left: 50%; bottom: calc(var(--ctlH, 128px) + 38px); transform: translateX(-50%);
-    font-size: 8px; letter-spacing: 0.24em; color: var(--amber-dim); opacity: 0; transition: opacity 0.6s; white-space: nowrap; }
-  body.run #tapHint, body.active.holding #tapHint { opacity: 0.55; }   /* mid-run, and during the hold before the flash */
+    font-size: 9px; letter-spacing: 0.22em; color: var(--amber); opacity: 0; transition: opacity 0.6s; white-space: nowrap; }
+  body.run #tapHint, body.active.holding #tapHint { opacity: 0.9; }   /* mid-run, and during the hold before the flash; bright enough to read */
   @keyframes bl { 50% { opacity: 0; } }
 
   #reticle { position: fixed; left: 50%; top: 50%; width: 66px; height: 66px; z-index: 5;
@@ -301,6 +301,13 @@
     -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }   /* 28px keys + room for their shadow */
   #keys::-webkit-scrollbar, #chips::-webkit-scrollbar { display: none; }
   #keys .btn { flex: 0 0 auto; min-width: 44px; }
+  @media (max-width: 480px) {                                    /* on the ground a phone holds ten keys: two short rows, nothing hidden */
+    body.active #keys, body.run #keys { flex-wrap: wrap; height: auto; min-height: 38px; row-gap: 4px; overflow: visible; }
+  }
+  @media (max-width: 400px) {
+    #data { font-size: 8px; gap: 0 5px; letter-spacing: 0; }
+    #data i { font-size: 7px; }
+  }
   /* the keys: Apple IIe keycaps, chocolate plastic, cream legend, all the same short height */
   #keys .key { background: linear-gradient(180deg, #ece5d2 0%, #dcd2ba 48%, #c9bea4 100%); color: #3a3128;   /* 1980s Apple beige, sun-yellowed */
     border: 1px solid #8a7d64; border-radius: 4px; text-shadow: 0 1px 0 rgba(255,255,255,0.45);
@@ -556,7 +563,9 @@
   .bdRow b { color: var(--amber); font-weight: 400; }
   .bdRow.me b { color: var(--cyan); }
   .bdRow i { font-style: normal; color: var(--amber-dim); font-size: 9px; letter-spacing: 0.08em; }
-  .bdRow span:last-child { white-space: nowrap; }
+  .bdRow span:last-child { white-space: nowrap; max-width: 62%; overflow-wrap: anywhere; white-space: normal; text-align: right; }
+  [dir="rtl"] .bdRow span, [dir="rtl"] .setStat, [dir="rtl"] .setChk, [dir="rtl"] .setLbl { unicode-bidi: plaintext; }   /* untranslated English lines keep their own order */
+  [dir="rtl"] input[type="range"] { direction: ltr; }             /* LEFT = SLOW stays true in Arabic */
   .bdBtns { display: flex; gap: 8px; align-items: center; margin: 6px 0 6px; }
   #bdName { flex: 1; min-width: 0; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: inherit;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 8px; border-radius: 3px; }
@@ -574,7 +583,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; }
   #settings.hide { display: none; }
   #setCard { width: 100%; max-width: 560px; max-height: 82vh; max-height: 82dvh; overflow-y: auto; padding-right: 44px;   /* the bare strip on the right: scroll with a finger there and touch nothing */
-    background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px;
+    background: #0a0a18; border: 1px solid var(--amber); border-radius: 4px; padding: 14px 44px 14px 14px;   /* the shorthand used to cancel the strip */
     box-shadow: 0 0 30px rgba(255,196,107,0.15); }
   .setHead { display: flex; justify-content: space-between; align-items: center;
     flex-wrap: wrap; row-gap: 6px; overflow-wrap: anywhere;     /* the long languages wrap instead of pushing the keys off the edge */
@@ -619,7 +628,7 @@
     color: var(--ink); font: inherit; font-size: 11px; padding: 9px; border-radius: 3px; }
   .setNote { color: #f0ecdd; font-size: 10px; letter-spacing: 0.06em; }
   .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
-  .setChk input { accent-color: var(--amber); margin-right: 8px; }
+  .setChk input { accent-color: var(--amber); margin-inline-end: 8px; }
 
   /* beacon marker */
   .beacon { position: relative; }
