@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=30" />
+<link rel="stylesheet" href="styles.css?v=31" />
 </head>
 <body class="intro introHud">
 
@@ -108,10 +108,11 @@
         <option value="f">HER &#8212; VIVIAN, WARM AND SLOW</option>
         <option value="off">NONE &#8212; NO VOICE, JUST THE CONSOLE</option>
       </select>
-      <div class="setLbl">READING SPEED &#8212; <span id="vVoice">1.1</span>&#215; · 1 = AS RECORDED, SLOW AND EASY</div>
-      <input type="range" id="rVoice" min="0.8" max="1.6" step="0.05" value="1.1" />
+      <div class="setLbl">READING SPEED &#8212; <span id="vVoice">1.3</span>&#215; · 1 = AS RECORDED, SLOW AND EASY</div>
+      <input type="range" id="rVoice" min="0.8" max="1.6" step="0.05" value="1.3" />
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
+      <label class="setChk"><input type="checkbox" id="ckGuideAuto" checked />THE GUIDE MOVES ON BY ITSELF &#8212; TWO SECONDS AFTER THE VOICE FINISHES A CARD, THE NEXT ONE COMES UP · NEEDS THE VOICE ON</label>
       <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
@@ -777,7 +778,7 @@
     <div id="guideStep" class="display">1 / 6</div>
     <div id="guideHd" class="display"></div>
     <div id="guideTx"></div>
-    <div class="guideBtns"><span class="setBtn" id="guideSkip">SKIP</span><span class="setBtn" id="guideNext">NEXT</span></div>
+    <div class="guideBtns"><span class="setBtn" id="guideLang">ENGLISH ▾</span><span class="setBtn" id="guideSkip">SKIP</span><span class="setBtn" id="guideNext">NEXT</span></div>
   </div>
 </div>
 <div id="hud">
@@ -837,7 +838,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.1, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -4015,7 +4016,10 @@ const GUIDE = [
   { el: "bGps", hd: "THE GPS KEY", tx: "Press GPS to set where you stand, so the descent lands on your own roof. Your position stays on this phone. The app never sends it anywhere." },
   { el: "bGear", hd: "THE GEAR", tx: "Everything lives here: the lore switches, the journey, the Rosen bridge, the flash, the sound. Every change saves on this device." }
 ];
-let guideAt = -1;
+const GUIDE_L10N = {"es": {"btn": {"next": "SIGUIENTE", "skip": "SALTAR", "done": "LISTO"}, "guide": [["EL BOTÓN START", "Elige un sistema y pulsa START. La consola te lleva desde su mundo hasta tu propio tejado, etapa por etapa. Toca la pantalla durante un viaje para saltar una etapa."], ["LAS FLECHAS", "La línea verde del monitor muestra los posibles contactos. Recórrelos con las flechas, arrastra la línea o toca un nombre para elegirlo."], ["LA TIERRA", "Pellizca la Tierra, o tócala dos veces, para traer el mundo al frente: los antiguos lugares alineados con el cielo, el Triángulo y el sitio donde estás."], ["LA TECLA LOG", "La consola te asignó un indicativo. Pulsa LOG para ver tus viajes, sortear un nombre nuevo o escribir el tuyo."], ["LA TECLA GPS", "Pulsa GPS para fijar dónde estás, y así el descenso aterriza en tu propio tejado. Tu posición se queda en este teléfono. La aplicación nunca la envía a ningún sitio."], ["EL ENGRANAJE", "Aquí vive todo: los interruptores de las historias, el viaje, el puente de Rosen, el destello, el sonido. Cada cambio se guarda en este dispositivo."]]}, "pt": {"btn": {"next": "SEGUINTE", "skip": "PULAR", "done": "PRONTO"}, "guide": [["O BOTÃO START", "Escolha um sistema e aperte START. O console leva você do mundo deles até o seu próprio telhado, etapa por etapa. Toque na tela durante a viagem para pular uma etapa."], ["AS SETAS", "A linha verde do monitor lista os contatos possíveis. Percorra-os com as setas, arraste a linha ou toque em um nome para escolhê-lo."], ["A TERRA", "Aperte a Terra com dois dedos, ou toque duas vezes, para trazer o mundo para a frente: os antigos lugares alinhados com o céu, o Triângulo e o lugar onde você está."], ["A TECLA LOG", "O console sorteou um indicativo para você. Aperte LOG para ver suas viagens, sortear um nome novo ou digitar o seu."], ["A TECLA GPS", "Aperte GPS para marcar onde você está, e a descida pousa no seu próprio telhado. Sua posição fica neste telefone. O aplicativo nunca a envia a lugar nenhum."], ["A ENGRENAGEM", "Tudo mora aqui: os interruptores das histórias, a viagem, a ponte de Rosen, o clarão, o som. Cada mudança é salva neste aparelho."]]}, "fr": {"btn": {"next": "SUIVANT", "skip": "PASSER", "done": "TERMINÉ"}, "guide": [["LE BOUTON START", "Choisissez un système, puis appuyez sur START. La console vous emmène de leur monde jusqu'à votre propre toit, étape par étape. Touchez l'écran pendant le voyage pour sauter une étape."], ["LES FLÈCHES", "La ligne verte de l'écran liste les contacts possibles. Parcourez-les avec les flèches, faites glisser la ligne, ou touchez un nom pour le choisir."], ["LA TERRE", "Pincez la Terre, ou touchez-la deux fois, pour amener le monde devant vous : les anciens lieux alignés sur le ciel, le Triangle, et l'endroit où vous êtes."], ["LA TOUCHE LOG", "La console vous a tiré un indicatif. Appuyez sur LOG pour voir vos voyages, tirer un nouveau nom, ou taper le vôtre."], ["LA TOUCHE GPS", "Appuyez sur GPS pour indiquer où vous êtes, afin que la descente atterrisse sur votre propre toit. Votre position reste dans ce téléphone. L'application ne l'envoie jamais nulle part."], ["LA ROUE DENTÉE", "Tout vit ici : les interrupteurs des récits, le voyage, le pont de Rosen, l'éclair, le son. Chaque changement est enregistré sur cet appareil."]]}, "de": {"btn": {"next": "WEITER", "skip": "ÜBERSPRINGEN", "done": "FERTIG"}, "guide": [["DIE START-TASTE", "Wähle ein System und drücke START. Die Konsole trägt dich von ihrer Welt bis auf dein eigenes Dach, Stufe für Stufe. Tippe während der Reise auf den Bildschirm, um eine Stufe zu überspringen."], ["DIE PFEILE", "Die grüne Zeile im Monitor zeigt die möglichen Kontakte. Gehe sie mit den Pfeilen durch, ziehe die Zeile, oder tippe auf einen Namen, um ihn zu wählen."], ["DIE ERDE", "Zieh die Erde mit zwei Fingern heran, oder tippe sie doppelt an, um die Welt nach vorn zu holen: die alten, am Himmel ausgerichteten Orte, das Dreieck, und den Ort, an dem du stehst."], ["DIE LOG-TASTE", "Die Konsole hat dir ein Rufzeichen gewürfelt. Drücke LOG, um deine Reisen zu sehen, einen neuen Namen zu würfeln oder deinen eigenen einzutippen."], ["DIE GPS-TASTE", "Drücke GPS, um festzulegen, wo du stehst, damit der Abstieg auf deinem eigenen Dach landet. Deine Position bleibt auf diesem Telefon. Die App schickt sie nirgendwohin."], ["DAS ZAHNRAD", "Hier lebt alles: die Schalter für die Erzählungen, die Reise, die Rosen-Brücke, der Blitz, der Ton. Jede Änderung wird auf diesem Gerät gespeichert."]]}, "ru": {"btn": {"next": "ДАЛЕЕ", "skip": "ПРОПУСТИТЬ", "done": "ГОТОВО"}, "guide": [["КНОПКА START", "Выберите систему и нажмите START. Консоль проведёт вас от их мира до вашей собственной крыши, этап за этапом. Коснитесь экрана во время полёта, чтобы пропустить этап."], ["СТРЕЛКИ", "Зелёная строка на мониторе показывает возможные контакты. Листайте их стрелками, тяните строку или коснитесь имени, чтобы выбрать его."], ["ЗЕМЛЯ", "Сведите пальцы на Земле или коснитесь её дважды, чтобы вывести мир вперёд: древние места, выровненные по небу, Треугольник и место, где вы стоите."], ["КЛАВИША LOG", "Консоль выдала вам позывной. Нажмите LOG, чтобы увидеть свои полёты, получить новое имя или ввести своё."], ["КЛАВИША GPS", "Нажмите GPS, чтобы указать, где вы стоите, и спуск закончится на вашей собственной крыше. Ваше положение остаётся в этом телефоне. Приложение никуда его не отправляет."], ["ШЕСТЕРЁНКА", "Здесь живёт всё: переключатели преданий, путешествие, мост Розена, вспышка, звук. Каждое изменение сохраняется на этом устройстве."]]}, "zh": {"btn": {"next": "下一步", "skip": "跳过", "done": "完成"}, "guide": [["启动按钮", "选一个星系，然后按下START。控制台会带你从他们的世界一路回到你自己的屋顶，一站一站地走。旅程中点一下屏幕，就可以跳过一站。"], ["箭头键", "显示器里的绿色一行列出了可能的联系对象。用箭头逐个浏览，拖动这一行，或者点一个名字来选择它。"], ["地球", "在地球上双指捏合，或者双击它，把世界拉到眼前：古老的对齐星空的遗址、三角区，还有你所在的地方。"], ["LOG键", "控制台已经为你随机生成了一个呼号。按LOG可以查看你的旅程、重新生成名字，或者输入你自己的名字。"], ["GPS键", "按GPS来设定你所在的位置，这样降落就会落在你自己的屋顶上。你的位置只保存在这部手机里。这个应用绝不会把它发送到任何地方。"], ["齿轮", "所有东西都在这里：传说的开关、旅程、罗森桥、闪光、声音。每一项改动都保存在这台设备上。"]]}, "ja": {"btn": {"next": "次へ", "skip": "スキップ", "done": "完了"}, "guide": [["スタートボタン", "星系を選んで、STARTを押してください。コンソールが彼らの世界からあなたの家の屋根まで、段階ごとに連れていきます。旅の途中で画面をタップすると、その段階を飛ばせます。"], ["矢印キー", "モニターの緑の行に、交信できる相手が並んでいます。矢印で順に送るか、行をドラッグするか、名前をタップして選んでください。"], ["地球", "地球をピンチするか、ダブルタップすると、世界が手前に出てきます。空に合わせて建てられた古い場所、トライアングル、そしてあなたのいる場所です。"], ["LOGキー", "コンソールがあなたのコールサインを決めました。LOGを押すと、これまでの旅を見たり、新しい名前を引いたり、自分の名前を入力したりできます。"], ["GPSキー", "GPSを押して、あなたのいる場所を設定してください。降下があなたの家の屋根に着地します。位置情報はこの電話の中だけに残ります。このアプリはどこにも送りません。"], ["歯車", "すべてはここにあります。伝承のスイッチ、旅、ローゼンの橋、閃光、音。変更はすべてこの端末に保存されます。"]]}, "hi": {"btn": {"next": "आगे", "skip": "छोड़ें", "done": "हो गया"}, "guide": [["START बटन", "कोई सिस्टम चुनें, फिर START दबाएँ। कंसोल आपको उनकी दुनिया से आपकी अपनी छत तक, एक-एक चरण में ले जाता है। सफ़र के दौरान स्क्रीन को छूकर कोई चरण छोड़ सकते हैं।"], ["तीर", "मॉनिटर की हरी पंक्ति में संभावित संपर्क दिखते हैं। तीरों से उन्हें एक-एक करके देखें, पंक्ति को खींचें, या किसी नाम को छूकर उसे चुनें।"], ["पृथ्वी", "पृथ्वी को दो उँगलियों से दबाएँ, या उस पर दो बार टैप करें, तो दुनिया सामने आ जाएगी: आकाश से मिलाकर बनाए गए पुराने स्थान, त्रिभुज, और वह जगह जहाँ आप खड़े हैं।"], ["LOG कुंजी", "कंसोल ने आपके लिए एक कॉल साइन निकाला है। LOG दबाकर अपनी यात्राएँ देखें, नया नाम निकालें, या अपना नाम लिखें।"], ["GPS कुंजी", "GPS दबाकर बताएँ कि आप कहाँ खड़े हैं, ताकि उतरना आपकी अपनी छत पर हो। आपकी स्थिति इसी फ़ोन में रहती है। ऐप उसे कहीं नहीं भेजता।"], ["गियर", "सब कुछ यहीं है: कथाओं के स्विच, यात्रा, रोज़ेन सेतु, चमक, ध्वनि। हर बदलाव इसी डिवाइस पर सहेजा जाता है।"]]}, "ar": {"btn": {"next": "التالي", "skip": "تخطٍّ", "done": "تم"}, "guide": [["زر START", "اختر نظامًا نجميًا ثم اضغط START. تأخذك لوحة التحكم من عالمهم إلى سطح بيتك، مرحلةً بعد مرحلة. المس الشاشة أثناء الرحلة لتخطي مرحلة."], ["الأسهم", "يعرض السطر الأخضر في الشاشة جهات الاتصال الممكنة. تنقّل بينها بالأسهم، أو اسحب السطر، أو المس اسمًا لاختياره."], ["الأرض", "اقرص الأرض بإصبعين، أو المسها مرتين، لتُحضر العالم إلى الأمام: الأماكن القديمة المُحاذية للسماء، والمثلث، والمكان الذي تقف فيه."], ["مفتاح LOG", "اختارت لك لوحة التحكم إشارة نداء. اضغط LOG لترى رحلاتك، أو تختار اسمًا جديدًا، أو تكتب اسمك."], ["مفتاح GPS", "اضغط GPS لتحديد مكانك، فيهبط النزول على سطح بيتك. يبقى موقعك في هذا الهاتف فقط. التطبيق لا يرسله إلى أي مكان أبدًا."], ["الترس", "كل شيء يعيش هنا: مفاتيح الروايات، والرحلة، وجسر روزن، والوميض، والصوت. كل تغيير يُحفظ على هذا الجهاز."]]}};   // the six cards in every app language (English lives in GUIDE)
+const GUIDE_BTN = { next: "NEXT", skip: "SKIP", done: "DONE" };
+const VOICE_LANGS = new Set(["de", "es", "fr", "ja", "pt", "ru", "zh"]);   // the languages with their own clips; the rest hear the English voice
+let guideAt = -1, guideAutoT = 0;
 function guideRect(step) {
   if (step.earth) { const G = earthGeom(), r = G.R * earthZoom; return { x: G.cx - r, y: G.cy - r, w: r * 2, h: r * 2 }; }
   const ids = Array.isArray(step.el) ? step.el : [step.el];
@@ -4030,9 +4034,15 @@ function guideShow(i) {
   sp.style.left = r.x + "px"; sp.style.top = r.y + "px"; sp.style.width = r.w + "px"; sp.style.height = r.h + "px";
   sp.style.borderRadius = st.earth ? "50%" : "12px";
   $("guideStep").textContent = (i + 1) + " / " + GUIDE.length;
-  $("guideHd").textContent = st.hd; $("guideTx").textContent = st.tx;
-  $("guideNext").textContent = i === GUIDE.length - 1 ? "DONE" : "NEXT";
-  voiceSay("guide-" + (i + 1));                               // the voice reads the step
+  const G = GUIDE_L10N[uiLang], B = G ? G.btn : GUIDE_BTN;
+  $("guideHd").textContent = G ? G.guide[i][0] : st.hd; $("guideTx").textContent = G ? G.guide[i][1] : st.tx;
+  $("guideNext").textContent = i === GUIDE.length - 1 ? B.done : B.next; $("guideSkip").textContent = B.skip;
+  $("guideLang").textContent = (LANGS.find((l) => l[0] === uiLang) || LANGS[0])[1] + " \u25be";
+  clearTimeout(guideAutoT);
+  voiceSay("guide-" + (i + 1), () => {                        // the voice reads the step; two seconds after it ends the guide moves on (if asked to)
+    if (S.guideAuto === false || guideAt !== i) return;
+    guideAutoT = setTimeout(() => { if (guideAt === i && !$("guide").classList.contains("hide")) { sfx("key"); guideShow(i + 1); } }, 2000);
+  });
   const H = window.innerHeight, ch = card.offsetHeight || 160, midY = r.y + r.h / 2;
   const top = midY > H * 0.5 ? Math.max(12, r.y - ch - 16) : Math.min(H - ch - 12, r.y + r.h + 16);
   card.style.top = top + "px";
@@ -4048,11 +4058,12 @@ function guideStart(force) {
 }
 function guideEnd() {
   if (!$("guide").classList.contains("hide")) sfx("cover");
-  $("guide").classList.add("hide"); guideAt = -1; voiceStop();
+  $("guide").classList.add("hide"); guideAt = -1; clearTimeout(guideAutoT); voiceStop();
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
 }
 $("guideNext").onclick = () => { sfx("key"); guideShow(guideAt + 1); };
 $("guideSkip").onclick = () => { sfx("key"); guideEnd(); };
+$("guideLang").onclick = () => { sfx("cover"); langBuild(); $("langPick").classList.remove("hide"); };   // the same picker as the language key: it sets the whole app, the voice too
 $("bGuide").onclick = () => { sfx("key"); guideStart(true); };
 window.addEventListener("resize", () => { if (guideAt >= 0) guideShow(guideAt); });
 function introAfter() {                                         // everything else preloads once the opening is done
@@ -6068,7 +6079,7 @@ $("bFull").onclick = () => {
 };
 document.addEventListener("fullscreenchange", drawFs);
 document.addEventListener("webkitfullscreenchange", drawFs);
-if (standalone) $("bFull").classList.add("hide");
+// the key stays even as a home-screen app: there it still hides the status bar, and it is the way back out (his bug report 09-03)
 
 /* tone: 528 + 432 Hz soft beat */
 /* morse: the message the beacon sends */
@@ -6593,13 +6604,18 @@ cvs.addEventListener("wheel", (e) => {
 const VOICE_SYS = new Set(["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"]);   // the read-outs that exist
 let voiceEl = null, voiceName = "", faceRect = null;
 function voiceStop() { if (voiceEl) { try { voiceEl.pause(); } catch (e) {} } voiceEl = null; voiceName = ""; }
-function voiceSay(name) {                                        // muted means muted; the voice switch is its own
+function voiceSay(name, onEnd) {                                 // muted means muted; the voice switch is its own
   voiceStop();
   if (muted || !S.voice) return false;
-  const a = new Audio("voice/" + (S.voiceSex === "f" ? "f/" : "") + name + ".mp3"); a.preload = "auto"; a.volume = 0.95;
-  a.playbackRate = S.voiceRate || 1.1; try { a.preservesPitch = true; } catch (e) {}   // a touch quicker than recorded, same pitch
+  const a = new Audio("voice/" + (VOICE_LANGS.has(uiLang) ? uiLang + "/" : "") + (S.voiceSex === "f" ? "f/" : "") + name + ".mp3"); a.preload = "auto"; a.volume = 0.95;
+  a.playbackRate = S.voiceRate || 1.3; try { a.preservesPitch = true; } catch (e) {}   // a touch quicker than recorded, same pitch
   voiceEl = a; voiceName = name;
-  a.onended = a.onerror = () => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } };
+  a.onerror = () => {                                           // a language clip not there yet: the English one steps in
+    if (voiceEl !== a) return;
+    if (VOICE_LANGS.has(uiLang) && a.src.indexOf("/voice/" + uiLang + "/") >= 0) { const en = new Audio(a.src.replace("/voice/" + uiLang + "/", "/voice/")); en.volume = a.volume; en.playbackRate = a.playbackRate; en.onended = a.onended; en.onerror = () => { if (voiceEl === en) { voiceEl = null; voiceName = ""; } }; voiceEl = en; const p2 = en.play(); if (p2 && p2.catch) p2.catch(() => {}); return; }
+    voiceEl = null; voiceName = "";
+  };
+  a.onended = () => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } if (onEnd) onEnd(); };
   const p = a.play(); if (p && p.catch) p.catch(() => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } });
   return true;
 }
@@ -7329,6 +7345,7 @@ function applyLang() {
   const secs = document.querySelectorAll("#setCard .setSec"), names = L10N.secs[uiLang] || L10N.secs.en;
   secs.forEach((el, i) => { if (names[i]) el.textContent = names[i]; });
   setTocBuild();                                                // the contents follow the section names
+  if (guideAt >= 0) guideShow(guideAt);                          // the guide card re-reads itself in the new language
   loadDict();
 }
 function langBuild() {
@@ -7529,7 +7546,8 @@ function loadSettings() {
   if (S.voiceSex !== "f" && S.voiceSex !== "off") S.voiceSex = "m";
   if (S.voice === false) S.voiceSex = "off";                    // the old tick box, unticked = NONE
   S.voice = S.voiceSex !== "off";
-  if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6)) S.voiceRate = 1.1;
+  if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;   // 1.3 is the pace he settled on; an untouched 1.1 follows
+  if (S.guideAuto === undefined) S.guideAuto = true;
   if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood
   if (S.idleBack === undefined) S.idleBack = 60;                // saves from before the chart came back on its own   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
@@ -7571,7 +7589,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -7676,7 +7694,7 @@ $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loa
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
-$("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
+$("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoice").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
 $("selVoice").onchange = (e) => {                               // HIM, HER, or none; hear the change at once
   S.voiceSex = e.target.value; S.voice = S.voiceSex !== "off";
@@ -7686,6 +7704,7 @@ $("selVoice").onchange = (e) => {                               // HIM, HER, or 
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
 $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
+$("ckGuideAuto").onchange = (e) => { S.guideAuto = e.target.checked; if (!S.guideAuto) clearTimeout(guideAutoT); };
 $("ckNoGuide").onchange = (e) => { S.noGuide = e.target.checked; try { if (S.noGuide) localStorage.setItem(GUIDE_KEY, "1"); else localStorage.removeItem(GUIDE_KEY); } catch (er) {} };   // unticked: it shows once more on the next open
 $("ckDeep").onchange = (e) => { S.deep = e.target.checked; if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
