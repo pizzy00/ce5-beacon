@@ -4510,7 +4510,7 @@ function drawOrigin(p, t) {
   label(cx, Math.max(30, cy - R * 1.9 - 22, S.faces ? pCy + pSz * 0.68 + 52 : 0), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
     (allChannels && SYSTEMS.length > 1 ? " \u00b7 +" + (SYSTEMS.length - 1) + " SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
   if (S.faces) drawSpecies(W * 0.5, pCy, pSz, s, t, easeIO(arr) * (1 - easeIO(dep)));
-  if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
+  if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); if (VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); }   // the run opens with the card read out
   if (p >= 0.3 && !wpHit.has("o2")) {
     wpHit.add("o2"); log("HAILING " + s.tag + " \u2014 INVITATION SENT");
     cueSub("INVITATION SENT \u00b7 YOU ARE WELCOME HERE");
@@ -6442,6 +6442,7 @@ function focusChart(s) {                                        // a pick before
 }
 function pickDeparture(o, auto) {                               // auto: attract mode picked it, not his hand
   selected = o; allChannels = false; $("bAll").classList.remove("on");
+  if (!auto && !o.mode && VOICE_SYS.has(o.id)) voiceSay("sys-" + o.id);   // his hand on a system: the voice says who lives there (09-03)
   if (o.mode === "bermuda" || o.mode === "ocean") {             // the world swings to the spot you picked and rings it
     const q = o.mode === "bermuda" ? BERMUDA : nearestSite();
     earthGoal = { lon: q.lon }; spotPulse = { id: o.id, t0: performance.now() / 1000 };
