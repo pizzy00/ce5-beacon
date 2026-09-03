@@ -3732,7 +3732,7 @@ function drawSystemView(t) {
   paintSystemArt(cx, cy, R, s, t, a > 0.5);
   if (a > 0.6) {
     ctx.globalAlpha = (a - 0.6) / 0.4;
-    const pSz = Math.min(W, H) * 0.24, pCy = Math.max(80, H * 0.115), skB = S.faces ? pCy + pSz * 0.68 + 44 : 0;
+    const pSz = Math.min(W, H) * 0.24, pCy = Math.max(80, H * 0.115), skB = S.faces ? pCy + pSz * 0.68 + 66 : 0;   // clear of the four lines under the portrait
     label(cx, Math.max(cy - R * 2.15, skB), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag, s.c, "center", 13);   // between the portrait and the star
     label(cx, cy + R * 3.4 + 26, "THEIR HOME SYSTEM", "PINCH OUT OR TAP TO RETURN", s.c, "center", 12);
     const used = drawClaims(cx, cy + R * 3.4 + 54, s, (a - 0.6) / 0.4), qq = quoteFor(s);
