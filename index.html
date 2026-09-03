@@ -194,7 +194,15 @@
     <div class="setBox">
     <div class="setSec">THE JOURNEY</div>
     <div class="setRow">
-      <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — A FIELD SKETCH OF THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT A PHOTOGRAPH)</label>
+      <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT PHOTOGRAPHS)</label>
+      <div class="setLbl">HOW THEY ARE SHOWN</div>
+      <select id="selFace">
+        <option value="both" selected>RENDERS — SHE AND HE, TAKING TURNS</option>
+        <option value="f">RENDER — SHE</option>
+        <option value="m">RENDER — HE</option>
+        <option value="sketch">THE FIELD SKETCH, DRAWN IN CODE</option>
+      </select>
+      <div class="setStat">THE RENDERS ARE AI IMAGES BUILT FROM THE WITNESS DESCRIPTIONS · NOT PHOTOGRAPHS · WHILE ONE IS STILL LOADING THE SKETCH STANDS IN · WITH DOTY'S LORE ON, HIS FOUR ZETA RACES TAKE TURNS TOO</div>
       <label class="setChk"><input type="checkbox" id="ckTapLook" checked />A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)</label>
       <label class="setChk"><input type="checkbox" id="ckUso" />WATER SIGHTINGS: 450 PUBLIC NUFORC WITNESS REPORTS ON OR OVER WATER (TEAL DOTS ON THE GLOBE, TAP ONE) — REPORTS, NOT VERIFIED</label>
       <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR’S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE — TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
@@ -767,7 +775,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -3981,10 +3989,69 @@ const SPECIES = {                                                // the field sk
   ANDROMEDANS: { hw: 24, hh: 34, top: 8,  eye: [9, 6, 0.3, "glow"], neck: 7,  sh: 28, skin: "#bcd0ff", ht: "1.8\u20132.2 M", note: "SLENDER \u00b7 BLUE-WHITE SKIN \u00b7 LUMINOUS EYES" },
   REPTILIANS:  { hw: 27, hh: 36, top: 5,  eye: [6, 7, 0, "slit"], neck: 12, sh: 46, skin: "#7da874", ridge: 1, ht: "2.0\u20132.7 M", note: "SCALED SKIN \u00b7 VERTICAL PUPILS \u00b7 THE DRACO STORY OF THE 1990S" }
 };
+/* ---------------- the renders: AI portraits built from the witness descriptions (Chroma on the box), she and he ---------------- */
+const FACE_DOTY = [                                              // Doty's Zeta races from the Serpo releases; shown only with his lore on
+  ["EBEN", "1.5 M", "SERPO \u00b7 THE EXCHANGE RACE \u00b7 DOTY CALLS THEM FRIENDLY"],
+  ["ARCHQULOID", "1.7 M", "PONTEL, CYGNUS ARM \u00b7 BIG-NOSED GREYS \u00b7 ENGINEERED BY THE EBENS"],
+  ["QUADLOID", "ABOUT 2 M", "OTTO \u00b7 MANTIS AND LIZARD \u00b7 DOTY CALLS THEM HOSTILE"],
+  ["TRANTALOID", "ABOUT 1.8 M", "SILUS \u00b7 AN INSECT UNDER A BLOND HUMAN MASK \u00b7 DOTY CALLS THEM HOSTILE"]
+];
+const FACE_IMG = {}, FACE_TURN = 5;                                // seconds per face when they take turns
+function faceImg(kind, sex) {
+  const key = kind.toLowerCase() + "-" + sex;
+  let im = FACE_IMG[key];
+  if (!im) { im = FACE_IMG[key] = new Image(); im.src = "species/" + key + ".jpg"; }
+  return im.complete && im.naturalWidth > 0 ? im : null;
+}
+function faceTurns(kind, s) {                                     // who gets a turn on this card
+  const sexes = S.face === "m" ? ["m"] : S.face === "f" ? ["f"] : ["f", "m"];
+  const kinds = [[kind, null]];
+  if (s && s.id === "zeta" && typeof loreOn === "function" && loreOn("doty")) for (const d of FACE_DOTY) kinds.push([d[0], d]);
+  const out = [];
+  for (const kd of kinds) for (const sx of sexes) out.push({ kind: kd[0], doty: kd[1], sex: sx });
+  return out;
+}
+function faceFor(kind, s, t) {                                    // the render to show now, or null = draw the sketch
+  const P = SPECIES[kind]; if (!P) return null;
+  const turns = faceTurns(kind, s), n = turns.length, tu = turns[Math.floor(t / FACE_TURN) % n];
+  const img = faceImg(tu.kind, tu.sex);
+  if (!img) return null;
+  const who = tu.sex === "f" ? "SHE" : "HE", fade = n > 1 ? Math.min(1, (t % FACE_TURN) / 0.5) : 1;
+  return tu.doty ? { img, fade, title: tu.doty[0] + " \u00b7 " + tu.doty[1] + " \u00b7 " + who, note: tu.doty[2] }
+                 : { img, fade, title: s.tag + " \u00b7 " + P.ht + " \u00b7 " + who, note: P.note };
+}
+function facePreload() {
+  if (S.face === "sketch") return;
+  for (const s of SYSTEMS) { const kind = (s.tag || "").split(" ")[0]; if (SPECIES[kind]) for (const tu of faceTurns(kind, s)) faceImg(tu.kind, tu.sex); }
+}
+function drawPortrait(cx, cy, size, s, pic, a) {                  // the same card as the sketch, with the render in it
+  const k = size / 100, al = a * pic.fade;
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k); ctx.globalAlpha = al; ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.save(); ctx.beginPath(); ctx.rect(-50, -50, 100, 118); ctx.clip();
+  const im = pic.img, iw = im.naturalWidth, ih = im.naturalHeight, want = 100 / 118;
+  let sw = iw, sh = iw / want, sx = 0, sy = (ih - sh) / 2;               // cover-crop, centred
+  if (sh > ih) { sh = ih; sw = ih * want; sx = (iw - sw) / 2; sy = 0; }
+  ctx.drawImage(im, sx, sy, sw, sh, -50, -50, 100, 118);
+  ctx.restore();
+  ctx.strokeStyle = s.c; ctx.lineWidth = 1.1 / k; ctx.globalAlpha = 0.5 * al;
+  ctx.strokeRect(-50, -50, 100, 118);
+  for (const [x, y] of [[-50, -50], [50, -50], [-50, 68], [50, 68]]) { ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
+  ctx.restore();
+  ctx.globalAlpha = al; ctx.textAlign = "center";
+  const tx = Math.max(150, Math.min(W - 150, cx));
+  ctx.font = "10px ui-monospace, Menlo, monospace"; ctx.fillStyle = s.c;
+  ctx.fillText(pic.title, tx, cy + size * 0.68 + 13);
+  ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.75)";
+  ctx.fillText(pic.note, tx, cy + size * 0.68 + 22);
+  ctx.fillText("AN AI RENDER FROM WITNESS DESCRIPTIONS \u00b7 NOT A PHOTOGRAPH", tx, cy + size * 0.68 + 31);
+  ctx.globalAlpha = 1; ctx.textAlign = "left";
+}
 function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketch beside their star: as reported, not a photograph
   const kind = (s.tag || "").split(" ")[0], P = SPECIES[kind]; if (!P) return;
   const k = size / 100, a = Math.max(0, Math.min(1, alpha === undefined ? 1 : alpha));
   if (a <= 0) return;
+  const pic = S.face !== "sketch" ? faceFor(kind, s, t) : null;
+  if (pic) { drawPortrait(cx, cy, size, s, pic, a); return; }          // the render, when it is in; else the sketch below
   ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k); ctx.globalAlpha = a; ctx.lineJoin = "round"; ctx.lineCap = "round";
   ctx.strokeStyle = s.c; ctx.lineWidth = 1.1 / k; ctx.globalAlpha = 0.35 * a;         // the card
   ctx.strokeRect(-50, -50, 100, 118);
@@ -6875,6 +6942,7 @@ function loadSettings() {
   if (!d || !d.S) return false;
   for (const k of Object.keys(S)) if (k in d.S && typeof d.S[k] === typeof S[k]) S[k] = d.S[k];
   if (!S.loreBy || typeof S.loreBy !== "object") S.loreBy = JSON.parse(JSON.stringify(S_FACTORY.loreBy));
+  if (!S.face) S.face = "both";
   if (S.bridge === undefined) S.bridge = true;                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
@@ -6915,7 +6983,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -7003,6 +7071,7 @@ $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
 $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckFaces").onchange = (e) => (S.faces = e.target.checked);
+$("selFace").onchange = (e) => { S.face = e.target.value; facePreload(); };
 $("ckTapLook").onchange = (e) => (S.tapLook = e.target.checked);
 $("ckLore").onchange = (e) => (S.lore = e.target.checked);
 [["ckLoreLazar", "lazar"], ["ckLoreLear", "lear"], ["ckLoreMeier", "meier"], ["ckLoreContact", "contact"], ["ckLoreAnon", "anon"], ["ckLoreDoty", "doty"]].forEach(([id, k]) => {
@@ -7081,7 +7150,8 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("EARTH IS LIVE AT THE HUB — TAP THE TRIANGLE, THE DEEP OR THE MOON", "cy");
   log("LUNA PUSHED OUT · STARLINK HUGS THE WORLD — CLOSER TO TRUE", "cy");
   log("DURING A RUN: TAP THE SCREEN = NEXT STAGE", "cy");
-  if (S.bridge) setTimeout(bridgeLoad, 3500);                   // the throat is ready before anyone reaches it
+  if (S.bridge) setTimeout(bridgeLoad, 3500);
+  if (S.face !== "sketch") setTimeout(facePreload, 6000);        // the renders come in behind the opening                   // the throat is ready before anyone reaches it
   log("TRAFFIC ROAMS — SYSTEM TO SYSTEM, TO THE HABITABLE WORLDS, IN AND OUT OF OPEN SPACE", "cy");
   log("PINCH INTO A SYSTEM AT THE FRONT TO LOOK AT THEIR HOME", "cy");
   log("PLANETS WHERE THEY REALLY ARE TODAY, AT A QUARTER OF THE OLD PACE · STARMAN\u2019S ROADSTER IS OUT PAST EARTH", "cy");

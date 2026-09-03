@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v17";
+const VER = "ce5-v18";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -24,6 +24,7 @@ const PRECACHE = [
   "./earth/day.jpg",
   "./earth/night.jpg",
   "./earth/clouds.jpg",
+  "./species/greys-f.jpg", "./species/greys-m.jpg", "./species/nordics-f.jpg", "./species/nordics-m.jpg", "./species/sirians-f.jpg", "./species/sirians-m.jpg", "./species/arcturians-f.jpg", "./species/arcturians-m.jpg", "./species/lyrans-f.jpg", "./species/lyrans-m.jpg", "./species/orion-f.jpg", "./species/orion-m.jpg", "./species/andromedans-f.jpg", "./species/andromedans-m.jpg", "./species/reptilians-f.jpg", "./species/reptilians-m.jpg", "./species/eben-f.jpg", "./species/eben-m.jpg", "./species/archquloid-f.jpg", "./species/archquloid-m.jpg", "./species/quadloid-f.jpg", "./species/quadloid-m.jpg", "./species/trantaloid-f.jpg", "./species/trantaloid-m.jpg",
   "./pursue.json",
   "./uso.json",
   "./lang/es.json", "./lang/fr.json", "./lang/pt.json", "./lang/de.json", "./lang/zh.json",
