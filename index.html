@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=23" />
+<link rel="stylesheet" href="styles.css?v=24" />
 </head>
 <body class="intro introHud">
 
@@ -192,20 +192,10 @@
     </div>
 
     <div class="setBox">
-    <div class="setSec">THE JOURNEY</div>
+    <div class="setSec">THE LORE</div>
     <div class="setRow">
-      <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT PHOTOGRAPHS)</label>
-      <div class="setLbl">HOW THEY ARE SHOWN</div>
-      <select id="selFace">
-        <option value="both" selected>RENDERS — SHE AND HE, TAKING TURNS</option>
-        <option value="f">RENDER — SHE</option>
-        <option value="m">RENDER — HE</option>
-        <option value="sketch">THE FIELD SKETCH, DRAWN IN CODE</option>
-      </select>
-      <div class="setStat">THE RENDERS ARE AI IMAGES BUILT FROM THE WITNESS DESCRIPTIONS · NOT PHOTOGRAPHS · WHILE ONE IS STILL LOADING THE SKETCH STANDS IN · WITH DOTY'S LORE ON, HIS FOUR ZETA RACES TAKE TURNS TOO</div>
-      <label class="setChk"><input type="checkbox" id="ckTapLook" checked />A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)</label>
-      <label class="setChk"><input type="checkbox" id="ckUso" />WATER SIGHTINGS: 450 PUBLIC NUFORC WITNESS REPORTS ON OR OVER WATER (TEAL DOTS ON THE GLOBE, TAP ONE) — REPORTS, NOT VERIFIED</label>
-      <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR’S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE — TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
+      <div class="setStat">EVERYTHING IN THIS BOX IS SOMEBODY’S CLAIM OR SOMEBODY’S RECORD · TICK IT ON OR OFF HERE FOR THE WHOLE APP · THE STAR FACTS STAY EITHER WAY</div>
+      <div class="setLbl">THE VOICES</div>
       <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
       <div class="setStat" id="loreByHead">WHOSE CLAIMS TO SHOW — UNTICK ANY VOICE YOU DO NOT TRUST · THE STAR FACTS STAY EITHER WAY</div>
       <div class="loreBy">
@@ -216,6 +206,25 @@
         <label class="setChk"><input type="checkbox" id="ckLoreAnon" checked />THE 2023 /X/ ANON — THE TRIANGLE UNIT, MEXICO, FUKUSHIMA</label>
         <label class="setChk"><input type="checkbox" id="ckLoreDoty" checked />RICHARD DOTY, AFOSI (THE SERPO RELEASES) — EBENS, TRANTALOIDS, QUADLOIDS AT ZETA RETICULI, WITH HIS HOSTILE WARNING</label>
       </div>
+      <div class="setLbl">THE SPECIES</div>
+      <label class="setChk"><input type="checkbox" id="ckFaces" checked />WHO YOU ARE CALLING — THE SPECIES BESIDE THEIR STAR (FROM WITNESS ACCOUNTS, NOT PHOTOGRAPHS)</label>
+      <div class="setLbl">HOW THEY ARE SHOWN</div>
+      <select id="selFace">
+        <option value="both" selected>RENDERS — SHE AND HE, TAKING TURNS</option>
+        <option value="f">RENDER — SHE</option>
+        <option value="m">RENDER — HE</option>
+        <option value="sketch">THE FIELD SKETCH, DRAWN IN CODE</option>
+      </select>
+      <div class="setStat">THE RENDERS ARE AI IMAGES BUILT FROM THE WITNESS DESCRIPTIONS · NOT PHOTOGRAPHS · WHILE ONE IS STILL LOADING THE SKETCH STANDS IN · WITH DOTY'S LORE ON, HIS FOUR ZETA RACES TAKE TURNS TOO</div>
+      <div class="setLbl">THE RECORDS</div>
+      <label class="setChk"><input type="checkbox" id="ckUso" />WATER SIGHTINGS: 450 PUBLIC NUFORC WITNESS REPORTS ON OR OVER WATER (TEAL DOTS ON THE GLOBE, TAP ONE) — REPORTS, NOT VERIFIED</label>
+      <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR’S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE — TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
+    </div>
+    </div>
+    <div class="setBox">
+    <div class="setSec">THE JOURNEY</div>
+    <div class="setRow">
+      <label class="setChk"><input type="checkbox" id="ckTapLook" checked />A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)</label>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="6.8" />
       <div class="setStat">LEFT = BIG SLOW LUNGS · RIGHT = QUICK BREATHS</div>
@@ -6752,16 +6761,16 @@ const L10N = {
   start:   { en: "START", es: "INICIO", zh: "启动", hi: "शुरू", ar: "ابدأ", pt: "INICIAR", fr: "DÉMARRER", ru: "ПУСК", de: "START", ja: "開始" },
   stop:    { en: "STOP", es: "PARAR", zh: "停止", hi: "रोकें", ar: "توقف", pt: "PARAR", fr: "ARRÊT", ru: "СТОП", de: "STOPP", ja: "停止" },
   secs: {
-    en: ["YOUR SPOT", "SCREEN", "ALIEN SYSTEM CHART", "THE EARTH", "THE JOURNEY", "THE FLASH", "THE ARSENAL", "BERMUDA TRIANGLE", "MESSAGE"],
-    es: ["TU LUGAR", "PANTALLA", "CARTA DE SISTEMAS ALIENÍGENAS", "LA TIERRA", "EL VIAJE", "EL DESTELLO", "EL ARSENAL", "TRIÁNGULO DE LAS BERMUDAS", "MENSAJE"],
-    zh: ["你的位置", "屏幕", "外星系统星图", "地球", "旅程", "闪光", "武库", "百慕大三角", "信息"],
-    hi: ["आपकी जगह", "स्क्रीन", "एलियन सिस्टम चार्ट", "पृथ्वी", "यात्रा", "चमक", "शस्त्रागार", "बरमूडा त्रिकोण", "संदेश"],
-    ar: ["موقعك", "الشاشة", "خريطة الأنظمة الغريبة", "الأرض", "الرحلة", "الومضة", "الترسانة", "مثلث برمودا", "الرسالة"],
-    pt: ["SEU LUGAR", "TELA", "CARTA DE SISTEMAS ALIENÍGENAS", "A TERRA", "A JORNADA", "O CLARÃO", "O ARSENAL", "TRIÂNGULO DAS BERMUDAS", "MENSAGEM"],
-    fr: ["VOTRE POSITION", "ÉCRAN", "CARTE DES SYSTÈMES ALIENS", "LA TERRE", "LE VOYAGE", "L'ÉCLAIR", "L'ARSENAL", "TRIANGLE DES BERMUDES", "MESSAGE"],
-    ru: ["ВАШЕ МЕСТО", "ЭКРАН", "КАРТА ИНОПЛАНЕТНЫХ СИСТЕМ", "ЗЕМЛЯ", "ПУТЕШЕСТВИЕ", "ВСПЫШКА", "АРСЕНАЛ", "БЕРМУДСКИЙ ТРЕУГОЛЬНИК", "СООБЩЕНИЕ"],
-    de: ["DEIN ORT", "BILDSCHIRM", "KARTE DER ALIEN-SYSTEME", "DIE ERDE", "DIE REISE", "DER BLITZ", "DAS ARSENAL", "BERMUDADREIECK", "NACHRICHT"],
-    ja: ["あなたの場所", "画面", "エイリアン星系図", "地球", "旅", "フラッシュ", "兵器庫", "バミューダトライアングル", "メッセージ"],
+    en: ["YOUR SPOT", "SCREEN", "ALIEN SYSTEM CHART", "THE EARTH", "THE LORE", "THE JOURNEY", "THE FLASH", "THE ARSENAL", "BERMUDA TRIANGLE", "MESSAGE"],
+    es: ["TU LUGAR", "PANTALLA", "CARTA DE SISTEMAS ALIENÍGENAS", "LA TIERRA", "LOS RELATOS", "EL VIAJE", "EL DESTELLO", "EL ARSENAL", "TRIÁNGULO DE LAS BERMUDAS", "MENSAJE"],
+    zh: ["你的位置", "屏幕", "外星系统星图", "地球", "传说", "旅程", "闪光", "武库", "百慕大三角", "信息"],
+    hi: ["आपकी जगह", "स्क्रीन", "एलियन सिस्टम चार्ट", "पृथ्वी", "किंवदंतियाँ", "यात्रा", "चमक", "शस्त्रागार", "बरमूडा त्रिकोण", "संदेश"],
+    ar: ["موقعك", "الشاشة", "خريطة الأنظمة الغريبة", "الأرض", "الروايات", "الرحلة", "الومضة", "الترسانة", "مثلث برمودا", "الرسالة"],
+    pt: ["SEU LUGAR", "TELA", "CARTA DE SISTEMAS ALIENÍGENAS", "A TERRA", "OS RELATOS", "A JORNADA", "O CLARÃO", "O ARSENAL", "TRIÂNGULO DAS BERMUDAS", "MENSAGEM"],
+    fr: ["VOTRE POSITION", "ÉCRAN", "CARTE DES SYSTÈMES ALIENS", "LA TERRE", "LES RÉCITS", "LE VOYAGE", "L'ÉCLAIR", "L'ARSENAL", "TRIANGLE DES BERMUDES", "MESSAGE"],
+    ru: ["ВАШЕ МЕСТО", "ЭКРАН", "КАРТА ИНОПЛАНЕТНЫХ СИСТЕМ", "ЗЕМЛЯ", "ПРЕДАНИЯ", "ПУТЕШЕСТВИЕ", "ВСПЫШКА", "АРСЕНАЛ", "БЕРМУДСКИЙ ТРЕУГОЛЬНИК", "СООБЩЕНИЕ"],
+    de: ["DEIN ORT", "BILDSCHIRM", "KARTE DER ALIEN-SYSTEME", "DIE ERDE", "DIE ÜBERLIEFERUNG", "DIE REISE", "DER BLITZ", "DAS ARSENAL", "BERMUDADREIECK", "NACHRICHT"],
+    ja: ["あなたの場所", "画面", "エイリアン星系図", "地球", "伝承", "旅", "フラッシュ", "兵器庫", "バミューダトライアングル", "メッセージ"],
   },
   note: { en: "CORE CONTROLS ARE TRANSLATED · THE DEEP TEXT IS STILL ENGLISH FOR NOW", es: "LOS CONTROLES PRINCIPALES ESTÁN TRADUCIDOS · EL TEXTO PROFUNDO SIGUE EN INGLÉS POR AHORA", zh: "核心控件已翻译·深层文本暂为英文", hi: "मुख्य नियंत्रण अनुवादित हैं · गहरा पाठ अभी अंग्रेज़ी में है", ar: "تمت ترجمة عناصر التحكم الأساسية · النص العميق ما زال بالإنجليزية", pt: "OS CONTROLES PRINCIPAIS ESTÃO TRADUZIDOS · O TEXTO PROFUNDO AINDA ESTÁ EM INGLÊS", fr: "LES COMMANDES PRINCIPALES SONT TRADUITES · LE TEXTE PROFOND RESTE EN ANGLAIS POUR L'INSTANT", ru: "ОСНОВНЫЕ ЭЛЕМЕНТЫ ПЕРЕВЕДЕНЫ · ГЛУБОКИЙ ТЕКСТ ПОКА НА АНГЛИЙСКОМ", de: "DIE KERN-BEDIENUNG IST ÜBERSETZT · DER TIEFE TEXT IST VORERST ENGLISCH", ja: "主要な操作は翻訳済み・詳細テキストは当面英語" },
 };
@@ -6782,7 +6791,30 @@ function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || "";
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
 const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
+/* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
+   The original text stays in a hidden span so the translation walker still finds its keys. */
+let setWrapped = false;
+function wrapSetLabels() {
+  if (setWrapped) return; setWrapped = true;
+  for (const l of document.querySelectorAll("#setCard label.setChk")) {
+    const raw = document.createElement("span"); raw.className = "setRaw"; raw.setAttribute("aria-hidden", "true");
+    const nice = document.createElement("span"); nice.className = "setNice";
+    for (const n of [...l.childNodes]) if (n.nodeType === 3) raw.appendChild(n);
+    l.appendChild(raw); l.appendChild(nice);
+  }
+}
+function prettySetLabels() {
+  for (const l of document.querySelectorAll("#setCard label.setChk")) {
+    const raw = l.querySelector(".setRaw"), nice = l.querySelector(".setNice"); if (!raw || !nice) continue;
+    const txt = raw.textContent.replace(/\s+/g, " ").trim();
+    const m = txt.match(/^(.{3,72}?)(\s[\u2014\u2013-]\s|:\s)(.+)$/);
+    nice.textContent = "";
+    const hd = document.createElement("b"); hd.className = "setHd"; hd.textContent = m ? m[1] : txt; nice.appendChild(hd);
+    if (m) { const ex = document.createElement("span"); ex.className = "setEx"; ex.textContent = m[3]; nice.appendChild(ex); }
+  }
+}
 function walkTranslate() {
+  wrapSetLabels();
   for (const rid of L10N_ROOTS) {
     const root = $(rid); if (!root) continue;
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -6800,11 +6832,12 @@ function walkTranslate() {
     d.textContent = "\u25b8 " + (hit || d.dataset.en);
   }
   fixCounts();
+  prettySetLabels();
 }
 function fixCounts() {                                           // the labels were written when the lists were shorter
   const fix = (id, from, to) => {
     const el = $(id), l = el && el.closest("label"); if (!l) return;
-    for (const n of l.childNodes) if (n.nodeType === 3 && n.nodeValue.includes(from)) n.nodeValue = n.nodeValue.replace(from, String(to));
+    for (const n of (l.querySelector(".setRaw") || l).childNodes) if (n.nodeType === 3 && n.nodeValue.includes(from)) n.nodeValue = n.nodeValue.replace(from, String(to));
   };
   if (typeof EXOPLANETS !== "undefined") fix("ckExo", "17", EXOPLANETS.length);
   if (typeof SKY_SITES !== "undefined") fix("ckSites", "12", SKY_SITES.length - 3);
