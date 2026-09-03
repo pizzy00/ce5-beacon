@@ -233,10 +233,10 @@
     </div>
     <div class="setRow">
       <div class="setLbl">THE ROSEN BRIDGE</div>
-      <label class="setChk"><input type="checkbox" id="ckBridge" />FOLD THROUGH AN EINSTEIN-ROSEN BRIDGE — THEIR WORLD, THEN THE THROAT, THEN EARTH (THE CROSSING AND THE FLYBYS ARE SKIPPED)</label>
+      <label class="setChk"><input type="checkbox" id="ckBridge" />FOLD THROUGH AN EINSTEIN-ROSEN BRIDGE — THEIR WORLD, THEN THE THROAT, THEN STRAIGHT DOWN ONTO THE MAP</label>
       <div class="setStat">A WORMHOLE THROAT DRAWN LIVE IN WEBGL · TAP TO SKIP LIKE ANY STAGE · PHONES WITHOUT WEBGL GET A 2D THROAT</div>
-      <div class="setLbl">THE BRIDGE LASTS — <span id="vBridge">12</span>S</div>
-      <input type="range" id="rBridge" min="4" max="40" step="1" value="12" />
+      <div class="setLbl">THE BRIDGE LASTS — <span id="vBridge">8</span>S</div>
+      <input type="range" id="rBridge" min="3" max="30" step="1" value="8" />
       <div class="setLbl">ITS SOUND</div>
       <select id="selBridgeSnd">
         <option value="hum" selected>A LOW HUM, MADE ON THE FLY</option>
@@ -245,6 +245,20 @@
       </select>
       <div class="setLbl">BRIDGE VOLUME — <span id="vBridgeVol">30</span>%</div>
       <input type="range" id="rBridgeVol" min="0" max="100" step="5" value="30" />
+      <div class="setLbl">ITS LOOK</div>
+      <select id="selBridgeLook">
+        <option value="cyan" selected>CYAN — THE COLD THROAT</option>
+        <option value="ember">EMBER — RED AND GOLD</option>
+        <option value="violet">VIOLET — ULTRAVIOLET FILAMENTS</option>
+        <option value="emerald">EMERALD — GREEN LIGHT</option>
+        <option value="prism">PRISM — EVERY COLOUR, SLIDING DOWN THE THROAT</option>
+      </select>
+      <div class="setLbl">ITS MOTION</div>
+      <select id="selBridgeStyle">
+        <option value="throat" selected>THE THROAT — A STEADY FALL</option>
+        <option value="spiral">THE SPIRAL — THE WALL TWISTS AND THE EYE ROLLS</option>
+        <option value="storm">THE STORM — RINGS AND FOAM, FAST</option>
+      </select>
     </div>
     <div class="setRow">
       <div class="setLbl">FLYBYS ON THE WAY IN</div>
@@ -781,7 +795,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
   crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: false, bridge: false, bridgeSec: 12, bridgeSnd: "hum", bridgeVol: 30, sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
+  polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
@@ -981,7 +995,8 @@ function crumbNext(p) {                                          // what the jou
   switch (p) {
     case "origin": return m === "moon" ? "LUNAR DEPARTURE" : (m === "ocean" || m === "bermuda") ? "SLOW DESCENT" : S.bridge ? "ROSEN BRIDGE" : "MILKY WAY";
     case "galaxy": return "SUPERLUMINAL";
-    case "warp": case "bridge": case "polaris": case "voyager": case "sun": case "starman": case "jwst": case "moon": case "hubble": case "iss": {
+    case "bridge": return "SLOW DESCENT";
+    case "warp": case "polaris": case "voyager": case "sun": case "starman": case "jwst": case "moon": case "hubble": case "iss": {
       const n = typeof stageAfter === "function" ? stageAfter(p) : null;
       return (n && STAGE_LABEL[n]) || "TERRAN APPROACH";
     }
@@ -3918,7 +3933,7 @@ function bridgeLoad() {                                          // three.js + b
   if (bridgeLoadP) return bridgeLoadP;
   const one = (src) => new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   bridgeLoadP = (window.THREE ? Promise.resolve() : one("vendor/three/three.min.js?v=1"))
-    .then(() => window.BRIDGE ? null : one("bridge.js?v=1"))
+    .then(() => window.BRIDGE ? null : one("bridge.js?v=2"))
     .catch(() => { bridgeLoadP = null; });
   if (S.bridgeSnd === "bed") bridgeAudioLoad();
   return bridgeLoadP;
@@ -3926,7 +3941,7 @@ function bridgeLoad() {                                          // three.js + b
 function bridgeStart() {
   bridgeOn = true; bridgeAudioStart();
   const c = $("bridge"); c.classList.add("on"); cvs.style.background = "transparent";   // the WebGL sits under the 2D canvas
-  const go = () => { if (bridgeOn && window.BRIDGE && !BRIDGE.fail) BRIDGE.start(c); };
+  const go = () => { if (bridgeOn && window.BRIDGE && !BRIDGE.fail) { if (BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); BRIDGE.start(c); } };
   if (window.BRIDGE) go(); else bridgeLoad().then(go);
 }
 function bridgeStop() {
@@ -3949,9 +3964,13 @@ function drawBridge(p, t) {
   const sub = p < 0.12 ? "THE THROAT OPENS" : p < 0.84 ? "FOLDED SPACE · TWO MOUTHS, ONE STEP" : "THE FAR MOUTH · EARTH";
   ctx.globalAlpha = 0.35 + 0.65 * open;
   label(W / 2, H * 0.17, "ROSEN BRIDGE", sub, c, "center");
-  if (p > 0.2 && p < 0.84) label(W / 2, H * 0.80, "", "DISTANCE HERE IS A CHOICE · KEEP BREATHING", c, "center");
+  if (p > 0.2 && p < 0.84) label(W / 2, H * 0.68, "", "DISTANCE HERE IS A CHOICE · KEEP BREATHING", c, "center");
   ctx.globalAlpha = 1;
   if (ex > 0) { ctx.fillStyle = "rgba(255,255,255," + ex.toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
+}
+function bridgeHue(t) {                                          // the 2D throat follows the same look
+  const h = { cyan: 196, ember: 22, violet: 275, emerald: 140 }[S.bridgeLook];
+  return h === undefined ? (t * 60) % 360 : h;
 }
 function drawBridge2D(p, t) {                                    // no WebGL: rings of light pulled through the neck
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
@@ -3961,7 +3980,7 @@ function drawBridge2D(p, t) {                                    // no WebGL: ri
   for (let i = 0; i < n; i++) {
     const k = ((i / n) + t * spd * 0.22) % 1, r = Math.pow(k, 2.4) * R + 2;
     ctx.beginPath(); ctx.ellipse(cx + Math.sin(t * 0.4 + k * 6) * 30 * k, cy + Math.cos(t * 0.33 + k * 5) * 22 * k, r, r * 0.92, t * 0.2 + k, 0, 6.2832);
-    ctx.strokeStyle = "hsla(" + (196 + 50 * Math.sin(i * 0.8 + t)) + ",95%," + (45 + 50 * k) + "%," + ((0.85 * k + 0.05) * open).toFixed(3) + ")";
+    ctx.strokeStyle = "hsla(" + (bridgeHue(t) + 50 * Math.sin(i * 0.8 + t)) + ",95%," + (45 + 50 * k) + "%," + ((0.85 * k + 0.05) * open).toFixed(3) + ")";
     ctx.lineWidth = 1 + k * 5; ctx.stroke();
   }
 }
@@ -4890,7 +4909,7 @@ function loop(ts) {
   } else if (phase === "bridge") {
     const p = Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.bridgeSec * 1000)));   // his slider, in seconds
     drawBridge(p, t);
-    if (p >= 1) advance("bridge", ts);
+    if (p >= 1) { bridgeStop(); $("cue").classList.remove("on"); return preDive(); }   // straight down onto the map (his call): no wireframe world between
   } else if (phase === "polaris") {
     const p = segF();
     drawPolaris(p, t);
@@ -5708,7 +5727,7 @@ const RET_SPACE = /^(origin|galaxy|warp|polaris|voyager|sun|starman|jwst|moon|hu
 function retShow(on) {                                        // on = the camera is travelling
   if (on !== undefined) retWant = !!on;
   const inRun = phase !== "chart" && phase !== "active";
-  const show = S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun && !RET_SPACE.test(phase);
+  const show = phase === "bridge" ? false : S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun && !RET_SPACE.test(phase);   // never in the throat (his note)
   const el = $("reticle"); if (el) el.classList.toggle("on", show);
 }
 function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); }
@@ -7020,7 +7039,8 @@ function loadSettings() {
   for (const k of Object.keys(S)) if (k in d.S && typeof d.S[k] === typeof S[k]) S[k] = d.S[k];
   if (!S.loreBy || typeof S.loreBy !== "object") S.loreBy = JSON.parse(JSON.stringify(S_FACTORY.loreBy));
   if (!S.face) S.face = "both";
-  if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 12; S.bridgeSnd = "hum"; S.bridgeVol = 30; }   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
+  if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 8; S.bridgeSnd = "hum"; S.bridgeVol = 30; }
+  if (!S.bridgeLook) { S.bridgeLook = "cyan"; S.bridgeStyle = "throat"; }   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
@@ -7040,7 +7060,7 @@ function applyS() {                                             // push S into e
   set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckAges", S.ages);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("selBridgeSnd", S.bridgeSnd); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion);
   reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
@@ -7115,6 +7135,8 @@ $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckBridge").onchange = (e) => { S.bridge = e.target.checked; if (S.bridge) bridgeLoad(); };
 $("rBridge").oninput = (e) => { S.bridgeSec = +e.target.value; $("vBridge").textContent = S.bridgeSec; };
 $("selBridgeSnd").onchange = (e) => { S.bridgeSnd = e.target.value; if (S.bridge && S.bridgeSnd === "bed") bridgeAudioLoad(); };
+$("selBridgeLook").onchange = (e) => { S.bridgeLook = e.target.value; if (window.BRIDGE && BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); };
+$("selBridgeStyle").onchange = (e) => { S.bridgeStyle = e.target.value; if (window.BRIDGE && BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); };
 $("rBridgeVol").oninput = (e) => { S.bridgeVol = +e.target.value; $("vBridgeVol").textContent = S.bridgeVol; if (brG && ac) brG.gain.setTargetAtTime(bridgeGain(), ac.currentTime, 0.15); };
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
