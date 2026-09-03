@@ -3138,7 +3138,7 @@ function drawPyramids(sx, sy, RZ, sunV) {
   if (U.z < 0.04) return;                                       // round the back, or on the limb edge-on
   const E = v3n(v3s(orthV(GIZA.lon + 0.01, GIZA.lat, earthTiltDraw), U));   // east and north along the ground there
   const N = v3n(v3s(orthV(GIZA.lon, GIZA.lat + 0.01, earthTiltDraw), U));
-  const B = Math.max(7, Math.min(30, RZ * 0.052)), lay = 0.7, tall = 1.9;   // the Great Pyramid's base in pixels; the layout pulled in a little so the three stay a group; heights raised so the faces read from above
+  const B = Math.max(7, Math.min(30, RZ * 0.052)), lay = 0.7, tall = 1.0;   // the Great Pyramid's base in pixels; the layout pulled in a little so the three stay a group; true proportions (Khufu: 146 m tall on a 230 m base), the cast shadow says the rest
   const L = v3n(sunV), fade = Math.min(1, U.z * 3);
   const lu = v3d(L, U), le = v3d(L, E), ln = v3d(L, N);          // the sun in Giza's own frame: how high, and from where
   const base = { x: U.x * RZ, y: U.y * RZ, z: U.z * RZ };
