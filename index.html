@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=29" />
+<link rel="stylesheet" href="styles.css?v=30" />
 </head>
 <body class="intro introHud">
 
@@ -108,6 +108,8 @@
         <option value="f">HER &#8212; VIVIAN, WARM AND SLOW</option>
         <option value="off">NONE &#8212; NO VOICE, JUST THE CONSOLE</option>
       </select>
+      <div class="setLbl">READING SPEED &#8212; <span id="vVoice">1.1</span>&#215; · 1 = AS RECORDED, SLOW AND EASY</div>
+      <input type="range" id="rVoice" min="0.8" max="1.6" step="0.05" value="1.1" />
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
       <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
@@ -835,7 +837,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.1, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -6169,7 +6171,7 @@ function audioGuard() {                                          // Android naps
 }
 setInterval(audioGuard, 3000);
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) { try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps
+  if (document.hidden) { voiceStop(); try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps, the voice too
   else audioGuard();                                             // look back and it wakes
 });
 let introFxOff = false;                                          // a skip means silence, not a pile-up
@@ -6595,6 +6597,7 @@ function voiceSay(name) {                                        // muted means 
   voiceStop();
   if (muted || !S.voice) return false;
   const a = new Audio("voice/" + (S.voiceSex === "f" ? "f/" : "") + name + ".mp3"); a.preload = "auto"; a.volume = 0.95;
+  a.playbackRate = S.voiceRate || 1.1; try { a.preservesPitch = true; } catch (e) {}   // a touch quicker than recorded, same pitch
   voiceEl = a; voiceName = name;
   a.onended = a.onerror = () => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } };
   const p = a.play(); if (p && p.catch) p.catch(() => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } });
@@ -7526,6 +7529,7 @@ function loadSettings() {
   if (S.voiceSex !== "f" && S.voiceSex !== "off") S.voiceSex = "m";
   if (S.voice === false) S.voiceSex = "off";                    // the old tick box, unticked = NONE
   S.voice = S.voiceSex !== "off";
+  if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6)) S.voiceRate = 1.1;
   if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood
   if (S.idleBack === undefined) S.idleBack = 60;                // saves from before the chart came back on its own   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
@@ -7567,7 +7571,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -7672,6 +7676,8 @@ $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loa
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
+$("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
+$("rVoice").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
 $("selVoice").onchange = (e) => {                               // HIM, HER, or none; hear the change at once
   S.voiceSex = e.target.value; S.voice = S.voiceSex !== "off";
   if (!S.voice) { voiceStop(); log("THE VOICE IS OFF", "cy"); return; }

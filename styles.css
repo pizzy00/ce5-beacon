@@ -837,7 +837,7 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 #guide { position: fixed; inset: 0; z-index: 11; }
 #guide.hide { display: none; }
 #guideSpot { position: absolute; border: 2px solid var(--amber); border-radius: 12px; pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.74), 0 0 22px rgba(255,196,107,0.85);
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.42), 0 0 22px rgba(255,196,107,0.85);   /* a lighter dim: the chart stays readable behind the guide (his ask 09-03) */
   transition: left 0.45s ease, top 0.45s ease, width 0.45s ease, height 0.45s ease, border-radius 0.45s ease; }
 #guideCard { position: absolute; left: 50%; transform: translateX(-50%); width: min(92vw, 430px); box-sizing: border-box;
   background: rgba(6,6,16,0.97); border: 1px solid rgba(255,196,107,0.55); border-radius: 8px; padding: 14px 16px 12px; color: var(--ink); transition: top 0.45s ease; }
