@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=21" />
+<link rel="stylesheet" href="styles.css?v=22" />
 </head>
 <body class="intro introHud">
 
@@ -198,6 +198,15 @@
       <label class="setChk"><input type="checkbox" id="ckUso" />WATER SIGHTINGS: 450 PUBLIC NUFORC WITNESS REPORTS ON OR OVER WATER (TEAL DOTS ON THE GLOBE, TAP ONE) — REPORTS, NOT VERIFIED</label>
       <label class="setChk"><input type="checkbox" id="ckPursue" />THE PURSUE FILES: THE DEPARTMENT OF WAR’S RELEASED UAP RECORDS (WAR.GOV/UFO) AS CYAN SQUARES ON THE GLOBE — TAP ONE FOR A FILE, TAP AGAIN FOR THE NEXT</label>
       <label class="setChk"><input type="checkbox" id="ckLore" checked />THE LORE: WHAT LAZAR, LEAR AND A 2023 /X/ ANON CLAIMED, ON THE TUBE, UNDER THE HOME SYSTEM, AND AS ORANGE PINS (S-4, FUKUSHIMA)</label>
+      <div class="setStat" id="loreByHead">WHOSE CLAIMS TO SHOW — UNTICK ANY VOICE YOU DO NOT TRUST · THE STAR FACTS STAY EITHER WAY</div>
+      <div class="loreBy">
+        <label class="setChk"><input type="checkbox" id="ckLoreLazar" checked />BOB LAZAR (1989, 1991, 2019) — ZETA RETICULI, S-4</label>
+        <label class="setChk"><input type="checkbox" id="ckLoreLear" checked />JOHN LEAR AND HIS CIRCLE (1987 LETTER, THE KRILL PAPERS, ANDREWS 1993) — ZETA, SIRIUS, ORION, PROCYON</label>
+        <label class="setChk"><input type="checkbox" id="ckLoreMeier" checked />BILLY MEIER (1975) — THE PLEIADES</label>
+        <label class="setChk"><input type="checkbox" id="ckLoreContact" checked />THE 1990S CONTACTEES (COLLIER, BRANTON, CHANNELLED BOOKS) — ARCTURUS, VEGA, ANDROMEDA, DRACO</label>
+        <label class="setChk"><input type="checkbox" id="ckLoreAnon" checked />THE 2023 /X/ ANON — THE TRIANGLE UNIT, MEXICO, FUKUSHIMA</label>
+        <label class="setChk"><input type="checkbox" id="ckLoreDoty" checked />RICHARD DOTY, AFOSI (THE SERPO RELEASES) — EBENS, TRANTALOIDS, QUADLOIDS AT ZETA RETICULI, WITH HIS HOSTILE WARNING</label>
+      </div>
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="6.8" />
       <div class="setStat">LEFT = BIG SLOW LUNGS · RIGHT = QUICK BREATHS</div>
@@ -753,7 +762,10 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
-  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true } };
+  sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
+  loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
+const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
+function loreOn(by) { return !!S.lore && (!by || !S.loreBy || S.loreBy[by] !== false); }   // no name = a fact line, always shown with the lore
 let hashLL = location.hash.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
 if (hashLL && !(Math.abs(+hashLL[1]) <= 90 && Math.abs(+hashLL[2]) <= 180)) hashLL = null;   // a spot off the globe is no spot: it killed the loop
 if (hashLL) TARGET = { lat: +hashLL[1], lon: +hashLL[2], exact: true };
@@ -1229,7 +1241,7 @@ const SKY_SITES = [                                              // where the ol
   { n: "CARNAC", lat: 47.593, lon: -3.079, s: "3,000 STANDING STONES IN ROWS \u00b7 SOLSTICE SIGHTLINES CLAIMED ACROSS THEM" },
   { n: "MNAJDRA", lat: 35.827, lon: 14.436, s: "MALTA, 5,500 YEARS \u00b7 THE EQUINOX SUN COMES STRAIGHT THROUGH THE DOOR" },
   { n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" },
-  { n: "S-4 \u00b7 PAPOOSE LAKE", lat: 37.09, lon: -115.79, claim: 1, s: "BOB LAZAR, 1989: NINE CRAFT IN HANGARS CUT INTO THE MOUNTAIN SOUTH OF AREA 51 \u00b7 HIS CLAIM, NEVER SHOWN" },
+  { n: "S-4 \u00b7 PAPOOSE LAKE", lat: 37.09, lon: -115.79, claim: "lazar", s: "BOB LAZAR, 1989: NINE CRAFT IN HANGARS CUT INTO THE MOUNTAIN SOUTH OF AREA 51 \u00b7 HIS CLAIM, NEVER SHOWN" },
   { n: "CALLANISH", lat: 58.198, lon: -6.745, s: "LEWIS, 5,000 YEARS \u00b7 EVERY 18.6 YEARS THE MOON SKIMS THE HILLS ALONG THE STONE AVENUE" },
   { n: "MAESHOWE", lat: 58.998, lon: -3.188, s: "ORKNEY, 5,000 YEARS \u00b7 THE MIDWINTER SUNSET RUNS DOWN THE PASSAGE" },
   { n: "NABTA PLAYA", lat: 22.508, lon: 30.725, s: "A STONE CIRCLE IN THE SAHARA OLDER THAN STONEHENGE, SET TO THE SUMMER SOLSTICE SUNRISE" },
@@ -1241,8 +1253,8 @@ const SKY_SITES = [                                              // where the ol
   { n: "XOCHICALCO", lat: 18.804, lon: -99.296, s: "A SHAFT INTO A CAVE LETS THE SUN STRAIGHT DOWN ON THE DAYS IT PASSES OVERHEAD" },
   { n: "PETRA", lat: 30.322, lon: 35.452, s: "THE MONASTERY TAKES THE MIDWINTER SUNSET \u00b7 THE URN TOMB THE EQUINOX SUNRISE" },
   { n: "KARAHUNJ", lat: 39.551, lon: 46.028, s: "ARMENIA \u00b7 STONES WITH BORED HOLES, SAID TO SIGHT THE SUN AND STARS (A CLAIM, DISPUTED)" },
-  { n: "MEXICO \u00b7 CRASH COUNTRY", lat: 23.6, lon: -102.5, claim: 1, s: "THE 2023 /X/ ANON: THE UNIT\u2019S CRAFT AVOID PARTS OF MEXICO BECAUSE THEY CRASH THERE OFTEN \u00b7 A CLAIM" },
-  { n: "FUKUSHIMA", lat: 37.42, lon: 141.03, claim: 1, s: "MARCH 2011 \u00b7 A 2023 /X/ ANON SAID THE UNIT SENT CRAFT HERE FOR WEEKS, DRAWN TO THE RADIATION \u00b7 A CLAIM" }
+  { n: "MEXICO \u00b7 CRASH COUNTRY", lat: 23.6, lon: -102.5, claim: "anon", s: "THE 2023 /X/ ANON: THE UNIT\u2019S CRAFT AVOID PARTS OF MEXICO BECAUSE THEY CRASH THERE OFTEN \u00b7 A CLAIM" },
+  { n: "FUKUSHIMA", lat: 37.42, lon: 141.03, claim: "anon", s: "MARCH 2011 \u00b7 A 2023 /X/ ANON SAID THE UNIT SENT CRAFT HERE FOR WEEKS, DRAWN TO THE RADIATION \u00b7 A CLAIM" }
 ];
 let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
@@ -3179,7 +3191,7 @@ function drawEarthHub(t) {
     const big = earthZoom > 1.25 || gvK() > 0.5, r = big ? 4 : 3;   // names when you lean in, and always on the pop-up world
     ctx.font = nameFont(6.5); ctx.fillStyle = "#ffd27a";
     for (const q of SKY_SITES) {
-      if (q.claim && !S.lore) continue;                            // the claim pins go with the lore setting
+      if (q.claim && !loreOn(q.claim)) continue;                   // each claim pin goes with its own voice
       const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
       siteHit.push({ q, x: p.x, y: p.y });
       ctx.globalAlpha = 0.9; ctx.fillStyle = q.claim ? "#ff9b5e" : "#ffd27a";
@@ -3361,7 +3373,8 @@ function sysEnter(s) {
   chartVel = 0; chartTgt = null; chartAuto = false; clearTimeout(chartResume); wasPinch = true;
   gvFx(true);                                                    // the lean-in rises like the pop-up world
   log("LEANING IN \u2014 " + s.name + " HOME SYSTEM", "cy");
-  if (S.lore && CLAIMS[s.id]) log(CLAIMS[s.id][0], "cy");        // the first claim goes on the tube too
+  const c0 = claimsFor(s.id)[0]; if (c0) log(c0, "cy");          // the first claim he still listens to goes on the tube too
+  if (s.id === "zeta" && loreOn("doty")) log(DOTY_WARN, "alert");
   const qq = S.lore ? quoteFor(s) : null;
   if (qq) logLink("IN THEIR WORDS: \u201c" + qq[0] + "\u201d \u2014 " + qq[1] + ", " + qq[2], qq[3], "cy", "[THE SOURCE]");
   else if (S.lore) log("NO FIRST-HAND QUOTE FOR THIS SYSTEM: NEITHER LAZAR NOR LEAR NAMED IT", "cy");
@@ -3373,39 +3386,43 @@ function sysTry() {                                             // pinch (or whe
   if (!s) for (const q of SYSTEMS) if ((q.pk || 0) > 1.3 && (!s || q.pk > s.pk)) s = q;
   if (s) sysEnter(s);
 }
-const CLAIMS = {                                                 // who said what about each system (the package in cc-handoff/): claims, never facts
-  zeta: ["BOB LAZAR, 1989 AND 1991: \u2018RETICULUM 4\u2019, THE 4TH PLANET OUT FROM ZETA 2 \u00b7 IN 2019 HE SAID \u2018ZR3\u2019, THE 3RD",
-         "JOHN LEAR, 1987: \u2018ABOUT 38 LIGHT YEARS, SPECTRAL CLASS G2\u2019 \u00b7 THE ONLY SYSTEM BOTH MEN NAME OUTRIGHT",
-         "THE STARS: TWO SUN-LIKE G DWARFS, 39.3 LY, FAR SOUTHERN SKY \u00b7 NO CONFIRMED PLANETS \u00b7 FROM BETTY HILL\u2019S 1964 STAR MAP"],
-  plei: ["THE \u2018PLEIADIAN\u2019 HOME IN UFOLOGY SINCE BILLY MEIER (1975) \u00b7 LEAR NEVER NAMED IT; LATER LISTS DID",
-         "THE STARS: AN OPEN CLUSTER OF 1,000+ STARS, 444 LY, ONLY 100 MILLION YEARS OLD \u00b7 YOUNG FOR A CIVILISATION"],
-  siri: ["THE KRILL PAPERS (LEAR CIRCLE, 1988): \u2018SIRIUS AND THE MEN IN BLACK\u2019 \u00b7 SECOND-HAND, NOT LEAR\u2019S OWN WORDS",
-         "THE STAR: THE BRIGHTEST IN OUR NIGHT SKY, 8.6 LY, WITH A WHITE-DWARF COMPANION"],
-  arct: ["NOT NAMED BY LAZAR OR LEAR \u00b7 THE ARCTURIAN STORY COMES FROM LATER CHANNELLED BOOKS",
-         "THE STAR: AN ORANGE GIANT, 36.7 LY, THE BRIGHTEST OF THE NORTHERN SKY"],
-  vega: ["NOT NAMED BY LAZAR OR LEAR \u00b7 LYRAN LORE IS LATER CONTACTEE MATERIAL",
-         "THE STAR: A WHITE STAR 25 LY OUT WITH A DUST DISC \u00b7 THE POLE STAR AGAIN IN 12,000 YEARS"],
-  orio: ["LEAR-CIRCLE LISTS (DERIVATIVE): \u2018TALL GREYS FROM BELLATRIX AND RIGEL\u2019 \u00b7 LEAR HIMSELF NEVER SAID IT",
-         "THE STAR: RIGEL IS A BLUE SUPERGIANT ABOUT 8 MILLION YEARS OLD, 860 LY \u00b7 A HARD PLACE FOR A CIVILISATION"],
-  andr: ["NOT NAMED BY LAZAR OR LEAR \u00b7 ANDROMEDAN LORE IS 1990S CONTACTEE MATERIAL (COLLIER)",
-         "THE PLACE: A WHOLE GALAXY, 2.5 MILLION LY, ABOUT A TRILLION STARS"],
-  proc: ["GEORGE ANDREWS, 1993: \u2018THE PROCYON NORDICS, THE SWEDES\u2019 \u00b7 GREW FROM ONE LINE IN THE KRILL PAPERS \u00b7 LEAR CIRCLE, SECOND-HAND",
-         "THE STAR: AN F-TYPE STAR 11.5 LY OUT WITH A WHITE-DWARF COMPANION \u00b7 THE LITTLE DOG STAR"],
-  drac: ["BRANTON AND ALEX COLLIER, 1990S: REPTILIANS FROM ALPHA DRACONIS \u00b7 NOT LAZAR, NOT LEAR",
-         "THE STAR: THUBAN, 303 LY \u00b7 THE POLE STAR WHEN THE PYRAMIDS WENT UP, 2700 BC \u00b7 GIZA\u2019S SHAFT POINTS AT IT"]
+const CLAIMS = {                                                 // who said what about each system: [text, who]; no name = the star itself, a fact
+  zeta: [["BOB LAZAR, 1989 AND 1991: \u2018RETICULUM 4\u2019, THE 4TH PLANET OUT FROM ZETA 2 \u00b7 IN 2019 HE SAID \u2018ZR3\u2019, THE 3RD", "lazar"],
+         ["JOHN LEAR, 1987: \u2018ABOUT 38 LIGHT YEARS, SPECTRAL CLASS G2\u2019 \u00b7 THE ONLY SYSTEM BOTH MEN NAME OUTRIGHT", "lear"],
+         ["RICHARD DOTY (AFOSI), THE SERPO RELEASES: EBENS OF SERPO, FRIENDLY \u00b7 TRANTALOIDS OF SILUS AND QUADLOIDS OF OTTO, THE TWO HE CALLS HOSTILE \u00b7 ALL THREE PLACED HERE", "doty"],
+         ["THE STARS: TWO SUN-LIKE G DWARFS, 39.3 LY, FAR SOUTHERN SKY \u00b7 NO CONFIRMED PLANETS \u00b7 FROM BETTY HILL\u2019S 1964 STAR MAP"]],
+  plei: [["THE \u2018PLEIADIAN\u2019 HOME IN UFOLOGY SINCE BILLY MEIER (1975) \u00b7 LEAR NEVER NAMED IT; LATER LISTS DID", "meier"],
+         ["THE STARS: AN OPEN CLUSTER OF 1,000+ STARS, 444 LY, ONLY 100 MILLION YEARS OLD \u00b7 YOUNG FOR A CIVILISATION"]],
+  siri: [["THE KRILL PAPERS (LEAR CIRCLE, 1988): \u2018SIRIUS AND THE MEN IN BLACK\u2019 \u00b7 SECOND-HAND, NOT LEAR\u2019S OWN WORDS", "lear"],
+         ["THE STAR: THE BRIGHTEST IN OUR NIGHT SKY, 8.6 LY, WITH A WHITE-DWARF COMPANION"]],
+  arct: [["NOT NAMED BY LAZAR OR LEAR \u00b7 THE ARCTURIAN STORY COMES FROM LATER CHANNELLED BOOKS", "contact"],
+         ["THE STAR: AN ORANGE GIANT, 36.7 LY, THE BRIGHTEST OF THE NORTHERN SKY"]],
+  vega: [["NOT NAMED BY LAZAR OR LEAR \u00b7 LYRAN LORE IS LATER CONTACTEE MATERIAL", "contact"],
+         ["THE STAR: A WHITE STAR 25 LY OUT WITH A DUST DISC \u00b7 THE POLE STAR AGAIN IN 12,000 YEARS"]],
+  orio: [["LEAR-CIRCLE LISTS (DERIVATIVE): \u2018TALL GREYS FROM BELLATRIX AND RIGEL\u2019 \u00b7 LEAR HIMSELF NEVER SAID IT", "lear"],
+         ["THE STAR: RIGEL IS A BLUE SUPERGIANT ABOUT 8 MILLION YEARS OLD, 860 LY \u00b7 A HARD PLACE FOR A CIVILISATION"]],
+  andr: [["NOT NAMED BY LAZAR OR LEAR \u00b7 ANDROMEDAN LORE IS 1990S CONTACTEE MATERIAL (COLLIER)", "contact"],
+         ["THE PLACE: A WHOLE GALAXY, 2.5 MILLION LY, ABOUT A TRILLION STARS"]],
+  proc: [["GEORGE ANDREWS, 1993: \u2018THE PROCYON NORDICS, THE SWEDES\u2019 \u00b7 GREW FROM ONE LINE IN THE KRILL PAPERS \u00b7 LEAR CIRCLE, SECOND-HAND", "lear"],
+         ["THE STAR: AN F-TYPE STAR 11.5 LY OUT WITH A WHITE-DWARF COMPANION \u00b7 THE LITTLE DOG STAR"]],
+  drac: [["BRANTON AND ALEX COLLIER, 1990S: REPTILIANS FROM ALPHA DRACONIS \u00b7 NOT LAZAR, NOT LEAR", "contact"],
+         ["THE STAR: THUBAN, 303 LY \u00b7 THE POLE STAR WHEN THE PYRAMIDS WENT UP, 2700 BC \u00b7 GIZA\u2019S SHAFT POINTS AT IT"]]
 };
+function claimsFor(id) { const c = CLAIMS[id]; return c ? c.filter((r) => loreOn(r[1])).map((r) => r[0]) : []; }   // only the voices he keeps on
+const DOTY_WARN = "DOTY\u2019S WARNING: TWO OF THE RACES HE PLACES IN THIS SYSTEM ARE THE ONES HE CALLS HOSTILE \u00b7 THE EBENS ARE NOT";
 const QUOTES = {                                                 // in their own words, verbatim, with the source; none = not named by anyone first-hand
-  zeta: [["These beings are from Reticulum 4 which is the 4th planet out from Zeta 2 Reticuli.", "BOB LAZAR", 1991, "https://www.meta-religion.com/Paranormale/UFO/Bob_lazar/zeta_2_reticuli.htm"],
-         ["The only known home of these visitors is that of the EBE\u2019s and which is Zeta Reticuli 1 & 2", "JOHN LEAR", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/"],
-         ["It was what they called ZR3. So it was a third planet in that star system.", "BOB LAZAR ON JOE ROGAN", 2019, "https://singjupost.com/transcript-bob-lazar-jeremy-corbell-on-joe-rogan-podcast-1315/"]],
-  plei: [["Similar to Humans. Blond hair, blue eyes.", "JOHN LEAR ON THE BLONDS (NO STAR NAMED)", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/"]],
-  siri: [["Men in black. Wear all black. Sunglasses. Very pale skin.", "JOHN LEAR (THE SIRIUS LINK IS THE KRILL PAPERS\u2019)", 1987, "https://sacred-texts.com/ufo/krill3.htm"]],
-  orio: [["They are definitely cybernetic organisms. They are not a species themselves. They work for someone else.", "JOHN LEAR ON THE GREYS, LAS VEGAS", 1990, "https://thelivingmoon.com/47john_lear/03documents/Aliens_at_Area_51_08_25_1988.html"]],
-  proc: [["Very Tall Race: Look like humans but 7 or 8 ft. tall. Unit with Blonds.", "JOHN LEAR (PROCYON WAS ADDED BY ANDREWS, 1993)", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/"]],
-  drac: [["\u2026reptilian-skinned saurians\u2026", "BRANTON, THE DRACONIAN/SAURIAN WAR CONSPIRACY", 1990, "https://sacred-texts.com/ufo/conspire.htm"]],
+  zeta: [["These beings are from Reticulum 4 which is the 4th planet out from Zeta 2 Reticuli.", "BOB LAZAR", 1991, "https://www.meta-religion.com/Paranormale/UFO/Bob_lazar/zeta_2_reticuli.htm", "lazar"],
+         ["The only known home of these visitors is that of the EBE\u2019s and which is Zeta Reticuli 1 & 2", "JOHN LEAR", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/", "lear"],
+         ["It was what they called ZR3. So it was a third planet in that star system.", "BOB LAZAR ON JOE ROGAN", 2019, "https://singjupost.com/transcript-bob-lazar-jeremy-corbell-on-joe-rogan-podcast-1315/", "lazar"],
+         ["One of the species is very hostile.", "THE SERPO BRIEFING DOTY VOUCHED FOR, RELEASE 27A", 2006, "https://alienvisitorevidence.blogspot.com/2010/10/5-species-described-in-serpo-releases.html", "doty"]],
+  plei: [["Similar to Humans. Blond hair, blue eyes.", "JOHN LEAR ON THE BLONDS (NO STAR NAMED)", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/", "lear"]],
+  siri: [["Men in black. Wear all black. Sunglasses. Very pale skin.", "JOHN LEAR (THE SIRIUS LINK IS THE KRILL PAPERS\u2019)", 1987, "https://sacred-texts.com/ufo/krill3.htm", "lear"]],
+  orio: [["They are definitely cybernetic organisms. They are not a species themselves. They work for someone else.", "JOHN LEAR ON THE GREYS, LAS VEGAS", 1990, "https://thelivingmoon.com/47john_lear/03documents/Aliens_at_Area_51_08_25_1988.html", "lear"]],
+  proc: [["Very Tall Race: Look like humans but 7 or 8 ft. tall. Unit with Blonds.", "JOHN LEAR (PROCYON WAS ADDED BY ANDREWS, 1993)", 1987, "https://obscurantist.com/texts/john-lear-letter-december-13-1987/", "lear"]],
+  drac: [["\u2026reptilian-skinned saurians\u2026", "BRANTON, THE DRACONIAN/SAURIAN WAR CONSPIRACY", 1990, "https://sacred-texts.com/ufo/conspire.htm", "contact"]],
   arct: [], vega: [], andr: []
 };
-function quoteFor(s) { const q = QUOTES[s.id]; return q && q.length ? q[Math.floor(performance.now() / 20000) % q.length] : null; }
+function quoteFor(s) { const q = (QUOTES[s.id] || []).filter((x) => loreOn(x[4])); return q.length ? q[Math.floor(performance.now() / 20000) % q.length] : null; }
 function wrapLines(str, maxCh) {                                 // word-wrap for the small type
   const out = []; let line = "";
   for (const w of String(str).split(" ")) {
@@ -3414,7 +3431,7 @@ function wrapLines(str, maxCh) {                                 // word-wrap fo
   if (line) out.push(line); return out;
 }
 function drawClaims(cx, y, s, alpha) {                           // the claims under the home-system look
-  const rows = CLAIMS[s.id]; if (!rows || !S.lore) return 0;
+  const rows = claimsFor(s.id); if (!rows.length) return 0;
   const maxCh = Math.max(30, Math.floor((W - 24) / 5.8)), lines = [];
   rows.forEach((r, i) => { wrapLines(r, maxCh).forEach((l, j) => lines.push({ l, head: j === 0 })); });
   ctx.globalAlpha = alpha; ctx.textAlign = "center"; ctx.font = "9.5px ui-monospace, Menlo, monospace";
@@ -4369,9 +4386,9 @@ function drawUnitBirth(p, t) {                                  // the Triangle'
     (run > 0.05 ? "RUNNING DARK · " + BERMUDA.speed : "HOLDING STATION · DARK") +
     " · " + BERMUDA.depth + " DOWN", "#9fd8ff", "center");
   if (!wpHit.has("u1")) { wpHit.add("u1"); log("THE UNIT ANSWERS — RUNNING DARK AT " + BERMUDA.speed + ", NO LIGHTS ON IT", "cy");
-    if (S.lore) log("AS TOLD ON /X/ IN 2023: \u2018BURGER\u2019-SHAPED, NO LIGHTS, NO VISIBLE WEAPONS \u00b7 IT SITS THROUGH HURRICANES \u00b7 THE NAVY CANNOT FIND IT \u00b7 A CLAIM, NOT A FACT", "cy"); }
+    if (loreOn("anon")) log("AS TOLD ON /X/ IN 2023: \u2018BURGER\u2019-SHAPED, NO LIGHTS, NO VISIBLE WEAPONS \u00b7 IT SITS THROUGH HURRICANES \u00b7 THE NAVY CANNOT FIND IT \u00b7 A CLAIM, NOT A FACT", "cy"); }
   if (p >= 0.2 && !wpHit.has("u0")) { wpHit.add("u0"); log("GRAVITY BENDS AROUND THE HULL — THE WATER LEANS IN", "cy");
-    if (S.lore) log("THE ANON SAID IT IS TRACKED BY THE GRAVITY IT MAKES, AND THAT IT DESTROYS WHAT COMES TOO CLOSE: FIGHTERS AND A SUB WENT OUT ONCE, ONLY THE SUB CAME BACK", "cy"); }
+    if (loreOn("anon")) log("THE ANON SAID IT IS TRACKED BY THE GRAVITY IT MAKES, AND THAT IT DESTROYS WHAT COMES TOO CLOSE: FIGHTERS AND A SUB WENT OUT ONCE, ONLY THE SUB CAME BACK", "cy"); }
   if (p >= 0.34 && !wpHit.has("uS")) { wpHit.add("uS"); log("IT STOPS DEAD — NO WAKE, NO SOUND", "cy"); cueStage("IT HAS STOPPED"); }
   if (p >= 0.32 && !wpHit.has("u2")) { wpHit.add("u2"); log("HATCH OPEN — SOMETHING IS BEING BORN"); cueSub("HOLD STILL · THE HATCH IS OPEN"); }
   if (p >= 0.5 && !wpHit.has("u3")) { wpHit.add("u3"); log("ORBS OUT — SILVER, SILENT, FOUR OF THEM", "cy"); cueStage("THE ORBS ARE OUT"); cueSub("SILVER SPHERES · RISING"); }
@@ -4700,6 +4717,7 @@ function engage() {
       Math.round(kmBetween(BERMUDA, TARGET)).toLocaleString() + " KM TO YOU");
   } else {
     log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
+    if (!allChannels && selected.id === "zeta" && loreOn("doty")) log(DOTY_WARN, "alert");
     log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + (S.polaris ? " → POLARIS → SOL" : " → SOL"));
     log("STAGE 1: ORIGIN — " + selected.name, "cy");
     setPhase("origin", "ORIGIN SYSTEM");
@@ -5879,7 +5897,7 @@ function chartTap(cx, cy) {
     const o = MODES.find((q) => q.id === m.id); if (!o) continue;
     cand.push({ k: d / 22, act: () => { pickDeparture(o);
       if (o.id === "luna" && PURSUE && PURSUE.moon) log("THE PURSUE FILES HOLD " + PURSUE.moon + " RELEASED RECORDS ABOUT THE MOON AND " + PURSUE.orbit + " ABOUT LOW EARTH ORBIT", "cy");
-      if (o.id === "berm" && S.lore) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
+      if (o.id === "berm" && loreOn("anon")) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
     } });
   }
   for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
@@ -6303,6 +6321,10 @@ function setupPack() {                                           // only what he
     }
     if (bits !== base) parts.push("zy" + bits.toString(36));
   }
+  if (S.loreBy) {                                                // the six voices, one number; all-on is the default and travels as nothing
+    let lb = 0; for (let i = 0; i < LORE_BY.length; i++) if (S.loreBy[LORE_BY[i]] !== false) lb |= 1 << i;
+    if (lb !== (1 << LORE_BY.length) - 1) parts.push("zl" + lb.toString(36));
+  }
   /* the target is deliberately NOT packed: COPY MINE goes to strangers and it carried his exact roof.
      The share-this-spot link exists for the one person who should have it. Old codes with zt still open. */
   if (selected && selected.id) parts.push("zd" + selected.id);
@@ -6329,6 +6351,7 @@ function setupUnpack(code) {
     if (head === "zt") { const ll = rest.split("_"); if (ll.length === 2 && isFinite(+ll[0]) && isFinite(+ll[1])) { out.t = [+ll[0], +ll[1]]; any = true; } continue; }
     if (head === "zd") { if (rest) { out.d = rest; any = true; } continue; }
     if (head === "zy") { const n = parseInt(rest, 36); if (isFinite(n)) { out.y = n; any = true; } continue; }
+    if (head === "zl") { const n = parseInt(rest, 36); if (isFinite(n)) { out.l = n; any = true; } continue; }
     if (!/^[0-9a-z]{2}$/.test(head)) continue;
     const k = SETUP_KEYS[parseInt(head, 36)];
     if (k === undefined) continue;
@@ -6348,6 +6371,11 @@ function setupApply(o, quiet) {                                  // the factory 
     if (typeof f === "number") { let x = parseFloat(v); if (isFinite(x)) { const c = SETUP_CLAMP[k]; if (c) x = Math.max(c[0], Math.min(c[1], x)); S[k] = x; n++; } continue; }
     if (typeof f === "string") { S[k] = String(v); n++; continue; }
     if (f && typeof f === "object" && v && typeof v === "object") { S[k] = JSON.parse(JSON.stringify(v)); n++; }
+  }
+  if (o.l !== undefined && isFinite(o.l)) {                      // the six voices, unpacked
+    if (!S.loreBy) S.loreBy = {};
+    for (let i = 0; i < LORE_BY.length; i++) S.loreBy[LORE_BY[i]] = !!(o.l & (1 << i));
+    n++;
   }
   if (o.y !== undefined && isFinite(o.y) && S.sysOn) {           // the nine systems, unpacked
     for (let i = 0; i < SETUP_SYS.length; i++) S.sysOn[SETUP_SYS[i]] = !!(o.y & (1 << i));
@@ -6739,6 +6767,7 @@ function loadSettings() {
   try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch (e) {}
   if (!d || !d.S) return false;
   for (const k of Object.keys(S)) if (k in d.S && typeof d.S[k] === typeof S[k]) S[k] = d.S[k];
+  if (!S.loreBy || typeof S.loreBy !== "object") S.loreBy = JSON.parse(JSON.stringify(S_FACTORY.loreBy));   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
@@ -6776,6 +6805,8 @@ function applyS() {                                             // push S into e
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
+  chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
+  chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -6865,6 +6896,9 @@ $("ckOpening").onchange = (e) => (S.opening = e.target.checked);
 $("ckFaces").onchange = (e) => (S.faces = e.target.checked);
 $("ckTapLook").onchange = (e) => (S.tapLook = e.target.checked);
 $("ckLore").onchange = (e) => (S.lore = e.target.checked);
+[["ckLoreLazar", "lazar"], ["ckLoreLear", "lear"], ["ckLoreMeier", "meier"], ["ckLoreContact", "contact"], ["ckLoreAnon", "anon"], ["ckLoreDoty", "doty"]].forEach(([id, k]) => {
+  const el = $(id); if (el) el.onchange = (e) => { if (!S.loreBy) S.loreBy = {}; S.loreBy[k] = e.target.checked; };
+});
 $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loadPursue(); };
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };

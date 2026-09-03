@@ -629,6 +629,8 @@
   .setNote { color: #f0ecdd; font-size: 10px; letter-spacing: 0.06em; }
   .setChk { display: block; font-size: 11px; margin: 7px 0; color: var(--ink); }
   .setChk input { accent-color: var(--amber); margin-inline-end: 8px; }
+  .loreBy { margin: 2px 0 8px 14px; padding-left: 10px; border-left: 1px solid rgba(255,196,107,0.25); }
+  .loreBy .setChk { font-size: 10px; margin: 5px 0; }
 
   /* beacon marker */
   .beacon { position: relative; }
