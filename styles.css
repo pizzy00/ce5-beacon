@@ -857,3 +857,18 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 .bdBarT { flex: 1; height: 8px; background: rgba(255,196,107,0.08); border-radius: 2px; overflow: hidden; }
 .bdBarT i { display: block; height: 100%; min-width: 1px; background: linear-gradient(90deg, rgba(107,227,255,0.55), rgba(107,227,255,0.95)); border-radius: 2px; }
 .bdBarV { flex: 0 0 2.6em; text-align: right; color: var(--cyan); }
+
+/* the systems picker, made obvious */
+@keyframes pickPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(107,227,255,0); } 50% { box-shadow: 0 0 12px 2px rgba(107,227,255,0.6); } }
+#bSysPick, #bSysNow { animation: pickPulse 1.7s ease-in-out infinite; border-color: rgba(107,227,255,0.85); }
+#bSysNow { position: absolute; right: 12px; bottom: calc(var(--ctlH, 128px) + 30px); pointer-events: auto; cursor: pointer;
+  font-size: 9px; letter-spacing: 0.18em; color: #d6f6ff; background: rgba(6,6,16,0.82); border: 1px solid rgba(107,227,255,0.85); border-radius: 4px; padding: 5px 9px; }
+body.run #bSysNow, body.active #bSysNow, body.intro #bSysNow, body.introHud #bSysNow { display: none; }
+@media (prefers-reduced-motion: reduce) { #bSysPick, #bSysNow { animation: none; box-shadow: 0 0 8px 1px rgba(107,227,255,0.45); } }
+/* the settings contents */
+#setToc { margin: 8px 0 14px; padding: 8px 10px 6px; border: 1px solid rgba(107,227,255,0.3); border-radius: 6px; }
+#setToc .setStat { margin: 0 0 6px; }
+.setTocRow { flex-wrap: wrap; gap: 6px; margin: 0; }
+.setTocRow .setBtn { font-size: 9.5px; padding: 5px 9px; }
+.setTop { justify-content: flex-end; margin: 4px 0 8px; }
+.setTop .setBtn { font-size: 9px; padding: 4px 9px; opacity: 0.85; }

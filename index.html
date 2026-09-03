@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=26" />
+<link rel="stylesheet" href="styles.css?v=27" />
 </head>
 <body class="intro introHud">
 
@@ -156,6 +156,7 @@
       <label class="setChk"><input type="checkbox" id="ckRoadster" checked />STARMAN — THE TESLA ROADSTER SPACEX THREW PAST MARS IN 2018, ROUGHLY WHERE IT IS TODAY</label>
       <label class="setChk"><input type="checkbox" id="ckIso" checked />VISITORS FROM ANOTHER STAR: 3I/ATLAS, 1I/ʻOUMUAMUA AND 2I/BORISOV TAKE TURNS CROSSING THE CHART ON THE REAL HYPERBOLA THAT BROUGHT THEM THROUGH · THEY PASS ONCE AND NEVER RETURN</label>
       <label class="setChk"><input type="checkbox" id="ckAges" />HOW OLD IS EACH ONE — AGE SINCE THE BIG BANG, AS A BAR AGAINST THE UNIVERSE’S 13.787 BILLION YEARS, WITH A TICK WHERE OUR SUN FALLS · GOLD = OLDER THAN THE SUN, CYAN = YOUNGER · REAL PUBLISHED AGES · IT IS THE AGE OF THE STAR, NOT OF ANYONE WHO MIGHT BE THERE</label>
+      <label class="setChk"><input type="checkbox" id="ckTimeline" />THE BIG BANG TO US — A TIMELINE DOWN THE SIDE OF THE SKY: THE BIG BANG AT THE TOP, EVERY SYSTEM AT ITS AGE IN ORDER, OUR SUN, THEN YOU TONIGHT AT THE BOTTOM · A LOG SCALE, OR RIGEL WOULD SIT ON THE FLOOR</label>
       <label class="setChk"><input type="checkbox" id="ckExo" />HABITABLE WORLDS — 17 KNOWN GOLDILOCKS PLANETS, PLACED WHERE THEY REALLY SIT IN THE SKY</label>
       <label class="setChk"><input type="checkbox" id="ckStar" />STARLINK SWARM AROUND EARTH — THOUSANDS OF THEM UP THERE</label>
       <label class="setChk"><input type="checkbox" id="ckDeep" />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
@@ -771,6 +772,7 @@
 </div>
 <div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">ALIEN SYSTEM CHART</span> <span id="blink">▌</span><span id="hintDT">DOUBLE-TAP THE EARTH TO LOOK CLOSER</span></div>
+  <span id="bSysNow" class="display" role="button" tabindex="0">WHICH SYSTEMS ▸</span>
   <div id="tapHint" class="display">TAP THE SCREEN TO SKIP TO THE NEXT STAGE</div>
   <div id="crumb" class="display"></div>
 </div>
@@ -826,7 +828,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, timeline: false, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -3087,7 +3089,7 @@ function lblFlush() {
   const q = LBL; LBL = null;
   q.sort((a, b) => b.pri - a.pri);
   const kept = [];
-  for (const id of ["bFull", "bMute", "bIdea", "bLang"]) {         // the buttons up the right side are not free ground
+  for (const id of ["bFull", "bMute", "bIdea", "bLang", "bSysNow"]) {         // the buttons up the right side are not free ground
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (r.width < 1) continue;
     kept.push({ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4, must: true, text: "" });
@@ -3697,6 +3699,44 @@ function chartProject(s, rotOff) {                              // the sky as a 
   const y = Math.max(S.polaris ? POLARIS.y * H + 58 : H * 0.055, ey + (y0 - ey) * k) + skyPanY;   // the perspective centre is the centre of the Earth; the pan rides on top
   return { x: sx + X * k, y, k, z: Z };
 }
+/* ---------------- the Big Bang to us: a timeline down the side of the sky ----------------
+   The Big Bang at the top, every switched-on system at its published age in order, our Sun, and tonight at the
+   bottom. A log scale: on a straight one Rigel (8 million years) would sit on the floor next to tonight. */
+function tlY(g, top, bot) {                                      // age in billions of years to a height on the ruler
+  const lo = Math.log10(0.001), hi = Math.log10(T_UNIVERSE);
+  const f = (Math.log10(Math.max(0.001, g)) - lo) / (hi - lo);
+  return top + (bot - top) * (1 - f);
+}
+function drawTimeline(t) {
+  if (gvK() > 0.3 || introK().sky < 0.2) return;
+  const G = earthGeomHome();
+  const top = (S.polaris ? POLARIS.y * H + 44 : H * 0.075) + Math.max(0, skyPanY * 0.3), bot = Math.max(top + 140, G.cy - G.R - 26);
+  const x = Math.max(24, Math.min(W * 0.085, 40)), sz = Math.max(6.5, Math.min(8.5, W / 52));
+  const rows = [{ g: T_UNIVERSE, n: "THE BIG BANG", sub: "13.787 BYR AGO", c: "#fff1d6", big: true }];
+  for (const s of SYSTEMS) { const a = SYS_AGE[s.id]; if (a) rows.push({ g: a.g, n: s.name, sub: a.g.toFixed(a.g < 1 ? 3 : 1) + " BYR", c: s.c }); }
+  rows.push({ g: T_SUN, n: "OUR SUN", sub: "4.57 BYR", c: "#ffd34d", big: true });
+  rows.push({ g: 0.001, n: "YOU, TONIGHT", sub: "THE EARTH", c: "#ffc46b", big: true });
+  rows.sort((a, b) => b.g - a.g);
+  for (const r of rows) r.y = tlY(r.g, top, bot);
+  const minGap = sz * 2.3;                                       // pushed apart so no two names touch, oldest keeps its place
+  for (let i = 1; i < rows.length; i++) if (rows[i].y < rows[i - 1].y + minGap) rows[i].y = rows[i - 1].y + minGap;
+  for (let i = rows.length - 2; i >= 0; i--) if (rows[i].y > rows[i + 1].y - minGap) rows[i].y = rows[i + 1].y - minGap;   // and nothing below the floor
+  const pulse = 0.55 + 0.45 * Math.sin(t * 2.2);
+  ctx.save();
+  ctx.strokeStyle = "rgba(232,226,212,0.28)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, rows[0].y); ctx.lineTo(x, rows[rows.length - 1].y); ctx.stroke();
+  const gl = ctx.createRadialGradient(x, rows[0].y, 0, x, rows[0].y, 26);   // the first light
+  gl.addColorStop(0, "rgba(255,241,214," + (0.35 + 0.25 * pulse) + ")"); gl.addColorStop(1, "rgba(255,241,214,0)");
+  ctx.fillStyle = gl; ctx.fillRect(x - 26, rows[0].y - 26, 52, 52);
+  for (const r of rows) {
+    ctx.fillStyle = r.c; ctx.globalAlpha = r.big ? 0.95 : 0.85;
+    ctx.beginPath(); ctx.arc(x, r.y, r.big ? 3 : 2.2, 0, 6.29); ctx.fill();
+    ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(x + 4, r.y); ctx.lineTo(x + 9, r.y); ctx.strokeStyle = r.c; ctx.stroke();
+    ctx.globalAlpha = 1;
+    label(x + 12, r.y + 2, r.n, r.sub, r.c, "left", sz);
+  }
+  ctx.restore(); ctx.globalAlpha = 1;
+}
 function drawChart(t) {
   if (S.chart3d) return drawChart3D(t);
   ctx.clearRect(0, 0, W, H);
@@ -3763,6 +3803,7 @@ function drawChart(t) {
       font: "10px ui-monospace, Menlo, monospace", subFont: "9px ui-monospace, Menlo, monospace", subDy: 12, color: selected.c, glow: true,
       x: sx, y: sy - Math.min(W, H) * 0.135 - 30, align: "center", pri: 6, must: true });
   }
+  if (S.timeline && phase === "chart") drawTimeline(t);
   lblFlush();
 }
 
@@ -4074,6 +4115,7 @@ function drawChart3D(t) {
         x: sx, y: sy - 30, align: "center", pri: 6, must: true });
     }
   }
+  if (S.timeline && phase === "chart") drawTimeline(t);
   lblFlush();
   drawSystemView(t);
 }
@@ -6528,7 +6570,22 @@ function locate() {
         : "NO ANSWER FROM THE GEOCODER \u2014 CHECK YOUR SIGNAL AND RETRY, OR PASTE: LAT, LON";
     });
 }
+/* ---------------- the settings page: a table of contents at the top, BACK TO TOP under every section ---------------- */
+function setTocBuild() {
+  const card = $("setCard"), boxes = [...card.querySelectorAll(".setBox")];
+  let toc = $("setToc");
+  if (!toc) { toc = document.createElement("div"); toc.id = "setToc"; card.querySelector(".setHead").insertAdjacentElement("afterend", toc); }
+  toc.innerHTML = '<div class="setStat">TAP A SECTION TO JUMP TO IT</div><div class="bdBtns setTocRow">' +
+    boxes.map((b, i) => '<span class="setBtn" data-sec="' + i + '">' + esc(b.querySelector(".setSec").textContent) + "</span>").join("") + "</div>";
+  toc.querySelectorAll("[data-sec]").forEach((el) => { el.onclick = () => { sfx("key"); boxes[+el.dataset.sec].scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }); }; });
+  for (const b of boxes) {
+    let d = b.querySelector(".setTop");
+    if (!d) { d = document.createElement("div"); d.className = "bdBtns setTop"; d.innerHTML = '<span class="setBtn">\u25b4 BACK TO TOP</span>'; b.appendChild(d); }
+    d.firstChild.onclick = () => { sfx("key"); card.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); };
+  }
+}
 $("bGear").onclick = () => { updateShareLink(); $("settings").classList.remove("hide"); };
+setTocBuild();
 $("bClose").onclick = () => $("settings").classList.add("hide");
 const S_FACTORY = JSON.parse(JSON.stringify(S));   // the console as it leaves the bench: what a shared code is measured against
 const SAVE_KEY = "ce5.console.v1";
@@ -7172,6 +7229,7 @@ function applyLang() {
   fitHud();
   const secs = document.querySelectorAll("#setCard .setSec"), names = L10N.secs[uiLang] || L10N.secs.en;
   secs.forEach((el, i) => { if (names[i]) el.textContent = names[i]; });
+  setTocBuild();                                                // the contents follow the section names
   loadDict();
 }
 function langBuild() {
@@ -7282,6 +7340,8 @@ function sysListBuild() {                                        // the one-by-o
   }));
 }
 $("bSysPick").onclick = () => { sysListBuild(); $("sysPick").classList.remove("hide"); };
+$("bSysNow").onclick = () => { sfx("key"); sysListBuild(); $("sysPick").classList.remove("hide"); };   // the same picker, one tap from the chart
+$("bSysNow").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("bSysNow").onclick(); } };
 $("bSysClose").onclick = () => $("sysPick").classList.add("hide");
 $("sysPick").addEventListener("click", (e) => { if (e.target === $("sysPick")) $("sysPick").classList.add("hide"); });
 document.querySelectorAll(".sysPre .setBtn").forEach((b) => (b.onclick = () => {
@@ -7386,7 +7446,7 @@ function applyS() {                                             // push S into e
   set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
-  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckAges", S.ages);
+  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckAges", S.ages); chk("ckTimeline", !!S.timeline);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("rIdle", S.idleBack); txt("vIdle", S.idleBack); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
@@ -7532,6 +7592,7 @@ $("rFleetN").oninput = (e) => { S.fleetN = +e.target.value; $("vFleetN").textCon
 $("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
 $("ckPoles").onchange = (e) => (S.poles = e.target.checked);
 $("ckAges").onchange = (e) => { S.ages = e.target.checked; if (S.ages) ageTell(); };
+$("ckTimeline").onchange = (e) => { S.timeline = e.target.checked; if (S.timeline) log("THE BIG BANG AT THE TOP, YOU AT THE BOTTOM \u00b7 EVERY SYSTEM AT ITS AGE \u00b7 LOG SCALE", "cy"); };
 $("rSpin").oninput = (e) => { S.spin = +e.target.value / 100; $("vSpin").textContent = spinText(S.spin); };
 $("rDeep").oninput = (e) => { S.deepA = +e.target.value / 100; $("vDeep").textContent = e.target.value;
   if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
