@@ -243,6 +243,10 @@
       <div class="setStat">THEIR HOME SYSTEM + THE CROSSING · LEFT = SLOW AND LONG · RIGHT = FAST</div>
     </div>
     <div class="setRow">
+      <div class="setLbl">AFTER A RUN — BACK TO THE CHART ON ITS OWN AFTER <span id="vIdle">60</span>S OF QUIET · 0 = STAY UNTIL YOU PRESS REPLAY</div>
+      <input type="range" id="rIdle" min="0" max="300" step="10" value="60" />
+    </div>
+    <div class="setRow">
       <div class="setLbl">THE ROSEN BRIDGE</div>
       <label class="setChk"><input type="checkbox" id="ckBridge" />FOLD THROUGH AN EINSTEIN-ROSEN BRIDGE — THEIR WORLD, THEN THE THROAT, THEN STRAIGHT DOWN ONTO THE MAP</label>
       <div class="setStat">A WORMHOLE THROAT DRAWN LIVE IN WEBGL · TAP TO SKIP LIKE ANY STAGE · PHONES WITHOUT WEBGL GET A 2D THROAT</div>
@@ -816,7 +820,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
   crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
+  polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
@@ -5587,6 +5591,7 @@ function arrive() {
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
   ["bReplay", "bTone", "bTarget", "bGps", "bSend", "bCard"].forEach((b) => $(b).classList.remove("hide"));
+  idleArm();                                                    // the quiet clock: a minute untouched and the chart comes back
   const callOut = () => {                                        // the message goes out last
     flyStop(); bridgeStop();                                    // on the ground: the wind dies
     blip(523, 523, 0.4, 0.05); setTimeout(() => blip(659, 659, 0.5, 0.045), 200);   // touchdown: two notes
@@ -5604,7 +5609,30 @@ function arrive() {
   } else callOut();
 }
 
+/* ---------------- quiet after a run: the chart comes back on its own ----------------
+   The beacon is down, nobody has touched the screen for S.idleBack seconds: back to the start screen for the next run.
+   Any touch or key resets the clock; an open card (settings, the field card, the log) holds it; 0 turns it off. */
+let idleTimer = 0, idleWarn = 0;
+function idleClear() { clearTimeout(idleTimer); clearTimeout(idleWarn); idleTimer = idleWarn = 0; }
+function idleArm() {
+  idleClear();
+  if (phase !== "active" || !S.idleBack) return;
+  const ms = S.idleBack * 1000;
+  if (ms > 15000) idleWarn = setTimeout(() => { if (phase === "active") log("QUIET \u00b7 BACK TO THE CHART IN 10 S \u00b7 TOUCH THE SCREEN TO STAY", "cy"); }, ms - 10000);
+  idleTimer = setTimeout(idleFire, ms);
+}
+function idleFire() {
+  idleTimer = 0;
+  if (phase !== "active") return;
+  if (["settings", "info", "board"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
+  replay();
+}
+document.addEventListener("pointerdown", () => { if (phase === "active") idleArm(); }, { passive: true, capture: true });
+document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
+setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 function replay() {
+  idleClear();
   if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
   flyStop(); bridgeStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
@@ -7286,7 +7314,8 @@ function loadSettings() {
   if (!S.face) S.face = "both";
   if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 8; S.bridgeSnd = "hum"; S.bridgeVol = 30; }
   if (!S.bridgeLook) { S.bridgeLook = "cyan"; S.bridgeStyle = "throat"; }
-  if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
+  if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood
+  if (S.idleBack === undefined) S.idleBack = 60;                // saves from before the chart came back on its own   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
@@ -7306,7 +7335,7 @@ function applyS() {                                             // push S into e
   set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckAges", S.ages);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("rIdle", S.idleBack); txt("vIdle", S.idleBack); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion);
   reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
@@ -7380,6 +7409,7 @@ $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
 $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckBridge").onchange = (e) => { S.bridge = e.target.checked; if (S.bridge) bridgeLoad(); };
 $("rBridge").oninput = (e) => { S.bridgeSec = +e.target.value; $("vBridge").textContent = S.bridgeSec; };
+$("rIdle").oninput = (e) => { S.idleBack = +e.target.value; $("vIdle").textContent = S.idleBack; if (phase === "active") idleArm(); };
 $("selBridgeSnd").onchange = (e) => { S.bridgeSnd = e.target.value; if (S.bridge && S.bridgeSnd === "bed") bridgeAudioLoad(); };
 $("selBridgeLook").onchange = (e) => { S.bridgeLook = e.target.value; if (window.BRIDGE && BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); };
 $("selBridgeStyle").onchange = (e) => { S.bridgeStyle = e.target.value; if (window.BRIDGE && BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); };
