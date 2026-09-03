@@ -4230,12 +4230,18 @@ const SPECIES = {                                                // the field sk
   REPTILIANS:  { hw: 27, hh: 36, top: 5,  eye: [6, 7, 0, "slit"], neck: 12, sh: 46, skin: "#7da874", ridge: 1, ht: "2.0\u20132.7 M", note: "SCALED SKIN \u00b7 VERTICAL PUPILS \u00b7 THE DRACO STORY OF THE 1990S" }
 };
 /* ---------------- the renders: AI portraits built from the witness descriptions (Chroma on the box), she and he ---------------- */
-const FACE_DOTY = [                                              // Doty's Zeta races from the Serpo releases; shown only with his lore on
-  ["EBEN", "1.5 M", "SERPO \u00b7 THE EXCHANGE RACE \u00b7 DOTY CALLS THEM FRIENDLY"],
-  ["ARCHQULOID", "1.7 M", "PONTEL, CYGNUS ARM \u00b7 BIG-NOSED GREYS \u00b7 ENGINEERED BY THE EBENS"],
-  ["QUADLOID", "ABOUT 2 M", "OTTO \u00b7 MANTIS AND LIZARD \u00b7 DOTY CALLS THEM HOSTILE"],
-  ["TRANTALOID", "ABOUT 1.8 M", "SILUS \u00b7 AN INSECT UNDER A BLOND HUMAN MASK \u00b7 DOTY CALLS THEM HOSTILE"]
-];
+const FACE_EXTRA = {                                              // the faces each voice adds to a system's card; each shows only with that voice ticked
+  zeta: [                                                        // Doty's Zeta races from the Serpo releases
+    { k: "EBEN", n: "EBEN", ht: "1.5 M", note: "SERPO \u00b7 THE EXCHANGE RACE \u00b7 DOTY CALLS THEM FRIENDLY", by: "doty" },
+    { k: "ARCHQULOID", n: "ARCHQULOID", ht: "1.7 M", note: "PONTEL, CYGNUS ARM \u00b7 BIG-NOSED GREYS \u00b7 ENGINEERED BY THE EBENS", by: "doty" },
+    { k: "QUADLOID", n: "QUADLOID", ht: "ABOUT 2 M", note: "OTTO \u00b7 MANTIS AND LIZARD \u00b7 DOTY CALLS THEM HOSTILE", by: "doty" },
+    { k: "TRANTALOID", n: "TRANTALOID", ht: "ABOUT 1.8 M", note: "SILUS \u00b7 AN INSECT UNDER A BLOND HUMAN MASK \u00b7 DOTY CALLS THEM HOSTILE", by: "doty" },
+    { k: "TRANTMASK", n: "TRANTALOID, MASKED", ht: "ABOUT 1.8 M", note: "THE BLOND HUMAN FACE THEY WEAR AMONG US, DOTY SAYS \u00b7 TOO PERFECT, TOO STILL", by: "doty" }
+  ],
+  plei: [ { k: "PLEJAREN", n: "PLEJAREN", ht: "1.7\u20131.8 M", note: "ERRA, BEYOND TAYGETA \u00b7 MEIER'S VISITORS SINCE 1975 \u00b7 HUMAN TO THE EYE", by: "meier" } ],
+  orio: [ { k: "ORIONGREY", n: "ORION GREY", ht: "ABOUT 1.5 M", note: "LEAR'S BIG-NOSED GREYS FROM ORION \u00b7 1987 \u00b7 NOT THE ZETA KIND", by: "lear" } ]
+};
+const FACE_DOTY = FACE_EXTRA.zeta.filter((d) => d.by === "doty").map((d) => [d.n, d.ht, d.note]);   // the old shape, for anything still reading it
 const FACE_IMG = {}, FACE_TURN = 5;                                // seconds per face when they take turns
 function faceImg(kind, sex) {
   const key = kind.toLowerCase() + "-" + sex;
@@ -4246,7 +4252,8 @@ function faceImg(kind, sex) {
 function faceTurns(kind, s) {                                     // who gets a turn on this card
   const sexes = S.face === "m" ? ["m"] : S.face === "f" ? ["f"] : ["f", "m"];
   const kinds = [[kind, null]];
-  if (s && s.id === "zeta" && typeof loreOn === "function" && loreOn("doty")) for (const d of FACE_DOTY) kinds.push([d[0], d]);
+  const ex = s && FACE_EXTRA[s.id];
+  if (ex && typeof loreOn === "function") for (const d of ex) if (loreOn(d.by)) kinds.push([d.k, d]);
   const out = [];
   for (const kd of kinds) for (const sx of sexes) out.push({ kind: kd[0], doty: kd[1], sex: sx });
   return out;
@@ -4257,7 +4264,7 @@ function faceFor(kind, s, t) {                                    // the render 
   const img = faceImg(tu.kind, tu.sex);
   if (!img) return null;
   const who = tu.sex === "f" ? "SHE" : "HE", fade = n > 1 ? Math.min(1, (t % FACE_TURN) / 0.5) : 1;
-  return tu.doty ? { img, fade, title: tu.doty[0] + " \u00b7 " + tu.doty[1] + " \u00b7 " + who, note: tu.doty[2] }
+  return tu.doty ? { img, fade, title: tu.doty.n + " \u00b7 " + tu.doty.ht + " \u00b7 " + who, note: tu.doty.note }
                  : { img, fade, title: s.tag + " \u00b7 " + P.ht + " \u00b7 " + who, note: P.note };
 }
 function facePreload() {
