@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=28" />
+<link rel="stylesheet" href="styles.css?v=29" />
 </head>
 <body class="intro introHud">
 
@@ -102,6 +102,7 @@
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
+      <label class="setChk"><input type="checkbox" id="ckVoice" checked />THE VOICE &#8212; READS THE FIRST-NIGHT GUIDE, AND WHO YOU ARE CALLING WHEN YOU TAP THEIR PORTRAIT</label>
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
       <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
@@ -172,6 +173,7 @@
       <label class="setChk"><input type="checkbox" id="ckPoles" checked />THE ARCTIC AND THE ANTARCTIC: BOTH POLAR CIRCLES ON THE GLOBE AT THEIR REAL 66.57°, NAMED WHEN YOU LEAN IN · BETWEEN THEM, THE LEAST-WATCHED GROUND ON EARTH</label>
       <label class="setChk"><input type="checkbox" id="ckSites" checked />THE OLD ONES' SKY-ALIGNED PLACES — GIZA, STONEHENGE, TEOTIHUACAN AND 12 MORE · TAP ONE FOR ITS STORY</label>
       <label class="setChk"><input type="checkbox" id="ckPyr" checked />THE PYRAMIDS OF GIZA — A 3D MODEL OF THE THREE ON THE GLOBE, THEIR REAL LAYOUT, SQUARE TO TRUE NORTH, LIT BY THE SUN · BIGGER AND TALLER THAN LIFE SO YOU CAN SEE THEM</label>
+      <label class="setChk"><input type="checkbox" id="ckNukes" />EVERY KNOWN NUCLEAR TEST SITE &#8212; 42 RED MARKS: USA, USSR, UK, FRANCE, CHINA, INDIA, PAKISTAN, NORTH KOREA, THE VELA FLASH NOBODY CLAIMED, AND THE TWO CITIES · TAP ONE FOR ITS LINE</label>
       <div class="setLbl">THE GLOBE'S SURFACE</div>
       <select id="selEarth">
         <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
@@ -828,7 +830,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, timeline: false, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -1292,6 +1294,51 @@ const PLANETS = [                                               // real order ou
 ];
 let pendingResel = false;                                        // a departure was switched off while we were away from the chart
 let earthRot = 75, earthLastT = 0, modeHit = [], sunTex = null;   // 75 puts the Triangle and the trench up front
+const TEST_SITES = [                                             // every known nuclear test site, by the country that fired it (public record; counts are the usual published ones)
+  { n: "TRINITY", lat: 33.677, lon: -106.475, s: "USA \u00b7 NEW MEXICO \u00b7 16 JULY 1945 \u00b7 THE FIRST" },
+  { n: "NEVADA TEST SITE", lat: 37.0, lon: -116.05, s: "USA \u00b7 928 TESTS 1951\u201392 \u00b7 100 IN THE AIR, THE REST UNDERGROUND" },
+  { n: "BIKINI ATOLL", lat: 11.6, lon: 165.4, s: "USA \u00b7 MARSHALL ISLANDS \u00b7 23 TESTS 1946\u201358 \u00b7 CASTLE BRAVO, 15 MEGATONS" },
+  { n: "ENEWETAK ATOLL", lat: 11.5, lon: 162.3, s: "USA \u00b7 MARSHALL ISLANDS \u00b7 43 TESTS 1948\u201358 \u00b7 IVY MIKE, THE FIRST H-BOMB" },
+  { n: "JOHNSTON ATOLL", lat: 16.73, lon: -169.53, s: "USA \u00b7 HIGH-ALTITUDE SHOTS 1958\u201362 \u00b7 STARFISH PRIME LIT THE SKY FROM HAWAII" },
+  { n: "KIRITIMATI", lat: 1.87, lon: -157.4, s: "UK 1957\u201358, USA 1962 \u00b7 CHRISTMAS ISLAND \u00b7 30-ODD AIR BURSTS" },
+  { n: "MALDEN ISLAND", lat: -4.02, lon: -154.93, s: "UK \u00b7 GRAPPLE 1957 \u00b7 THREE AIR BURSTS" },
+  { n: "AMCHITKA", lat: 51.42, lon: 179.15, s: "USA \u00b7 ALASKA \u00b7 3 UNDERGROUND 1965\u201371 \u00b7 CANNIKIN, 5 MEGATONS" },
+  { n: "WIGWAM", lat: 28.7, lon: -126.3, s: "USA \u00b7 DEEP PACIFIC 1955 \u00b7 ONE SHOT 600 M UNDER THE SEA" },
+  { n: "ARGUS", lat: -45.0, lon: 10.0, s: "USA \u00b7 SOUTH ATLANTIC 1958 \u00b7 THREE SHOTS IN SPACE, FROM A SHIP" },
+  { n: "GNOME", lat: 32.26, lon: -103.87, s: "USA \u00b7 CARLSBAD, NM 1961 \u00b7 A PEACEFUL SHOT IN SALT" },
+  { n: "GASBUGGY", lat: 36.68, lon: -107.21, s: "USA \u00b7 NEW MEXICO 1967 \u00b7 A SHOT TO FREE GAS" },
+  { n: "RULISON", lat: 39.41, lon: -107.95, s: "USA \u00b7 COLORADO 1969 \u00b7 A SHOT TO FREE GAS" },
+  { n: "RIO BLANCO", lat: 39.79, lon: -108.37, s: "USA \u00b7 COLORADO 1973 \u00b7 THREE AT ONCE, THE LAST PEACEFUL SHOT" },
+  { n: "FAULTLESS", lat: 38.63, lon: -116.21, s: "USA \u00b7 CENTRAL NEVADA 1968 \u00b7 ONE UNDERGROUND" },
+  { n: "SHOAL", lat: 39.2, lon: -118.38, s: "USA \u00b7 FALLON, NV 1963 \u00b7 ONE UNDERGROUND" },
+  { n: "SALMON", lat: 31.14, lon: -89.57, s: "USA \u00b7 MISSISSIPPI 1964, 1966 \u00b7 TWO IN A SALT DOME" },
+  { n: "SEMIPALATINSK", lat: 50.07, lon: 78.43, s: "USSR \u00b7 KAZAKHSTAN \u00b7 456 TESTS 1949\u201389 \u00b7 THE POLYGON" },
+  { n: "NOVAYA ZEMLYA", lat: 73.4, lon: 54.8, s: "USSR \u00b7 130 TESTS 1955\u201390 \u00b7 TSAR BOMBA 1961, 50 MEGATONS, THE BIGGEST EVER" },
+  { n: "KAPUSTIN YAR", lat: 48.57, lon: 46.3, s: "USSR \u00b7 1957\u201362 \u00b7 HIGH-ALTITUDE SHOTS ON ROCKETS" },
+  { n: "TOTSKOYE", lat: 52.63, lon: 52.8, s: "USSR \u00b7 1954 \u00b7 ONE AIR BURST WITH 45,000 TROOPS SENT THROUGH" },
+  { n: "AZGIR", lat: 47.9, lon: 47.9, s: "USSR \u00b7 KAZAKHSTAN \u00b7 17 PEACEFUL SHOTS IN SALT 1966\u201379" },
+  { n: "VEGA", lat: 46.8, lon: 48.1, s: "USSR \u00b7 ASTRAKHAN \u00b7 15 PEACEFUL SHOTS 1980\u201384" },
+  { n: "LIRA", lat: 49.9, lon: 51.3, s: "USSR \u00b7 KARACHAGANAK 1983\u201384 \u00b7 SIX SHOTS UNDER A GAS FIELD" },
+  { n: "TAIGA", lat: 61.3, lon: 56.4, s: "USSR \u00b7 PERM 1971 \u00b7 THREE AT ONCE, TO DIG A CANAL" },
+  { n: "KRATON", lat: 66.2, lon: 112.2, s: "USSR \u00b7 YAKUTIA 1974\u201387 \u00b7 A DOZEN PEACEFUL SHOTS" },
+  { n: "KLIVAZH", lat: 48.07, lon: 38.35, s: "USSR \u00b7 UKRAINE 1979 \u00b7 ONE SHOT UNDER A COAL MINE" },
+  { n: "MONTE BELLO", lat: -20.4, lon: 115.55, s: "UK \u00b7 WESTERN AUSTRALIA \u00b7 1952, 1956 \u00b7 THE FIRST BRITISH SHOT" },
+  { n: "EMU FIELD", lat: -28.7, lon: 132.37, s: "UK \u00b7 SOUTH AUSTRALIA 1953 \u00b7 TWO TOWER SHOTS" },
+  { n: "MARALINGA", lat: -30.17, lon: 131.62, s: "UK \u00b7 SOUTH AUSTRALIA \u00b7 7 TESTS 1956\u201357 \u00b7 ON ANANGU LAND" },
+  { n: "REGGANE", lat: 26.32, lon: -0.06, s: "FRANCE \u00b7 ALGERIA \u00b7 4 AIR BURSTS 1960\u201361 \u00b7 GERBOISE BLEUE" },
+  { n: "IN EKKER", lat: 24.05, lon: 5.05, s: "FRANCE \u00b7 ALGERIA \u00b7 13 UNDERGROUND 1961\u201366 \u00b7 B\u00c9RYL LEAKED" },
+  { n: "MURUROA", lat: -21.83, lon: -138.9, s: "FRANCE \u00b7 POLYNESIA \u00b7 179 TESTS 1966\u201396" },
+  { n: "FANGATAUFA", lat: -22.25, lon: -138.75, s: "FRANCE \u00b7 POLYNESIA \u00b7 14 TESTS 1966\u201396 \u00b7 CANOPUS, THE FRENCH H-BOMB" },
+  { n: "LOP NUR", lat: 41.5, lon: 88.5, s: "CHINA \u00b7 XINJIANG \u00b7 45 TESTS 1964\u201396" },
+  { n: "POKHRAN", lat: 27.08, lon: 71.72, s: "INDIA \u00b7 RAJASTHAN \u00b7 1974 SMILING BUDDHA, THEN FIVE IN 1998" },
+  { n: "RAS KOH", lat: 28.83, lon: 64.93, s: "PAKISTAN \u00b7 CHAGAI \u00b7 28 MAY 1998 \u00b7 FIVE AT ONCE" },
+  { n: "KHARAN", lat: 28.4, lon: 64.7, s: "PAKISTAN \u00b7 30 MAY 1998 \u00b7 ONE MORE" },
+  { n: "PUNGGYE-RI", lat: 41.28, lon: 129.08, s: "NORTH KOREA \u00b7 6 TESTS 2006\u201317 \u00b7 THE ONLY ONES THIS CENTURY" },
+  { n: "VELA FLASH", lat: -47.0, lon: 40.0, s: "PRINCE EDWARD ISLANDS \u00b7 22 SEPT 1979 \u00b7 A DOUBLE FLASH FROM ORBIT \u00b7 NOBODY EVER CLAIMED IT" },
+  { n: "HIROSHIMA", lat: 34.39, lon: 132.45, s: "USA \u00b7 6 AUGUST 1945 \u00b7 NOT A TEST" },
+  { n: "NAGASAKI", lat: 32.77, lon: 129.86, s: "USA \u00b7 9 AUGUST 1945 \u00b7 NOT A TEST" }
+];
+let nukeHit = [];                                                // the test sites on the globe, for a tap
 let siteHit = [];                                                // the sky-aligned places on the globe, for a tap
 const SKY_SITES = [                                              // where the old ones watched the sky, and what they lined up with
   { n: "GIZA", lat: 29.979, lon: 31.134, s: "THE GREAT PYRAMID IS SQUARE TO TRUE NORTH WITHIN 1/20 OF A DEGREE \u00b7 SHAFTS AIMED AT ORION\u2019S BELT AND THUBAN" },
@@ -3393,6 +3440,22 @@ function drawEarthHub(t) {
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
+  nukeHit = [];
+  if (S.nukes) {                                                // every known nuclear test site: red, off by default
+    const big = earthZoom > 1.25 || gvK() > 0.5, r = big ? 3.2 : 2.4, pulse = 0.5 + 0.5 * Math.sin(t * 3);
+    for (const q of TEST_SITES) {
+      const p = orthPt(q.lon, q.lat, sx, sy, RZ, earthTiltDraw); if (!p.v) continue;
+      nukeHit.push({ q, x: p.x, y: p.y });
+      ctx.globalAlpha = 0.28 + 0.22 * pulse; ctx.strokeStyle = "#ff3b3b"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 2.5 + 1.5 * pulse, 0, 6.29); ctx.stroke();
+      ctx.globalAlpha = 0.95; ctx.fillStyle = "#ff3b3b";
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.29); ctx.fill();
+      if (big) { const r1 = p.x > sx;
+        lblQ({ text: q.n, font: nameFont(6.5), color: "#ff6b6b", alpha: 0.9, x: p.x + (r1 ? 7 : -7) * nameK, y: p.y + 2.5 * nameK, align: r1 ? "left" : "right", pri: 1,
+          alts: [[p.x + (r1 ? -7 : 7) * nameK, p.y + 2.5 * nameK, r1 ? "right" : "left"], [p.x, p.y + 11 * nameK, "center"], [p.x, p.y - 6 * nameK, "center"]] }); }
+    }
+    ctx.globalAlpha = 1;
+  }
   if (S.pyr) drawPyramids(sx, sy, RZ, sunV);                   // the pyramids of Giza stand on the world
   usoHit = [];
   if (S.uso && USO && USO.recs.length) {                        // the water sightings: teal dots
@@ -3962,6 +4025,7 @@ function guideShow(i) {
   $("guideStep").textContent = (i + 1) + " / " + GUIDE.length;
   $("guideHd").textContent = st.hd; $("guideTx").textContent = st.tx;
   $("guideNext").textContent = i === GUIDE.length - 1 ? "DONE" : "NEXT";
+  voiceSay("guide-" + (i + 1));                               // the voice reads the step
   const H = window.innerHeight, ch = card.offsetHeight || 160, midY = r.y + r.h / 2;
   const top = midY > H * 0.5 ? Math.max(12, r.y - ch - 16) : Math.min(H - ch - 12, r.y + r.h + 16);
   card.style.top = top + "px";
@@ -3977,7 +4041,7 @@ function guideStart(force) {
 }
 function guideEnd() {
   if (!$("guide").classList.contains("hide")) sfx("cover");
-  $("guide").classList.add("hide"); guideAt = -1;
+  $("guide").classList.add("hide"); guideAt = -1; voiceStop();
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
 }
 $("guideNext").onclick = () => { sfx("key"); guideShow(guideAt + 1); };
@@ -4335,12 +4399,14 @@ function drawPortrait(cx, cy, size, s, pic, a) {                  // the same ca
   ctx.font = "8px ui-monospace, Menlo, monospace"; ctx.fillStyle = "rgba(240,236,226,0.75)";
   ctx.fillText(pic.note, tx, cy + size * 0.68 + 22);
   ctx.fillText("AN AI RENDER FROM WITNESS DESCRIPTIONS \u00b7 NOT A PHOTOGRAPH", tx, cy + size * 0.68 + 31);
+  if (S.voice && !muted && VOICE_SYS.has(s.id)) { ctx.fillStyle = s.c; ctx.globalAlpha = al * (voiceName === "sys-" + s.id ? 1 : 0.6); ctx.fillText((voiceName === "sys-" + s.id ? "\u25b6 " : "") + "TAP THE PORTRAIT TO HEAR WHO THEY ARE", tx, cy + size * 0.68 + 41); }
   ctx.globalAlpha = 1; ctx.textAlign = "left";
 }
 function drawSpecies(cx, cy, size, s, t, alpha) {               // a field sketch beside their star: as reported, not a photograph
   const kind = (s.tag || "").split(" ")[0], P = SPECIES[kind]; if (!P) return;
   const k = size / 100, a = Math.max(0, Math.min(1, alpha === undefined ? 1 : alpha));
   if (a <= 0) return;
+  faceRect = { x: cx - size / 2, y: cy - size / 2, w: size, h: size * 1.18, s, at: performance.now() };   // where the portrait is this frame
   const pic = S.face !== "sketch" ? faceFor(kind, s, t) : null;
   if (pic) { drawPortrait(cx, cy, size, s, pic, a); return; }          // the render, when it is in; else the sketch below
   ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k); ctx.globalAlpha = a; ctx.lineJoin = "round"; ctx.lineCap = "round";
@@ -4440,9 +4506,10 @@ function drawOrigin(p, t) {
   const cx = W / 2, cy = H * 0.46;
   const base = Math.min(W, H) * 0.11, R = Math.max(1.5, base * sc);
   paintSystemArt(cx, cy, R, s, t, sc > 0.3);
-  label(cx, Math.max(30, cy - R * 1.9 - 22), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
+  const pSz = Math.min(Math.min(W, H) * 0.32, H * 0.22), pCy = Math.max(pSz * 0.5 + 14, H * 0.115);   // who you are calling: big, top centre (his ask 09-03)
+  label(cx, Math.max(30, cy - R * 1.9 - 22, S.faces ? pCy + pSz * 0.68 + 52 : 0), s.name, fmtLy(s.ly) + " FROM EARTH \u00b7 " + s.tag +
     (allChannels && SYSTEMS.length > 1 ? " \u00b7 +" + (SYSTEMS.length - 1) + " SYSTEMS ON THE SAME VECTOR" : ""), s.c, "center");
-  if (S.faces) drawSpecies(W * 0.80, Math.max(70, H * 0.10), Math.min(W, H) * 0.20, s, t, easeIO(arr) * (1 - easeIO(dep)));   // who you are calling
+  if (S.faces) drawSpecies(W * 0.5, pCy, pSz, s, t, easeIO(arr) * (1 - easeIO(dep)));
   if (!wpHit.has("o1")) { wpHit.add("o1"); log("ORIGIN: " + s.name + " \u2014 " + s.tag, "cy"); }
   if (p >= 0.3 && !wpHit.has("o2")) {
     wpHit.add("o2"); log("HAILING " + s.tag + " \u2014 INVITATION SENT");
@@ -5685,7 +5752,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 function replay() {
-  idleClear();
+  idleClear(); voiceStop();
   if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
   flyStop(); bridgeStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
@@ -6398,7 +6465,8 @@ function chartTap(cx, cy) {
   }
   for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
   for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 9) cand.push({ k: d / 9, act: () => { blip(980, 980, 0.07, 0.04); usoRead(h.r); } }); }   // a teal dot: a water sighting
-  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); } }); }   // an old place: its story
+  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); } }); }
+  for (const h of nukeHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(620, 620, 0.09, 0.05); log(h.q.n + " \u2014 " + h.q.s, "rd"); } }); }   // a test site: its line   // an old place: its story
   if (cand.length) { cand.sort((a, b) => a.k - b.k)[0].act(); return true; }
   if ((globeView && !globeView.out) || earthZoom > 1.05) return false;   // looking at the world: the sky is behind glass
   const G = earthGeom();
@@ -6426,7 +6494,7 @@ cvs.addEventListener("pointerdown", (e) => {
   }        // a gesture starts with the first finger only
   if (ptrs.size === 2) { wasPinch = true; const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); pinchMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
   if (intro && intro.t0) { introSkip(); wasPinch = true; }       // the opening: this finger only skips, it never picks
-  if (sysView && !sysView.out) { sysLeave(); wasPinch = true; }  // any finger while looking in: come back out (no tap-pick); on the way out taps count again
+  if (sysView && !sysView.out) { if (!faceTap(e)) sysLeave(); wasPinch = true; }  // any finger while looking in (the portrait reads itself instead): come back out (no tap-pick); on the way out taps count again
   chartAuto = false; clearTimeout(chartResume);
   try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
 });
@@ -6513,6 +6581,27 @@ cvs.addEventListener("wheel", (e) => {
   if (e.deltaY < 0 && chartZoom >= 1.349) sysTry();
 }, { passive: false });
 
+/* ---------------- the voice: Qwen3-TTS "Uncle Fu" on the 5090, his pick 09-03; reads the guide and the species cards ---------------- */
+const VOICE_SYS = new Set(["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"]);   // the read-outs that exist
+let voiceEl = null, voiceName = "", faceRect = null;
+function voiceStop() { if (voiceEl) { try { voiceEl.pause(); } catch (e) {} } voiceEl = null; voiceName = ""; }
+function voiceSay(name) {                                        // muted means muted; the voice switch is its own
+  voiceStop();
+  if (muted || !S.voice) return false;
+  const a = new Audio("voice/" + name + ".mp3"); a.preload = "auto"; a.volume = 0.95;
+  voiceEl = a; voiceName = name;
+  a.onended = a.onerror = () => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } };
+  const p = a.play(); if (p && p.catch) p.catch(() => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } });
+  return true;
+}
+function faceTap(e) {                                            // a finger on the portrait: read the card instead of whatever the tap would do
+  const r = faceRect; if (!r || performance.now() - r.at > 300) return false;
+  if (e.clientX < r.x || e.clientX > r.x + r.w || e.clientY < r.y || e.clientY > r.y + r.h) return false;
+  if (!VOICE_SYS.has(r.s.id)) return false;
+  if (voiceName === "sys-" + r.s.id) { voiceStop(); return true; }   // tapped again: quiet
+  if (voiceSay("sys-" + r.s.id)) { sfx("key"); log("READING THE CARD: " + r.s.name + " \u2014 " + r.s.tag, "cy"); }
+  return true;
+}
 function skipCurrent() {
   if (retargetMode && phase !== "flash") return;                  // aiming at a roof is not a skip; the flash still yields to a tap                                        // a tap anywhere mid-run: on to the next stage
   if (phase === "dive") return skipStep();
@@ -6526,6 +6615,7 @@ function skipCurrent() {
 }
 document.addEventListener("pointerdown", (e) => {
   if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
 $("flash").addEventListener("pointerdown", () => { if (phase === "photos") flashNext(bermToken); });
@@ -6912,7 +7002,7 @@ $("gvX").onclick = () => { if (phase === "chart" && globeView && !globeView.out)
 function applyMute() {
   $("bMute").classList.toggle("on", muted);
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
-  if (muted) { ambStop(); flyStop(); bridgeAudioStop(); }
+  if (muted) { voiceStop(); ambStop(); flyStop(); bridgeAudioStop(); }
   else { ambStart(); if (document.body.classList.contains("run") && S.flySnd) flyStart(); }   // unmuted mid-flight: the wind comes back
 }
 /* ---------------- a whole tuning, carried as one short code ----------------
@@ -7426,6 +7516,7 @@ function loadSettings() {
   if (!S.face) S.face = "both";
   if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 8; S.bridgeSnd = "hum"; S.bridgeVol = 30; }
   if (!S.bridgeLook) { S.bridgeLook = "cyan"; S.bridgeStyle = "throat"; }
+  if (S.voice === undefined) S.voice = true;                    // saves from before the voice
   if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood
   if (S.idleBack === undefined) S.idleBack = 60;                // saves from before the chart came back on its own   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
@@ -7444,7 +7535,7 @@ function applyS() {                                             // push S into e
   set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
-  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckAges", S.ages); chk("ckTimeline", !!S.timeline);
+  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckNukes", !!S.nukes); chk("ckAges", S.ages); chk("ckTimeline", !!S.timeline);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("rIdle", S.idleBack); txt("vIdle", S.idleBack); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
@@ -7467,7 +7558,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckVoice", S.voice !== false); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -7572,6 +7663,7 @@ $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loa
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
+$("ckVoice").onchange = (e) => { S.voice = e.target.checked; if (!S.voice) voiceStop(); };
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
 $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
@@ -7604,6 +7696,7 @@ $("selUTime").onchange = (e) => (S.uTime = +e.target.value);
 $("ckExo").onchange = (e) => (S.exo = e.target.checked);
 $("ckSites").onchange = (e) => (S.sites = e.target.checked);
 $("ckPyr").onchange = (e) => (S.pyr = e.target.checked);
+$("ckNukes").onchange = (e) => { S.nukes = e.target.checked; if (S.nukes) log("EVERY KNOWN TEST SITE IN RED \u00b7 LEAN IN FOR THE NAMES \u00b7 TAP ONE", "rd"); };
 applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);

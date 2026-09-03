@@ -57,6 +57,7 @@
   #log .old { opacity: 0.45; }
   #log .alert { color: var(--alert); text-shadow: 0 0 6px rgba(255,92,57,0.6); }
   #log .cy { color: var(--cyan); text-shadow: 0 0 6px rgba(107,227,255,0.5); }
+  #log .rd { color: #ff6b6b; text-shadow: 0 0 6px rgba(255,59,59,0.5); }   /* the test sites */
   @keyframes typein { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
   #log div { animation: typein 0.35s steps(24) both; overflow-wrap: anywhere; }   /* it used to cut every line off a third of the way across */
 
