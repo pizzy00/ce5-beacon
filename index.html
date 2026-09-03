@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=25" />
+<link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body class="intro introHud">
 
@@ -102,6 +102,7 @@
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
+      <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
       <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
@@ -825,7 +826,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -3927,7 +3928,7 @@ function guideShow(i) {
 function guideStart(force) {
   if (!force && (phase !== "chart" || intro)) return;
   let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY) || ""; } catch (e) {}
-  if (seen && !force) return;
+  if ((seen || S.noGuide) && !force) return;
   $("settings").classList.add("hide");
   $("guide").classList.remove("hide");
   guideShow(0);
@@ -6743,6 +6744,19 @@ $("bdWipe").onclick = () => {                                    // two taps, fo
   log("YOUR LOG ON THIS DEVICE IS CLEARED \u00b7 THE PUBLIC BOARD KEEPS WHAT WAS FILED", "cy");
   openBoard();
 };
+/* ---------------- bars on the LOG page: the usage numbers drawn, not just listed ---------------- */
+function bdBars(title, rows) {                                   // a bar per row: the label, a bar as long as its share of the biggest, the number
+  if (!rows || !rows.length) return "";
+  const mx = rows.reduce((m, r) => Math.max(m, r[1]), 0) || 1;
+  return '<div class="setLbl" style="margin-top:8px">' + title + '</div><div class="bdBars">' +
+    rows.map((r) => '<div class="bdBar"><span class="bdBarL">' + esc(String(r[0])) + '</span><span class="bdBarT"><i style="width:' + Math.round(r[1] / mx * 100) + '%"></i></span><span class="bdBarV">' + r[1] + '</span></div>').join("") + "</div>";
+}
+function lastDays(byDay, n) {                                    // {YYYY-MM-DD: count} to the last n days, oldest first, the quiet days kept as zero
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) { const k = new Date(Date.now() - i * 864e5).toISOString().slice(0, 10); out.push([k.slice(5), (byDay && byDay[k]) || 0]); }
+  return out.some((r) => r[1] > 0) ? out : [];
+}
+function tripDays(trips) { const o = {}; for (const x of trips || []) { if (!x.t) continue; const k = new Date(x.t).toISOString().slice(0, 10); o[k] = (o[k] || 0) + 1; } return o; }
 function openBoard() {
   $("settings").classList.add("hide"); $("info").classList.add("hide");
   $("bdName").value = callsign;
@@ -6788,6 +6802,9 @@ function openBoard() {
           if (top.length) h += line("WHERE EVERYONE GOES", top.map((d) => esc(d) + " (" + byD[d] + ")").join(" · "));
           if (rank) h += line("YOUR PLACE ON THE BOARD", "#" + rank + " OF " + ((b && b.leaders) || []).length);
           if (bd) h += line("BUSIEST DAY AT THE CONSOLE", bd + " · " + bn + " DEVICE" + (bn === 1 ? "" : "S"));
+          h += bdBars("DEVICES PER DAY · THE LAST 14 DAYS", lastDays(v && v.days, 14));
+          h += bdBars("TRIPS PER DAY · THE LAST 14 DAYS", lastDays(tripDays(trips), 14));
+          if (top.length) h += bdBars("WHERE EVERYONE GOES · THE LAST " + trips.length + " TRIPS", Object.keys(byD).sort((a2, b2) => byD[b2] - byD[a2]).slice(0, 8).map((d) => [d, byD[d]]));
           const LG = (v && v.langs) || null;                       // which console each one was reading
           if (LG) {
             const NM = { en: "ENGLISH", es: "SPANISH", zh: "CHINESE", hi: "HINDI", ar: "ARABIC",
@@ -7383,7 +7400,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
@@ -7491,6 +7508,7 @@ $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("ckFly").onchange = (e) => { S.flySnd = e.target.checked; if (!S.flySnd) flyStop(); else if (document.body.classList.contains("run")) flyStart(); };
 $("ckAmb").onchange = (e) => { S.amb = e.target.checked; if (S.amb) ambStart(); else ambStop(); };
 $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
+$("ckNoGuide").onchange = (e) => { S.noGuide = e.target.checked; try { if (S.noGuide) localStorage.setItem(GUIDE_KEY, "1"); else localStorage.removeItem(GUIDE_KEY); } catch (er) {} };   // unticked: it shows once more on the next open
 $("ckDeep").onchange = (e) => { S.deep = e.target.checked; if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
