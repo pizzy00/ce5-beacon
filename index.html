@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=27" />
+<link rel="stylesheet" href="styles.css?v=28" />
 </head>
 <body class="intro introHud">
 
@@ -773,7 +773,6 @@
 </div>
 <div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">ALIEN SYSTEM CHART</span> <span id="blink">▌</span><span id="hintDT">DOUBLE-TAP THE EARTH TO LOOK CLOSER</span></div>
-  <span id="bSysNow" class="display" role="button" tabindex="0">WHICH SYSTEMS ▸</span>
   <div id="tapHint" class="display">TAP THE SCREEN TO SKIP TO THE NEXT STAGE</div>
   <div id="crumb" class="display"></div>
 </div>
@@ -3090,7 +3089,7 @@ function lblFlush() {
   const q = LBL; LBL = null;
   q.sort((a, b) => b.pri - a.pri);
   const kept = [];
-  for (const id of ["bFull", "bMute", "bIdea", "bLang", "bSysNow"]) {         // the buttons up the right side are not free ground
+  for (const id of ["bFull", "bMute", "bIdea", "bLang"]) {         // the buttons up the right side are not free ground
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (r.width < 1) continue;
     kept.push({ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4, must: true, text: "" });
@@ -7341,8 +7340,6 @@ function sysListBuild() {                                        // the one-by-o
   }));
 }
 $("bSysPick").onclick = () => { sysListBuild(); $("sysPick").classList.remove("hide"); };
-$("bSysNow").onclick = () => { sfx("key"); sysListBuild(); $("sysPick").classList.remove("hide"); };   // the same picker, one tap from the chart
-$("bSysNow").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("bSysNow").onclick(); } };
 $("bSysClose").onclick = () => $("sysPick").classList.add("hide");
 $("sysPick").addEventListener("click", (e) => { if (e.target === $("sysPick")) $("sysPick").classList.add("hide"); });
 document.querySelectorAll(".sysPre .setBtn").forEach((b) => (b.onclick = () => {

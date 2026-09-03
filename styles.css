@@ -304,9 +304,7 @@
     -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }   /* 28px keys + room for their shadow */
   #keys::-webkit-scrollbar, #chips::-webkit-scrollbar { display: none; }
   #keys .btn { flex: 0 0 auto; min-width: 44px; }
-  @media (max-width: 480px) {                                    /* on the ground a phone holds ten keys: two short rows, nothing hidden */
-    body.active #keys, body.run #keys { flex-wrap: wrap; height: auto; min-height: 38px; row-gap: 4px; overflow: visible; }
-  }
+  /* on the ground a phone holds ten keys: one row that scrolls sideways (he asked for no second row) */
   @media (max-width: 400px) {
     #data { font-size: 8px; gap: 0 5px; letter-spacing: 0; }
     #data i { font-size: 7px; }
@@ -860,11 +858,8 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 
 /* the systems picker, made obvious */
 @keyframes pickPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(107,227,255,0); } 50% { box-shadow: 0 0 12px 2px rgba(107,227,255,0.6); } }
-#bSysPick, #bSysNow { animation: pickPulse 1.7s ease-in-out infinite; border-color: rgba(107,227,255,0.85); }
-#bSysNow { position: absolute; right: 12px; bottom: calc(var(--ctlH, 128px) + 30px); pointer-events: auto; cursor: pointer;
-  font-size: 9px; letter-spacing: 0.18em; color: #d6f6ff; background: rgba(6,6,16,0.82); border: 1px solid rgba(107,227,255,0.85); border-radius: 4px; padding: 5px 9px; }
-body.run #bSysNow, body.active #bSysNow, body.intro #bSysNow, body.introHud #bSysNow { display: none; }
-@media (prefers-reduced-motion: reduce) { #bSysPick, #bSysNow { animation: none; box-shadow: 0 0 8px 1px rgba(107,227,255,0.45); } }
+#bSysPick { animation: pickPulse 1.7s ease-in-out infinite; border-color: rgba(107,227,255,0.85); }
+@media (prefers-reduced-motion: reduce) { #bSysPick { animation: none; box-shadow: 0 0 8px 1px rgba(107,227,255,0.45); } }
 /* the settings contents */
 #setToc { margin: 8px 0 14px; padding: 8px 10px 6px; border: 1px solid rgba(107,227,255,0.3); border-radius: 6px; }
 #setToc .setStat { margin: 0 0 6px; }
