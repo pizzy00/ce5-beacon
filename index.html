@@ -168,6 +168,7 @@
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckPoles" checked />THE ARCTIC AND THE ANTARCTIC: BOTH POLAR CIRCLES ON THE GLOBE AT THEIR REAL 66.57°, NAMED WHEN YOU LEAN IN · BETWEEN THEM, THE LEAST-WATCHED GROUND ON EARTH</label>
       <label class="setChk"><input type="checkbox" id="ckSites" checked />THE OLD ONES' SKY-ALIGNED PLACES — GIZA, STONEHENGE, TEOTIHUACAN AND 12 MORE · TAP ONE FOR ITS STORY</label>
+      <label class="setChk"><input type="checkbox" id="ckPyr" checked />THE PYRAMIDS OF GIZA — A 3D MODEL OF THE THREE ON THE GLOBE, THEIR REAL LAYOUT, SQUARE TO TRUE NORTH, LIT BY THE SUN · BIGGER AND TALLER THAN LIFE SO YOU CAN SEE THEM</label>
       <div class="setLbl">THE GLOBE'S SURFACE</div>
       <select id="selEarth">
         <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
@@ -819,7 +820,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, opening: true, faces: true, face: "both", sfx: true, flySnd: true, amb: true, fps: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -3104,6 +3105,79 @@ function lblFlush() {
   lblLast = kept;
   ctx.textAlign = "left"; ctx.globalAlpha = 1;
 }
+/* ---------------- the pyramids of Giza: a 3D model standing on the globe ----------------
+   Khufu, Khafre and Menkaure at their real proportions and real layout (the diagonal running south-west), square to
+   true north, built in the same orthographic view as the sphere and lit by the same sun. Bigger than life: at true
+   scale the Great Pyramid is a fiftieth of a pixel here. */
+const GIZA = { lat: 29.9792, lon: 31.1342 };
+const PYRAMIDS = [                                               // e/n = centre offsets in Great-Pyramid base lengths, b = base, h = height (both as a share of Khufu's base)
+  { n: "KHUFU", e: 0, no: 0, b: 1, h: 146.6 / 230.3 },
+  { n: "KHAFRE", e: -1.42, no: -1.50, b: 215.3 / 230.3, h: 136.4 / 230.3 },
+  { n: "MENKAURE", e: -2.55, no: -3.23, b: 102.2 / 230.3, h: 65.5 / 230.3 }
+];
+function orthV(lon, lat, tiltDeg) {                              // the sphere point as a unit vector in view space: x right, y down, z toward you
+  const la = lat * Math.PI / 180, lo = (lon + earthRot) * Math.PI / 180, p0 = (tiltDeg || 0) * Math.PI / 180;
+  return { x: Math.cos(la) * Math.sin(lo), y: -(Math.cos(p0) * Math.sin(la) - Math.sin(p0) * Math.cos(la) * Math.cos(lo)),
+    z: Math.sin(p0) * Math.sin(la) + Math.cos(p0) * Math.cos(la) * Math.cos(lo) };
+}
+function v3n(v) { const l = Math.hypot(v.x, v.y, v.z) || 1; return { x: v.x / l, y: v.y / l, z: v.z / l }; }
+function v3s(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+function v3x(a, b) { return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }; }
+function v3d(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+function drawPyramids(sx, sy, RZ, sunV) {
+  const U = orthV(GIZA.lon, GIZA.lat, earthTiltDraw);            // up at Giza
+  if (U.z < 0.04) return;                                       // round the back, or on the limb edge-on
+  const E = v3n(v3s(orthV(GIZA.lon + 0.01, GIZA.lat, earthTiltDraw), U));   // east and north along the ground there
+  const N = v3n(v3s(orthV(GIZA.lon, GIZA.lat + 0.01, earthTiltDraw), U));
+  const B = Math.max(7, Math.min(30, RZ * 0.052)), lay = 0.7, tall = 1.9;   // the Great Pyramid's base in pixels; the layout pulled in a little so the three stay a group; heights raised so the faces read from above
+  const L = v3n(sunV), fade = Math.min(1, U.z * 3);
+  const lu = v3d(L, U), le = v3d(L, E), ln = v3d(L, N);          // the sun in Giza's own frame: how high, and from where
+  const base = { x: U.x * RZ, y: U.y * RZ, z: U.z * RZ };
+  const P = (e, n, u) => ({ x: base.x + E.x * e + N.x * n + U.x * u, y: base.y + E.y * e + N.y * n + U.y * u, z: base.z + E.z * e + N.z * n + U.z * u });
+  const faces = [];
+  for (const q of PYRAMIDS) {
+    const ce = q.e * B * lay, cn = q.no * B * lay, hb = q.b * B / 2, h = q.h * B * tall;
+    const c = [P(ce - hb, cn - hb, 0), P(ce + hb, cn - hb, 0), P(ce + hb, cn + hb, 0), P(ce - hb, cn + hb, 0)], apex = P(ce, cn, h), mid = P(ce, cn, h * 0.3);
+    if (lu > 0.08) {                                            // the shadow the sun throws across the sand
+      const sh = Math.min(h * 4, h / lu), de = -le / Math.hypot(le, ln || 1e-9), dn = -ln / Math.hypot(le, ln || 1e-9);
+      const T = P(ce + de * sh * Math.hypot(le, ln), cn + dn * sh * Math.hypot(le, ln), 0);   // where the apex's shadow lands
+      const side = [[-hb, -hb], [hb, -hb], [hb, hb], [-hb, hb]].map(([e, n]) => ({ e, n, s: de * n - dn * e }));
+      side.sort((a, b) => a.s - b.s);
+      const A = side[0], Bc = side[3];                           // the two corners furthest out to either side of the shadow line
+      faces.push({ pts: [P(ce + A.e, cn + A.n, 0), T, P(ce + Bc.e, cn + Bc.n, 0)], shadow: true, z: mid.z - 2 });
+    }
+    faces.push({ pts: c, nrm: U, ground: true, z: mid.z - 1 });  // the footprint, under the faces
+    for (let i = 0; i < 4; i++) {
+      const a = c[i], b = c[(i + 1) % 4];
+      let nrm = v3n(v3x(v3s(a, apex), v3s(b, apex)));
+      const fc = { x: (a.x + b.x + apex.x) / 3, y: (a.y + b.y + apex.y) / 3, z: (a.z + b.z + apex.z) / 3 };
+      if (v3d(nrm, v3s(fc, mid)) < 0) nrm = { x: -nrm.x, y: -nrm.y, z: -nrm.z };   // outward
+      if (nrm.z <= 0) continue;                                   // facing away
+      faces.push({ pts: [apex, a, b], nrm, z: fc.z });
+    }
+  }
+  faces.sort((a, b) => a.z - b.z);                              // far to near (the three never overlap, but the ground goes under)
+  ctx.save(); ctx.lineJoin = "round";
+  for (const f of faces) {
+    if (f.shadow) {
+      ctx.beginPath(); f.pts.forEach((p, i) => { const x = sx + p.x, y = sy + p.y; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.closePath();
+      ctx.globalAlpha = 0.42 * fade; ctx.fillStyle = "#0b0804"; ctx.fill(); continue;
+    }
+    const lit = Math.max(0, v3d(f.nrm, L)), k = f.ground ? 0.55 : 0.30 + 0.70 * lit;
+    ctx.beginPath();
+    f.pts.forEach((p, i) => { const x = sx + p.x, y = sy + p.y; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+    ctx.closePath();
+    ctx.globalAlpha = (f.ground ? 0.35 : 0.96) * fade;
+    ctx.fillStyle = "rgb(" + Math.round(232 * k) + "," + Math.round(198 * k) + "," + Math.round(128 * k) + ")"; ctx.fill();
+    if (!f.ground && B > 9) { ctx.globalAlpha = 0.45 * fade; ctx.strokeStyle = "rgba(60,40,10,0.9)"; ctx.lineWidth = 0.6; ctx.stroke(); }
+  }
+  ctx.restore();
+  if (!S.sites && (earthZoom > 1.25 || gvK() > 0.5)) {           // the places are off: the model still says where it is
+    const g = orthPt(GIZA.lon, GIZA.lat, sx, sy, RZ, earthTiltDraw), r1 = g.x > sx;
+    lblQ({ text: "GIZA", font: nameFont(6.5), color: "#ffd27a", alpha: 0.9 * fade, x: g.x + (r1 ? 9 : -9) * nameK, y: g.y + 2.5 * nameK, align: r1 ? "left" : "right", pri: 1,
+      alts: [[g.x + (r1 ? -9 : 9) * nameK, g.y + 2.5 * nameK, r1 ? "right" : "left"], [g.x, g.y + 12 * nameK, "center"]] });
+  }
+}
 function drawEarthHub(t) {
   lblBegin();
   const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
@@ -3311,6 +3385,7 @@ function drawEarthHub(t) {
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
+  if (S.pyr) drawPyramids(sx, sy, RZ, sunV);                   // the pyramids of Giza stand on the world
   usoHit = [];
   if (S.uso && USO && USO.recs.length) {                        // the water sightings: teal dots
     ctx.fillStyle = "#5ee0c0"; ctx.globalAlpha = 0.75;
@@ -7208,7 +7283,8 @@ function loadSettings() {
   if (!S.loreBy || typeof S.loreBy !== "object") S.loreBy = JSON.parse(JSON.stringify(S_FACTORY.loreBy));
   if (!S.face) S.face = "both";
   if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 8; S.bridgeSnd = "hum"; S.bridgeVol = 30; }
-  if (!S.bridgeLook) { S.bridgeLook = "cyan"; S.bridgeStyle = "throat"; }   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
+  if (!S.bridgeLook) { S.bridgeLook = "cyan"; S.bridgeStyle = "throat"; }
+  if (S.pyr === undefined) S.pyr = true;                        // saves from before the pyramids stood   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
@@ -7225,7 +7301,7 @@ function applyS() {                                             // push S into e
   set("rFly", 27 - S.flyby); txt("vFly", S.flyby.toFixed(1));
   set("selEarth", S.earthSrc); set("rCloud", Math.round(S.cloudA * 100)); txt("vCloud", Math.round(S.cloudA * 100));
   set("rCloudSpd", Math.round(S.cloudSpd * 10)); txt("vCloudSpd", S.cloudSpd.toFixed(1));
-  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckAges", S.ages);
+  set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckPyr", S.pyr); chk("ckAges", S.ages);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
   set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("selBridgeSnd", S.bridgeSnd); set("selBridgeLook", S.bridgeLook); set("selBridgeStyle", S.bridgeStyle); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
@@ -7381,6 +7457,7 @@ $("rCloudSpd").oninput = (e) => { S.cloudSpd = +e.target.value / 10; $("vCloudSp
 $("selUTime").onchange = (e) => (S.uTime = +e.target.value);
 $("ckExo").onchange = (e) => (S.exo = e.target.checked);
 $("ckSites").onchange = (e) => (S.sites = e.target.checked);
+$("ckPyr").onchange = (e) => (S.pyr = e.target.checked);
 applyScreen();
 $("ckNow").onchange = (e) => (S.bNow = e.target.checked);
 $("ckPhotos").onchange = (e) => (S.bPhotos = e.target.checked);
