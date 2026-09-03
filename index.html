@@ -233,8 +233,18 @@
     </div>
     <div class="setRow">
       <div class="setLbl">THE ROSEN BRIDGE</div>
-      <label class="setChk"><input type="checkbox" id="ckBridge" checked />FOLD THROUGH AN EINSTEIN-ROSEN BRIDGE AFTER THE CROSSING — A WORMHOLE THROAT DRAWN LIVE IN WEBGL, WITH ITS OWN SOUND</label>
-      <div class="setStat">THE THROAT OPENS, YOU FALL THROUGH, THE FAR MOUTH SPITS YOU OUT ABOVE THE GATE · TAP TO SKIP LIKE ANY STAGE · PHONES WITHOUT WEBGL GET A 2D THROAT</div>
+      <label class="setChk"><input type="checkbox" id="ckBridge" />FOLD THROUGH AN EINSTEIN-ROSEN BRIDGE — THEIR WORLD, THEN THE THROAT, THEN EARTH (THE CROSSING AND THE FLYBYS ARE SKIPPED)</label>
+      <div class="setStat">A WORMHOLE THROAT DRAWN LIVE IN WEBGL · TAP TO SKIP LIKE ANY STAGE · PHONES WITHOUT WEBGL GET A 2D THROAT</div>
+      <div class="setLbl">THE BRIDGE LASTS — <span id="vBridge">12</span>S</div>
+      <input type="range" id="rBridge" min="4" max="40" step="1" value="12" />
+      <div class="setLbl">ITS SOUND</div>
+      <select id="selBridgeSnd">
+        <option value="hum" selected>A LOW HUM, MADE ON THE FLY</option>
+        <option value="bed">THE GENERATED BED (AI AUDIO) OVER THE HUM</option>
+        <option value="off">SILENT</option>
+      </select>
+      <div class="setLbl">BRIDGE VOLUME — <span id="vBridgeVol">30</span>%</div>
+      <input type="range" id="rBridgeVol" min="0" max="100" step="5" value="30" />
     </div>
     <div class="setRow">
       <div class="setLbl">FLYBYS ON THE WAY IN</div>
@@ -771,7 +781,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
   crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: false, bridge: true, sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
+  polaris: false, bridge: false, bridgeSec: 12, bridgeSnd: "hum", bridgeVol: 30, sun: true, moon: true, jwst: true, hubble: false, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
@@ -969,7 +979,7 @@ function crumbNext(p) {                                          // what the jou
   const m = typeof modeOf === "function" ? modeOf() : null;
   const flashOn = S.nukeAll && m !== "bermuda";
   switch (p) {
-    case "origin": return m === "moon" ? "LUNAR DEPARTURE" : (m === "ocean" || m === "bermuda") ? "SLOW DESCENT" : "MILKY WAY";
+    case "origin": return m === "moon" ? "LUNAR DEPARTURE" : (m === "ocean" || m === "bermuda") ? "SLOW DESCENT" : S.bridge ? "ROSEN BRIDGE" : "MILKY WAY";
     case "galaxy": return "SUPERLUMINAL";
     case "warp": case "bridge": case "polaris": case "voyager": case "sun": case "starman": case "jwst": case "moon": case "hubble": case "iss": {
       const n = typeof stageAfter === "function" ? stageAfter(p) : null;
@@ -3845,7 +3855,7 @@ function drawChart3D(t) {
 
 /* warp */
 /* ---------------- THE ROSEN BRIDGE: a fold through an Einstein-Rosen throat after the crossing ---------------- */
-const BRIDGE_MS = 44000;                                         // x spaceMul, like every deep-space stage
+const BRIDGE_MS = 12000;                                         // the old constant; S.bridgeSec (his slider) rules the stage now
 let bridgeLoadP = null, bridgeOn = false;
 function bridgeLoad() {                                          // three.js + bridge.js, fetched once, only if the stage is on
   if (bridgeLoadP) return bridgeLoadP;
@@ -3853,7 +3863,7 @@ function bridgeLoad() {                                          // three.js + b
   bridgeLoadP = (window.THREE ? Promise.resolve() : one("vendor/three/three.min.js?v=1"))
     .then(() => window.BRIDGE ? null : one("bridge.js?v=1"))
     .catch(() => { bridgeLoadP = null; });
-  bridgeAudioLoad();
+  if (S.bridgeSnd === "bed") bridgeAudioLoad();
   return bridgeLoadP;
 }
 function bridgeStart() {
@@ -3879,7 +3889,7 @@ function drawBridge(p, t) {
   vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.75)");
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
   const c = selected ? selected.c : "#9be7ff";
-  const sub = p < 0.12 ? "THE THROAT OPENS" : p < 0.84 ? "FOLDED SPACE · TWO MOUTHS, ONE STEP" : "THE FAR MOUTH";
+  const sub = p < 0.12 ? "THE THROAT OPENS" : p < 0.84 ? "FOLDED SPACE · TWO MOUTHS, ONE STEP" : "THE FAR MOUTH · EARTH";
   ctx.globalAlpha = 0.35 + 0.65 * open;
   label(W / 2, H * 0.17, "ROSEN BRIDGE", sub, c, "center");
   if (p > 0.2 && p < 0.84) label(W / 2, H * 0.80, "", "DISTANCE HERE IS A CHOICE · KEEP BREATHING", c, "center");
@@ -3908,8 +3918,9 @@ function bridgeAudioLoad() {
     .then((d) => { brBuf = d; return d; }).catch(() => { brLoadP = null; return null; });
   return brLoadP;
 }
+function bridgeGain() { return 0.55 * Math.min(1, Math.max(0, (S.bridgeVol || 0) / 100)); }   // his volume slider
 function bridgeAudioStart() {
-  if (muted) return;
+  if (muted || S.bridgeSnd === "off") return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended" && !document.hidden) ac.resume();
@@ -3918,8 +3929,10 @@ function bridgeAudioStart() {
     brO = ac.createOscillator(); brO.type = "sine"; brO.frequency.value = 41;
     const lfo = ac.createOscillator(); lfo.frequency.value = 0.11; const lg = ac.createGain(); lg.gain.value = 9; lfo.connect(lg); lg.connect(brO.frequency);
     const og = ac.createGain(); og.gain.value = 0.32; brO.connect(og); og.connect(g); brO.start(); lfo.start(); brO._lfo = lfo;
-    g.gain.setTargetAtTime(0.6, ac.currentTime, 1.6);
-    const p = bridgeAudioLoad();
+    const o2 = ac.createOscillator(); o2.type = "triangle"; o2.frequency.value = 82.4; o2.detune.value = 7;   // an octave up so small speakers hear it
+    const g2 = ac.createGain(); g2.gain.value = 0.09; o2.connect(g2); g2.connect(g); o2.start(); brO._o2 = o2;
+    g.gain.setTargetAtTime(bridgeGain(), ac.currentTime, 1.6);
+    const p = S.bridgeSnd === "bed" ? bridgeAudioLoad() : null;
     if (p) p.then((buf) => {
       if (!buf || brG !== g) return;
       brN = ac.createBufferSource(); brN.buffer = buf; brN.loop = true;
@@ -3934,7 +3947,7 @@ function bridgeAudioStop() {
   try {
     const g = brG, n = brN, o = brO;
     g.gain.setTargetAtTime(0, ac.currentTime, 0.7);
-    setTimeout(() => { try { if (n) n.stop(); } catch (e) {} try { if (o) { o.stop(); o._lfo.stop(); } } catch (e) {} try { g.disconnect(); } catch (e) {} }, 3000);
+    setTimeout(() => { try { if (n) n.stop(); } catch (e) {} try { if (o) { o.stop(); o._lfo.stop(); if (o._o2) o._o2.stop(); } } catch (e) {} try { g.disconnect(); } catch (e) {} }, 3000);
   } catch (e) {}
   brG = brN = brO = null;
 }
@@ -4753,8 +4766,9 @@ const STAGE_LABEL = { origin: "ORIGIN SYSTEM", galaxy: "MILKY WAY", warp: "SUPER
   moon: "LUNAR FLYBY", earth: "TERRAN APPROACH", jwst: "WEBB FLYBY", hubble: "HUBBLE FLYBY",
   voyager: "VOYAGER 1", iss: "STATION PASS", starman: "STARMAN FLYBY" };
 function stageAfter(cur) {
-  const order = ["warp", "bridge", "polaris", "voyager", "sun", "starman", "jwst", "moon", "hubble", "iss", "earth"];
-  const on = { warp: true, bridge: S.bridge, polaris: S.polaris, voyager: S.voyager, sun: S.sun, starman: S.starman, jwst: S.jwst,
+  if (cur === "bridge") return "earth";                          // the far mouth opens on Earth
+  const order = ["warp", "polaris", "voyager", "sun", "starman", "jwst", "moon", "hubble", "iss", "earth"];
+  const on = { warp: true, polaris: S.polaris, voyager: S.voyager, sun: S.sun, starman: S.starman, jwst: S.jwst,
     moon: S.moon, hubble: S.hubble, iss: S.iss, earth: true };
   let i = order.indexOf(cur) + 1;
   while (i < order.length - 1 && !on[order[i]]) i++;
@@ -4765,7 +4779,7 @@ function advance(cur, ts) {
   if (n === "warp") { cueStage("HOLD THE INVITATION"); cueSub("GUIDE THEM IN"); }
   if (cur === "warp") $("cue").classList.remove("on");
   if (n === "bridge") bridgeStart();
-  if (cur === "bridge") bridgeStop();
+  if (cur === "bridge") { bridgeStop(); $("cue").classList.remove("on"); }
   setPhase(n, STAGE_LABEL[n]); t0 = ts;
   if (n === "bridge") log("ROSEN BRIDGE — THE THROAT OPENS · THE LAST LEG FOLDS TO NOTHING", "cy");
   else if (n === "polaris") log("POLARIS FLYBY — PASSING OVERHEAD", "cy");
@@ -4797,6 +4811,12 @@ function loop(ts) {
         log("LUNAR DEPARTURE — EARTH AHEAD", "cy");
         cueStage("THEY ARE COMING WITH YOU"); cueSub("EARTH AHEAD · 1.3 LIGHT-SECONDS");
       } else {
+        if (S.bridge) {                                        // the bridge: their sky folds into ours, Earth on the far side
+          wpHit.clear(); bridgeStart(); setPhase("bridge", "ROSEN BRIDGE"); t0 = ts; retShow(true);
+          log("ROSEN BRIDGE \u2014 THEIR SKY FOLDS INTO OURS \u00b7 EARTH ON THE FAR SIDE", "cy");
+          cueStage("HOLD ON"); cueSub("THE THROAT OPENS \u00b7 EARTH ON THE FAR SIDE");
+          raf = requestAnimationFrame(loop); return;
+        }
         setPhase("galaxy", "MILKY WAY"); t0 = ts; retShow(true);
         log("STAGE 2: MILKY WAY OVERVIEW — FIND SOL", "cy");
         cueStage("FIND SOL TOGETHER"); cueSub("ORION ARM · 26,000 LY FROM THE CORE");
@@ -4811,7 +4831,7 @@ function loop(ts) {
     drawWarp(p, t);
     if (p >= 1) advance("warp", ts);
   } else if (phase === "bridge") {
-    const p = seg(BRIDGE_MS);
+    const p = Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.bridgeSec * 1000)));   // his slider, in seconds
     drawBridge(p, t);
     if (p >= 1) advance("bridge", ts);
   } else if (phase === "polaris") {
@@ -4892,7 +4912,7 @@ function engage() {
   } else {
     log("DEPARTURE: " + (allChannels ? "ALL CHANNELS" : selected.name), "cy");
     if (!allChannels && selected.id === "zeta" && loreOn("doty")) log(DOTY_WARN, "alert");
-    log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + (S.polaris ? " → POLARIS → SOL" : " → SOL"));
+    log("ROUTE: " + (allChannels ? SYSTEMS.length + " SYSTEMS" : selected.name) + (S.bridge ? " → ROSEN BRIDGE → EARTH" : S.polaris ? " → POLARIS → SOL" : " → SOL"));
     log("STAGE 1: ORIGIN — " + selected.name, "cy");
     setPhase("origin", "ORIGIN SYSTEM");
     cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
@@ -6943,7 +6963,7 @@ function loadSettings() {
   for (const k of Object.keys(S)) if (k in d.S && typeof d.S[k] === typeof S[k]) S[k] = d.S[k];
   if (!S.loreBy || typeof S.loreBy !== "object") S.loreBy = JSON.parse(JSON.stringify(S_FACTORY.loreBy));
   if (!S.face) S.face = "both";
-  if (S.bridge === undefined) S.bridge = true;                  // saves from before the bridge existed   // older saves: every voice on
+  if (S.bridgeSec === undefined) { S.bridge = false; S.bridgeSec = 12; S.bridgeSnd = "hum"; S.bridgeVol = 30; }   // off until you tick it (his call, 09-02); older saves take the new defaults                  // saves from before the bridge existed   // older saves: every voice on
   if (d.target && !hashLL && isFinite(+d.target.lat) && isFinite(+d.target.lon)) {
     TARGET = { lat: +d.target.lat, lon: +d.target.lon, exact: true }; savedTarget = true;
   }
@@ -6963,7 +6983,7 @@ function applyS() {                                             // push S into e
   set("selUTime", S.uTime); chk("ckExo", S.exo); chk("ckSites", S.sites); chk("ckAges", S.ages);
   set("rOrigin", 3.5 - S.originMul); txt("vOrigin", S.originMul.toFixed(1));
   set("rDive", 2.5 - S.diveMul); txt("vDive", S.diveMul.toFixed(1));
-  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
+  set("selDetail", S.detail); chk("ckPolaris", S.polaris); chk("ckBridge", S.bridge); set("rBridge", S.bridgeSec); txt("vBridge", S.bridgeSec); set("selBridgeSnd", S.bridgeSnd); set("rBridgeVol", S.bridgeVol); txt("vBridgeVol", S.bridgeVol); chk("ckSun", S.sun); chk("ckMoon", S.moon); chk("ckJwst", S.jwst); chk("ckHubble", S.hubble); chk("ckVoyager", S.voyager); chk("ckStarman", S.starman);
   chk("ckIss", S.iss); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion);
   reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
@@ -7036,6 +7056,9 @@ $("rOrigin").oninput = (e) => { S.originMul = 3.5 - +e.target.value; $("vOrigin"
 $("selDetail").onchange = (e) => { S.detail = e.target.value; precached = ""; };
 $("ckPolaris").onchange = (e) => (S.polaris = e.target.checked);
 $("ckBridge").onchange = (e) => { S.bridge = e.target.checked; if (S.bridge) bridgeLoad(); };
+$("rBridge").oninput = (e) => { S.bridgeSec = +e.target.value; $("vBridge").textContent = S.bridgeSec; };
+$("selBridgeSnd").onchange = (e) => { S.bridgeSnd = e.target.value; if (S.bridge && S.bridgeSnd === "bed") bridgeAudioLoad(); };
+$("rBridgeVol").oninput = (e) => { S.bridgeVol = +e.target.value; $("vBridgeVol").textContent = S.bridgeVol; if (brG && ac) brG.gain.setTargetAtTime(bridgeGain(), ac.currentTime, 0.15); };
 $("ckSun").onchange = (e) => (S.sun = e.target.checked);
 $("ckMoon").onchange = (e) => (S.moon = e.target.checked);
 $("ckJwst").onchange = (e) => (S.jwst = e.target.checked);
