@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=24" />
+<link rel="stylesheet" href="styles.css?v=25" />
 </head>
 <body class="intro introHud">
 
@@ -102,6 +102,7 @@
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
+      <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
@@ -752,6 +753,15 @@
 <div id="crt"></div>
 <div id="vig"></div>
 
+<div id="guide" class="hide" dir="ltr" role="dialog" aria-label="First-night guide">
+  <div id="guideSpot"></div>
+  <div id="guideCard">
+    <div id="guideStep" class="display">1 / 4</div>
+    <div id="guideHd" class="display"></div>
+    <div id="guideTx"></div>
+    <div class="guideBtns"><span class="setBtn" id="guideSkip">SKIP</span><span class="setBtn" id="guideNext">NEXT</span></div>
+  </div>
+</div>
 <div id="hud">
   <div id="phase" class="display"><span id="phaseTxt">ALIEN SYSTEM CHART</span> <span id="blink">▌</span><span id="hintDT">DOUBLE-TAP THE EARTH TO LOOK CLOSER</span></div>
   <div id="tapHint" class="display">TAP THE SCREEN TO SKIP TO THE NEXT STAGE</div>
@@ -3801,8 +3811,56 @@ function fsCalloutOff() {                                        // whatever is 
     const b = $(bid); if (b) b.classList.remove("callout");
   }
 }
+/* ---------------- the first-night guide: four spotlights, once ----------------
+   START, the arrows, the Earth, the gear. Shown on the first open after the opening, then never again unless asked
+   for from SCREEN in settings. */
+const GUIDE_KEY = "ce5.guide.v1";
+const GUIDE = [
+  { el: "bEngage", hd: "THE START BUTTON", tx: "Pick a system, then press START. The console carries you from their world to your own roof, stage by stage. Tap the screen during a run to skip a stage." },
+  { el: ["bLocL", "bLocR"], hd: "THE ARROWS", tx: "The green line in the CRT lists the possible contacts. Step through them with the arrows, drag the line, or tap a name to choose it." },
+  { earth: true, hd: "THE EARTH", tx: "Pinch into the Earth, or double-tap it, to bring the world up front: the old sky-aligned places, the Triangle, and where you stand." },
+  { el: "bGear", hd: "THE GEAR", tx: "Everything lives here: the lore switches, the journey, the Rosen bridge, the flash, the sound. Every change saves on this device." }
+];
+let guideAt = -1;
+function guideRect(step) {
+  if (step.earth) { const G = earthGeom(), r = G.R * earthZoom; return { x: G.cx - r, y: G.cy - r, w: r * 2, h: r * 2 }; }
+  const ids = Array.isArray(step.el) ? step.el : [step.el];
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const id of ids) { const el = $(id); if (!el) continue; const r = el.getBoundingClientRect(); x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); }
+  return { x: x0 - 7, y: y0 - 7, w: x1 - x0 + 14, h: y1 - y0 + 14 };
+}
+function guideShow(i) {
+  const st = GUIDE[i]; if (!st) return guideEnd();
+  guideAt = i;
+  const r = guideRect(st), sp = $("guideSpot"), card = $("guideCard");
+  sp.style.left = r.x + "px"; sp.style.top = r.y + "px"; sp.style.width = r.w + "px"; sp.style.height = r.h + "px";
+  sp.style.borderRadius = st.earth ? "50%" : "12px";
+  $("guideStep").textContent = (i + 1) + " / " + GUIDE.length;
+  $("guideHd").textContent = st.hd; $("guideTx").textContent = st.tx;
+  $("guideNext").textContent = i === GUIDE.length - 1 ? "DONE" : "NEXT";
+  const H = window.innerHeight, ch = card.offsetHeight || 160, midY = r.y + r.h / 2;
+  const top = midY > H * 0.5 ? Math.max(12, r.y - ch - 16) : Math.min(H - ch - 12, r.y + r.h + 16);
+  card.style.top = top + "px";
+}
+function guideStart(force) {
+  if (!force && (phase !== "chart" || intro)) return;
+  let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY) || ""; } catch (e) {}
+  if (seen && !force) return;
+  $("settings").classList.add("hide");
+  $("guide").classList.remove("hide");
+  guideShow(0);
+}
+function guideEnd() {
+  $("guide").classList.add("hide"); guideAt = -1;
+  try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
+}
+$("guideNext").onclick = () => { sfx("key"); guideShow(guideAt + 1); };
+$("guideSkip").onclick = () => { sfx("key"); guideEnd(); };
+$("bGuide").onclick = () => { sfx("key"); guideStart(true); };
+window.addEventListener("resize", () => { if (guideAt >= 0) guideShow(guideAt); });
 function introAfter() {                                         // everything else preloads once the opening is done
   fsCallout(); ambStart();
+  setTimeout(() => guideStart(false), 2200);                    // the first night: four spotlights, once
   if (S.pursue) loadPursue(); if (S.uso) loadUso();
   try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
   try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}

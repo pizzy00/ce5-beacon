@@ -833,3 +833,19 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
   #setCard .setStat { font-size: 10.5px; line-height: 1.45; }
   #setCard .setChk { margin: 12px 0; }
 }
+
+/* the first-night guide */
+#guide { position: fixed; inset: 0; z-index: 11; }
+#guide.hide { display: none; }
+#guideSpot { position: absolute; border: 2px solid var(--amber); border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.74), 0 0 22px rgba(255,196,107,0.85);
+  transition: left 0.45s ease, top 0.45s ease, width 0.45s ease, height 0.45s ease, border-radius 0.45s ease; }
+#guideCard { position: absolute; left: 50%; transform: translateX(-50%); width: min(92vw, 430px); box-sizing: border-box;
+  background: rgba(6,6,16,0.97); border: 1px solid rgba(255,196,107,0.55); border-radius: 8px; padding: 14px 16px 12px; color: var(--ink); transition: top 0.45s ease; }
+#guideStep { font-size: 10px; letter-spacing: 0.22em; color: var(--amber-dim); }
+#guideHd { font-size: 17px; letter-spacing: 0.14em; color: #fff1d6; margin: 6px 0 6px; }
+#guideTx { font-size: 12.5px; line-height: 1.55; color: rgba(232,226,212,0.88); text-transform: none; letter-spacing: 0.02em; }
+.guideBtns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.guideBtns .setBtn { cursor: pointer; padding: 7px 16px; }
+#guideNext { background: rgba(107,227,255,0.12); }
+@media (min-width: 700px) { #guideHd { font-size: 20px; } #guideTx { font-size: 14px; } }
