@@ -782,6 +782,7 @@
     <button class="btn hide key" id="bReplay">Replay</button>
     <button class="btn cy hide key" id="bTone">Tone</button>
     <button class="btn hide key" id="bSend">Send</button>
+    <button class="btn cy hide key" id="bCard" title="A picture of tonight to share">Card</button>
     <button class="btn hide key" id="bTarget">Retarget</button>
     <button class="btn cy key" id="bGps">GPS</button>
     <button class="btn cy key" id="bBoard" aria-label="Travellers board" title="Travellers board">LOG</button>
@@ -5450,7 +5451,7 @@ function arrive() {
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : S.polaris ? "RELAY: POLARIS GATE OPEN" : "RELAY: SOLAR CHANNEL OPEN");
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
-  ["bReplay", "bTone", "bTarget", "bGps", "bSend"].forEach((b) => $(b).classList.remove("hide"));
+  ["bReplay", "bTone", "bTarget", "bGps", "bSend", "bCard"].forEach((b) => $(b).classList.remove("hide"));
   const callOut = () => {                                        // the message goes out last
     flyStop(); bridgeStop();                                    // on the ground: the wind dies
     blip(523, 523, 0.4, 0.05); setTimeout(() => blip(659, 659, 0.5, 0.045), 200);   // touchdown: two notes
@@ -5486,7 +5487,7 @@ function replay() {
   setTimeout(measureCtl, 50);
   clearTimeout(beaconTimer); if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
-  ["bReplay", "bTone", "bTarget", "bSend"].forEach((b) => $(b).classList.add("hide"));
+  ["bReplay", "bTone", "bTarget", "bSend", "bCard"].forEach((b) => $(b).classList.add("hide"));
   stopMorse();
   $("bGps").classList.remove("hide");
   $("bEngage").classList.remove("hide"); $("bAll").classList.remove("hide");
@@ -6379,6 +6380,82 @@ try { localStorage.setItem("ce5.probe", "1"); localStorage.removeItem("ce5.probe
 try { callsign = localStorage.getItem(NAME_KEY) || ""; } catch (e) {}
 if (!callsign) { callsign = rollName(); try { localStorage.setItem(NAME_KEY, callsign); } catch (e) {} }
 function readLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]") || []; } catch (e) { return []; } }
+/* ---------------- the card: a picture of tonight, made here, shared by you ----------------
+   1080 x 1350 (a portrait post): the system you called, the render, the date, a rounded spot (never the exact one),
+   the route, the message. Drawn on a canvas in the browser; the app sends nothing anywhere. */
+function cardSpot() {                                            // the spot to about ten kilometres: fine for a post, not a doorstep
+  const la = Math.round(TARGET.lat * 10) / 10, lo = Math.round(TARGET.lon * 10) / 10;
+  return "ROUGHLY " + Math.abs(la).toFixed(1) + "\u00b0 " + (la >= 0 ? "N" : "S") + " \u00b7 " + Math.abs(lo).toFixed(1) + "\u00b0 " + (lo >= 0 ? "E" : "W");
+}
+function cardRoute() {
+  const m = modeOf();
+  if (m === "moon") return "LUNAR RELAY \u00b7 384,400 KM";
+  if (m === "ocean") return "FROM THE DEEP \u00b7 NO STAR ROUTE";
+  if (m === "bermuda") return "THE TRIANGLE \u00b7 THE TRIGGER";
+  return S.bridge ? "BY ROSEN BRIDGE \u00b7 " + fmtLy(selected.ly) + " IN ONE STEP" : (S.polaris ? "POLARIS GATE \u00b7 " : "SOLAR CHANNEL \u00b7 ") + fmtLy(selected.ly);
+}
+function buildCard() {
+  const Wc = 1080, Hc = 1350, cv = document.createElement("canvas"); cv.width = Wc; cv.height = Hc;
+  const c = cv.getContext("2d"), s = selected || { name: "EARTH", tag: "", c: "#ffc46b" };
+  const mono = "ui-monospace, Menlo, Consolas, monospace", disp = "Futura, 'Century Gothic', 'Trebuchet MS', Verdana, sans-serif";
+  c.fillStyle = "#000"; c.fillRect(0, 0, Wc, Hc);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 420; i++) { const r = rnd() < 0.9 ? 1.2 : 2.2; c.globalAlpha = 0.25 + rnd() * 0.6; c.fillStyle = "#cfd6ff"; c.fillRect(rnd() * Wc, rnd() * Hc, r, r); }
+  c.globalAlpha = 1;
+  c.strokeStyle = "rgba(255,196,107,0.45)"; c.lineWidth = 3; c.strokeRect(36, 36, Wc - 72, Hc - 72);
+  c.textAlign = "center"; c.fillStyle = "#ffc46b"; c.font = "600 54px " + disp;
+  c.fillText("C E - 5   B E A C O N", Wc / 2, 130);
+  c.fillStyle = "rgba(240,236,226,0.7)"; c.font = "26px " + mono;
+  const d = new Date(), months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  c.fillText("A NIGHT OUT \u00b7 " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear(), Wc / 2, 178);
+  // the picture: the render when we have it, else the star itself
+  const kind = (s.tag || "").split(" ")[0], pic = (S.face !== "sketch" && SPECIES[kind]) ? faceFor(kind, s, performance.now() / 1000) : null;
+  const bx = 260, by = 230, bw = 560, bh = 690;
+  if (pic) {
+    const im = pic.img, iw = im.naturalWidth, ih = im.naturalHeight, want = bw / bh;
+    let sw = iw, sh = iw / want, sx = 0, sy = (ih - sh) / 2;
+    if (sh > ih) { sh = ih; sw = ih * want; sx = (iw - sw) / 2; sy = 0; }
+    c.drawImage(im, sx, sy, sw, sh, bx, by, bw, bh);
+  } else {
+    const g = c.createRadialGradient(Wc / 2, by + bh / 2, 0, Wc / 2, by + bh / 2, 300);
+    g.addColorStop(0, s.c || "#ffc46b"); g.addColorStop(0.25, "rgba(255,255,255,0.35)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g; c.fillRect(bx, by, bw, bh);
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(Wc / 2, by + bh / 2, 22, 0, 6.29); c.fill();
+  }
+  c.strokeStyle = s.c || "#ffc46b"; c.lineWidth = 3; c.globalAlpha = 0.7; c.strokeRect(bx, by, bw, bh); c.globalAlpha = 1;
+  for (const [x, y] of [[bx, by], [bx + bw, by], [bx, by + bh], [bx + bw, by + bh]]) { c.beginPath(); c.moveTo(x - 16, y); c.lineTo(x + 16, y); c.moveTo(x, y - 16); c.lineTo(x, y + 16); c.stroke(); }
+  c.fillStyle = s.c || "#ffc46b"; c.font = "600 58px " + disp;
+  c.fillText(String(s.name || "EARTH").toUpperCase(), Wc / 2, 1010);
+  c.fillStyle = "rgba(240,236,226,0.85)"; c.font = "28px " + mono;
+  c.fillText((pic ? pic.title : (s.tag || "")).toUpperCase(), Wc / 2, 1058);
+  c.fillStyle = "#9be7ff"; c.font = "26px " + mono;
+  c.fillText("CALLED FROM " + cardSpot(), Wc / 2, 1120);
+  c.fillText(cardRoute(), Wc / 2, 1160);
+  c.fillStyle = "#ffc46b"; c.font = "30px " + mono;
+  const msg = '"' + String(S.msg || "").toUpperCase().slice(0, 42) + '"';
+  c.fillText(msg, Wc / 2, 1222);
+  c.fillStyle = "rgba(240,236,226,0.55)"; c.font = "22px " + mono;
+  c.fillText(pic ? "AN AI RENDER FROM WITNESS DESCRIPTIONS \u00b7 NOT A PHOTOGRAPH" : "A FREE CONSOLE FOR A CLOSE ENCOUNTER", Wc / 2, 1272);
+  c.fillText("PIZZY00.GITHUB.IO/CE5-BEACON", Wc / 2, 1304);
+  return cv;
+}
+function shareCard() {
+  let cv;
+  try { cv = buildCard(); } catch (e) { log("THE CARD DID NOT DRAW", "alert"); return; }
+  cv.toBlob((blob) => {
+    if (!blob) { log("THE CARD DID NOT DRAW", "alert"); return; }
+    const file = new File([blob], "ce5-beacon-night.png", { type: "image/png" });
+    const text = "A night out with CE-5 Beacon \u00b7 " + (selected ? selected.name : "EARTH") + " \u00b7 " + publicLink();
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: "CE-5 Beacon", text }).then(() => log("CARD SHARED", "cy")).catch(() => {});
+      return;
+    }
+    const url = URL.createObjectURL(blob), a = document.createElement("a");   // no share sheet: save it
+    a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    log("CARD SAVED \u00b7 POST IT WHEREVER YOU LIKE", "cy");
+  }, "image/png");
+}
 function logTrip() {                                            // a run reached the ground: it counts
   const s = selected || {};
   const trip = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)),
@@ -7198,6 +7275,7 @@ $("ckMorseTone").onchange = (e) => (S.mTone = e.target.checked);
 $("rWpm").oninput = (e) => { S.mWpm = +e.target.value; $("vWpm").textContent = S.mWpm; };
 $("rMInt").oninput = (e) => { S.mInt = +e.target.value / 100; $("vMInt").textContent = e.target.value; };
 $("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
+$("bCard").onclick = () => { sfx("key"); shareCard(); };
 $("msgMorse").textContent = morseString(S.msg);
 $("ckCrt").onchange = (e) => { S.crt = e.target.checked; applyScreen(); };
 $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
