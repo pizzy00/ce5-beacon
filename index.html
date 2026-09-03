@@ -418,6 +418,7 @@
     <div class="setRow">
       <div class="setLbl">YOUR LOG — THIS DEVICE</div>
       <div id="bdMine"></div>
+      <div class="bdBtns"><span class="setBtn dim" id="bdWipe">CLEAR MY LOG ON THIS DEVICE</span></div>
     </div>
     <div class="setRow">
       <div class="setLbl">THE BOARD — EVERYONE</div>
@@ -6625,6 +6626,7 @@ function logTrip() {                                            // a run reached
     n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
   const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+  const ns = nightStats(L); if (ns.streak >= 2) log("NIGHT " + ns.streak + " IN A ROW" + (ns.streak >= ns.best ? " \u00b7 YOUR BEST" : ""), "cy");
   const P = readPending(); P.push(trip); while (P.length > 50) P.shift();
   writePending(P);
   flushPending();
@@ -6715,13 +6717,39 @@ function bdRows(list, mine) {
   return list.map((r) => '<div class="bdRow' + (mine || r.n === callsign ? " me" : "") + '"><span><b>' + esc(r.n) + '</b> \u2192 ' + esc(r.d) +
     '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.t) + '</i></span></div>').join("");
 }
+/* ---------------- your nights: how many, how many in a row ----------------
+   Counted from the device log by local calendar day. A streak is unbroken nights ending tonight or last night. */
+function nightStats(L) {
+  const day = (t) => { const d = new Date(t); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5); };
+  const days = [...new Set((L || readLog()).map((r) => day(r.t)))].sort((a, b) => a - b);
+  let best = 0, run = 0, prev = null;
+  for (const d of days) { run = prev !== null && d === prev + 1 ? run + 1 : 1; best = Math.max(best, run); prev = d; }
+  const today = day(Date.now()), last = days.length ? days[days.length - 1] : null;
+  const streak = last === null ? 0 : (last === today || last === today - 1) ? run : 0;
+  return { nights: days.length, streak, best, tonight: last === today };
+}
+function nightsHtml(L) {
+  const s = nightStats(L);
+  if (!s.nights) return "";
+  return '<div class="setStat">' + s.nights + " NIGHT" + (s.nights === 1 ? "" : "S") + " OUT \u00b7 " +
+    (s.streak >= 2 ? s.streak + " IN A ROW" : s.tonight ? "TONIGHT COUNTS" : "THE STREAK STARTS WITH THE NEXT ONE") +
+    (s.best >= 2 ? " \u00b7 BEST RUN " + s.best : "") + "</div>";
+}
+let wipeArmed = 0;
+$("bdWipe").onclick = () => {                                    // two taps, four seconds apart at most: nothing goes by accident
+  if (!wipeArmed) { wipeArmed = setTimeout(() => { wipeArmed = 0; $("bdWipe").textContent = "CLEAR MY LOG ON THIS DEVICE"; }, 4000); $("bdWipe").textContent = "SURE? TAP AGAIN TO CLEAR IT"; return; }
+  clearTimeout(wipeArmed); wipeArmed = 0; $("bdWipe").textContent = "CLEAR MY LOG ON THIS DEVICE";
+  try { localStorage.removeItem(LOG_KEY); } catch (e) {}
+  log("YOUR LOG ON THIS DEVICE IS CLEARED \u00b7 THE PUBLIC BOARD KEEPS WHAT WAS FILED", "cy");
+  openBoard();
+};
 function openBoard() {
   $("settings").classList.add("hide"); $("info").classList.add("hide");
   $("bdName").value = callsign;
   const L = readLog().slice().reverse();
   const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
   $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
-    " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + bdRows(L.slice(0, 12), true);
+    " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + nightsHtml(L) + bdRows(L.slice(0, 12), true);
   const pend = readPending().filter((x) => !x.v).length;
   const note = !BOARD_TOKEN
     ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
@@ -7540,6 +7568,7 @@ if (S.chart3d) log("DRAG THE SKY TO TURN IT · PINCH TO ZOOM · PICK A DEPARTURE
   log("SHIPS WITH NAMES ON THEM ARE REAL EARLIER TRAVELLERS \u00b7 SET HOW MANY IN \u2699", "cy");
   log("THREE THINGS HAVE EVER PASSED THROUGH FROM ANOTHER STAR \u00b7 THEY TAKE TURNS CROSSING THE CHART", "cy");
   log("YOU FLY AS " + callsign + " \u00b7 THE LOG KEY SHOWS YOUR TRIPS", "cy");
+  { const ns = nightStats(); if (ns.streak >= 2) log(ns.streak + " NIGHTS IN A ROW \u00b7 KEEP IT GOING", "cy"); else if (ns.nights) log(ns.nights + " NIGHT" + (ns.nights === 1 ? "" : "S") + " OUT ON THIS DEVICE", "cy"); }
   log("IT HAS NEVER WORKED FOR ME \u00b7 IT MIGHT FOR YOU \u00b7 THE i KEY SAYS WHY I BUILT IT ANYWAY", "cy");
 if (reducedPref) {                                              // only ever a note: FULL is the default and stays full
   $("motionStat").textContent = "REDUCE MOTION DETECTED ON THIS DEVICE — MOTION: FOLLOW THE PHONE WOULD SHORTEN THE STAGES";
