@@ -2898,7 +2898,8 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
   ctx.font = "7px ui-monospace, Menlo, monospace"; ctx.fillStyle = "#ff8e5e"; ctx.textAlign = "center";
   P3.forEach((p, i) => {
     ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 6.29); ctx.fill();
-    ctx.fillText(corner[i], p.x, p.y - 6);
+    lblQ({ text: corner[i], font: ctx.font, color: "#ff8e5e", alpha: zt * 0.9, x: p.x, y: p.y - 6, align: "center", pri: 2,
+      alts: [[p.x, p.y + 11, "center"], [p.x + 6, p.y + 2.5, "left"], [p.x - 6, p.y + 2.5, "right"]] });
   });
   ctx.textAlign = "left";
   const up = unitPos(t);                                        // where it is right now, at its real speed, time-lapsed
@@ -2929,10 +2930,9 @@ function drawTriangleZoom(sx, sy, RZ, zt, t) {                  // close in: the
     const cap2 = UNIT_KN + " KNOTS · TIME ×" + (S.uTime || 1) + " · DARK · THE DOT IS IT";
     const capW = Math.max(ctx.measureText(cap1).width, ctx.measureText(cap2).width) / 2 + 6;
     const cxC = Math.max(capW, Math.min(W - capW, cxT));         // centred on the Triangle while it fits, nudged in when it does not
-    ctx.fillStyle = "#9fd8ff";
-    ctx.fillText(cap1, cxC, topY - 27);
-    ctx.fillStyle = "rgba(232,226,212,0.75)";
-    ctx.fillText(cap2, cxC, topY - 18);
+    const botY = Math.max(P3[0].y, P3[1].y, P3[2].y);
+    lblQ({ text: cap1, sub: cap2, font: ctx.font, subDy: 9, color: "#9fd8ff", subColor: "rgba(232,226,212,0.85)", alpha: Math.min(1, zt * 1.4), x: cxC, y: topY - 27, align: "center", pri: 5, must: true,
+      alts: [[cxC, botY + 16, "center"], [cxC, topY - 46, "center"]] });
     ctx.textAlign = "left";
     if (unitOrbs.length < 3 && Math.sin(t * 0.55) > 0.995) unitOrbs.push({ t0: t, x: u.x, y: u.y });
     for (let i = unitOrbs.length - 1; i >= 0; i--) {             // and what it lets go of
@@ -3015,7 +3015,62 @@ function drawISO(t, sunX, sunY, sx, sy, RZ, IK) {
   ctx.restore(); ctx.globalAlpha = 1;
   if (!isoSaidSet.has(which) && u > 0.34 && u < 0.5) { isoSaidSet.add(which); isoSaid = which; log(o.note, "cy"); }
 }
+/* ---------------- place names that do not run over each other ----------------
+   Every name on the world is queued for the frame, then placed together: the important ones first, each trying its own
+   spot and then a few alternatives, dropped when nothing fits (its pin stays, and a tap still finds it). Each gets a dark
+   backing so it reads over the bright globe, and none is allowed off the edge of the screen. */
+let LBL = null, lblLast = [];                                    // lblLast: what was placed last frame (for the probes)
+function lblBegin() { if (LBL) lblFlush(); LBL = []; }
+function lblQ(o) { if (LBL) LBL.push(o); else lblDraw(o, o.x, o.y, o.align); }
+function lblBox(o, x, y, al) {
+  ctx.font = o.font; const fs = parseFloat(o.font) || 7;
+  let w = ctx.measureText(o.text).width, h = fs + 3, dy = 0;
+  if (o.sub) { ctx.font = o.subFont || o.font; w = Math.max(w, ctx.measureText(o.sub).width); dy = o.subDy || fs * 1.25; h += dy; }
+  const x0 = al === "center" ? x - w / 2 : al === "right" ? x - w : x;
+  return { x0: x0 - 3, y0: y - fs - 1, x1: x0 + w + 3, y1: y - fs - 1 + h + 1, dy };
+}
+function lblDraw(o, x, y, al, b) {
+  b = b || lblBox(o, x, y, al);
+  ctx.save();
+  const a = o.alpha === undefined ? 1 : o.alpha;
+  ctx.globalAlpha = 0.55 * a; ctx.fillStyle = "#000"; ctx.fillRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0);   // the backing
+  ctx.globalAlpha = a; ctx.textAlign = al; ctx.font = o.font; ctx.fillStyle = o.color;
+  if (o.glow) { ctx.shadowColor = o.color; ctx.shadowBlur = 6; }
+  ctx.fillText(o.text, x, y);
+  if (o.sub) { ctx.shadowBlur = 0; ctx.globalAlpha = a * (o.subAlpha === undefined ? 1 : o.subAlpha); ctx.font = o.subFont || o.font; ctx.fillStyle = o.subColor || "rgba(232,226,212,0.8)"; ctx.fillText(o.sub, x, y + b.dy); }
+  ctx.restore();
+}
+function lblFlush() {
+  if (!LBL) return;
+  const q = LBL; LBL = null;
+  q.sort((a, b) => b.pri - a.pri);
+  const kept = [];
+  for (const id of ["bFull", "bMute", "bIdea", "bLang"]) {         // the buttons up the right side are not free ground
+    const el = $(id); if (!el) continue;
+    const r = el.getBoundingClientRect(); if (r.width < 1) continue;
+    kept.push({ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4, must: true, text: "" });
+  }
+  const hits = (b) => kept.some((k) => b.x0 < k.x1 && b.x1 > k.x0 && b.y0 < k.y1 && b.y1 > k.y0);
+  const fit = (o, x, y, al) => {                                // keep it on the screen, then see if the spot is free
+    const b = lblBox(o, x, y, al);
+    const dx = b.x0 < 2 ? 2 - b.x0 : b.x1 > W - 2 ? W - 2 - b.x1 : 0;
+    b.x0 += dx; b.x1 += dx;
+    return { b, x: x + dx };
+  };
+  for (const o of q) {
+    const tries = [[o.x, o.y, o.align]].concat(o.alts || []);
+    let placed = null;
+    for (const [x, y, al] of tries) { const f = fit(o, x, y, al); if (!hits(f.b)) { placed = [f, y, al]; break; } }
+    if (!placed && o.must) { const f = fit(o, o.x, o.y, o.align); placed = [f, o.y, o.align]; }   // the ones that must show, even on top of something
+    if (!placed) continue;
+    placed[0].b.text = o.text; placed[0].b.must = !!o.must;
+    kept.push(placed[0].b); lblDraw(o, placed[0].x, placed[1], placed[2], placed[0].b);
+  }
+  lblLast = kept;
+  ctx.textAlign = "left"; ctx.globalAlpha = 1;
+}
 function drawEarthHub(t) {
+  lblBegin();
   const G = earthGeom(), sx = G.cx, sy = G.cy + introLift(), R = G.R, RZ = R * earthZoom;   // zoom moves the camera in; the opening lifts it in from below
   const dt = Math.min(0.1, Math.max(0, t - earthLastT)); earthLastT = t;
   const zt = Math.max(0, Math.min(1, (earthZoom - 1.06) / 0.62));   // close enough in = the Triangle wakes, pop-up view included
@@ -3178,12 +3233,10 @@ function drawEarthHub(t) {
     ctx.fillStyle = pin.c; ctx.beginPath(); ctx.arc(p.x, p.y, on ? 2.6 : 2, 0, 6.29); ctx.fill();
     ctx.strokeStyle = pin.c; ctx.globalAlpha = on ? 0.95 : 0.6; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(p.x, p.y, (on ? 7 : 5.5) + (on ? Math.sin(t * 4) : 0), 0, 6.29); ctx.stroke();
-    let al = p.x > sx ? "left" : "right";                        // never let the name run off the edge
-    if (al === "right" && p.x < 62) al = "left";
-    if (al === "left" && p.x > W - 62) al = "right";
-    ctx.globalAlpha = 0.85; ctx.fillStyle = pin.c; ctx.textAlign = al;
-    ctx.fillText(pin.n, p.x + (al === "left" ? 9 : -9), p.y + 2.5);
-    ctx.globalAlpha = 1; ctx.textAlign = "left";
+    const al = p.x > sx ? "left" : "right", al2 = al === "left" ? "right" : "left";
+    lblQ({ text: pin.n, font: nameFont(7), color: pin.c, alpha: 0.9, x: p.x + (al === "left" ? 9 : -9), y: p.y + 2.5, align: al, pri: 3.5, must: true,
+      alts: [[p.x + (al2 === "left" ? 9 : -9), p.y + 2.5, al2], [p.x, p.y + 12 * nameK, "center"], [p.x, p.y - 9 * nameK, "center"]] });
+    ctx.globalAlpha = 1;
   }
   if (S.poles) {                                                // the two ends of the world, drawn where they really are
     const bigP = earthZoom > 1.25 || gvK() > 0.5;
@@ -3199,14 +3252,8 @@ function drawEarthHub(t) {
       }
       ctx.stroke(); ctx.setLineDash([]);
       const lp = orthPt(-earthRot, pole.ly, sx, sy, RZ, earthTiltDraw);   // the name rides the meridian facing you
-      if (lp.v && bigP) {
-        ctx.globalAlpha = 0.85; ctx.fillStyle = pole.c;
-        ctx.font = nameFont(7); ctx.textAlign = "center";
-        ctx.fillText(pole.tag, lp.x, lp.y);
-        ctx.globalAlpha = 0.45; ctx.font = nameFont(5.5);
-        ctx.fillText(pole.n + " \u00b7 66.57\u00b0", lp.x, lp.y + 9 * nameK);
-        ctx.textAlign = "left";
-      }
+      if (lp.v && bigP) lblQ({ text: pole.tag, sub: pole.n + " \u00b7 66.57\u00b0", font: nameFont(7), subFont: nameFont(5.5), subDy: 9 * nameK, subColor: pole.c, subAlpha: 0.55,
+        color: pole.c, alpha: 0.85, x: lp.x, y: lp.y, align: "center", pri: 3, alts: [[lp.x, lp.y + 16 * nameK, "center"]] });
     }
     ctx.globalAlpha = 1;
   }
@@ -3223,7 +3270,9 @@ function drawEarthHub(t) {
       if (q.claim) { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); }   // orange diamond = a claim, not an alignment
       else { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y + r * 0.8); ctx.lineTo(p.x - r, p.y + r * 0.8); }
       ctx.closePath(); ctx.fill();
-      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.n, p.x + (p.x > sx ? 7 : -7) * nameK, p.y + 2.5 * nameK); }
+      if (big) { const r1 = p.x > sx;
+        lblQ({ text: q.n, font: nameFont(6.5), color: q.claim ? "#ff9b5e" : "#ffd27a", alpha: 0.9, x: p.x + (r1 ? 7 : -7) * nameK, y: p.y + 2.5 * nameK, align: r1 ? "left" : "right", pri: 1,
+          alts: [[p.x + (r1 ? -7 : 7) * nameK, p.y + 2.5 * nameK, r1 ? "right" : "left"], [p.x, p.y + 11 * nameK, "center"], [p.x, p.y - 6 * nameK, "center"]] }); }
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
@@ -3247,7 +3296,9 @@ function drawEarthHub(t) {
       const r = Math.min(4.5, 2 + Math.sqrt(q.recs.length) * 0.45);
       ctx.globalAlpha = 0.85; ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.globalAlpha = 0.35; ctx.strokeStyle = "#8ff0ff"; ctx.lineWidth = 1; ctx.strokeRect(p.x - r - 1.5, p.y - r - 1.5, r * 2 + 3, r * 2 + 3);
-      if (big) { ctx.globalAlpha = 0.8; ctx.textAlign = p.x > sx ? "left" : "right"; ctx.fillText(q.recs.length + (q.recs.length === 1 ? " FILE" : " FILES"), p.x + (p.x > sx ? 8 : -8) * nameK, p.y + 2.5 * nameK); }
+      if (big) { const r1 = p.x > sx;
+        lblQ({ text: q.recs.length + (q.recs.length === 1 ? " FILE" : " FILES"), font: nameFont(6.5), color: "#8ff0ff", alpha: 0.85, x: p.x + (r1 ? 8 : -8) * nameK, y: p.y + 2.5 * nameK, align: r1 ? "left" : "right", pri: 1.5,
+          alts: [[p.x + (r1 ? -8 : 8) * nameK, p.y + 2.5 * nameK, r1 ? "right" : "left"], [p.x, p.y + 11 * nameK, "center"]] }); }
     }
     ctx.globalAlpha = 1; ctx.textAlign = "left";
   }
@@ -3256,10 +3307,12 @@ function drawEarthHub(t) {
     ctx.strokeStyle = "#ffc46b"; ctx.globalAlpha = 0.9; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(you.x - 4, you.y); ctx.lineTo(you.x + 4, you.y);
     ctx.moveTo(you.x, you.y - 4); ctx.lineTo(you.x, you.y + 4); ctx.stroke();
-    ctx.globalAlpha = 0.75; ctx.fillStyle = "#ffc46b"; ctx.textAlign = "center";
-    ctx.fillText("YOU", you.x, you.y - 7); ctx.textAlign = "left"; ctx.globalAlpha = 1;
+    lblQ({ text: "YOU", font: nameFont(7), color: "#ffc46b", alpha: 0.95, x: you.x, y: you.y - 7, align: "center", pri: 4, must: true,
+      alts: [[you.x, you.y + 14, "center"], [you.x + 8, you.y + 3, "left"], [you.x - 8, you.y + 3, "right"]] });
+    ctx.globalAlpha = 1;
   }
-  label(sx, sy - RZ * 0.80, "EARTH", "", "#8fd0ff", "center");  // on the world itself, clear of the sky
+  lblQ({ text: "EARTH", font: "10px ui-monospace, Menlo, monospace", color: "#8fd0ff", glow: true, x: sx, y: sy - RZ * 0.80, align: "center", pri: 3.2,
+    alts: [[sx, sy - RZ * 0.80 - 14, "center"], [sx, sy - RZ * 0.80 + 14, "center"]] });   // on the world itself, clear of the sky
 }
 function landAt(i, sx, sy) {                                    // each route lands at its own spot behind the world
   const G = earthGeom(), RZ = G.R * earthZoom;
@@ -3589,11 +3642,12 @@ function drawChart(t) {
     ctx.strokeStyle = selected.c; ctx.globalAlpha = 0.9;
     ctx.beginPath(); ctx.arc(sx, sy, Math.min(W, H) * 0.135 + 9 + 3 * Math.sin(t * 3), 0, 6.29); ctx.stroke();
     ctx.globalAlpha = 1;
-    label(sx, sy - Math.min(W, H) * 0.135 - 30, "DEPARTURE: " + selected.name,
-      modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
+    lblQ({ text: "DEPARTURE: " + selected.name, sub: modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
         : modeOf() === "bermuda" ? "THE TRIGGER · NO STAR ROUTE" : "FROM THE DEEP · NO STAR ROUTE",
-      selected.c, "center");
+      font: "10px ui-monospace, Menlo, monospace", subFont: "9px ui-monospace, Menlo, monospace", subDy: 12, color: selected.c, glow: true,
+      x: sx, y: sy - Math.min(W, H) * 0.135 - 30, align: "center", pri: 6, must: true });
   }
+  lblFlush();
 }
 
 /* ---------------- the opening ---------------- */
@@ -3835,7 +3889,6 @@ function drawChart3D(t) {
   if (wash > 0) { ctx.fillStyle = "rgba(0,0,0," + wash.toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
   drawEarthHub(t);
   if (intro && !intro.t0) introStatus(t);
-  drawSystemView(t);
   if (modeOf() && !sysView && !intro) {                         // the pick sits on the spot itself; never during the opening
     const m = modeHit.find((q) => q.id === selected.id);
     const sub = modeOf() === "moon" ? "384,400 KM OUT · NO STAR ROUTE"
@@ -3846,11 +3899,15 @@ function drawChart3D(t) {
       ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.arc(m.x, m.y, rr, 0, 6.29); ctx.stroke();
       ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(m.x, m.y, rr + 7, 0, 6.29); ctx.stroke();
       ctx.globalAlpha = 1; ctx.lineWidth = 1;
-      label(m.x, m.y - rr - 28, "DEPARTURE: " + selected.name, sub, selected.c, "center");
+      lblQ({ text: "DEPARTURE: " + selected.name, sub, font: "10px ui-monospace, Menlo, monospace", subFont: "9px ui-monospace, Menlo, monospace", subDy: 12, color: selected.c, glow: true,
+        x: m.x, y: m.y - rr - 28, align: "center", pri: 6, must: true, alts: [[m.x, m.y + rr + 22, "center"]] });
     } else if (earthZoom <= 1.25 && gvK() <= 0.5) {                 // round the back: say so - but never across a world you have leaned into
-      label(sx, sy - 30, "DEPARTURE: " + selected.name, sub, selected.c, "center");
+      lblQ({ text: "DEPARTURE: " + selected.name, sub, font: "10px ui-monospace, Menlo, monospace", subFont: "9px ui-monospace, Menlo, monospace", subDy: 12, color: selected.c, glow: true,
+        x: sx, y: sy - 30, align: "center", pri: 6, must: true });
     }
   }
+  lblFlush();
+  drawSystemView(t);
 }
 
 /* warp */
