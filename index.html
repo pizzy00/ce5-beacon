@@ -3931,9 +3931,11 @@ function guideStart(force) {
   if ((seen || S.noGuide) && !force) return;
   $("settings").classList.add("hide");
   $("guide").classList.remove("hide");
+  sfx("cover");                                                 // the card slides in with the same sound as the other cards
   guideShow(0);
 }
 function guideEnd() {
+  if (!$("guide").classList.contains("hide")) sfx("cover");
   $("guide").classList.add("hide"); guideAt = -1;
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
 }
