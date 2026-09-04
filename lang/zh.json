@@ -637,5 +637,21 @@
  "TRIPS": "次旅程",
  "NOTE SAVED · ON THIS DEVICE ONLY": "笔记已保存 · 仅在此设备",
  "NOTE CLEARED": "笔记已清除",
- "NOTHING TO EXPORT YET · FLY ONE FIRST": "还没有可导出的内容 · 先飞一次"
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "还没有可导出的内容 · 先飞一次",
+ "POINT AT THEM": "指向他们",
+ "A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "一个指南针箭头指向你真实天空中所选的星系，以及要看多高 · 需要手机的指南针 · IPHONE 会询问一次",
+ "BELOW THE HORIZON NOW": "此刻在地平线以下",
+ "FACE": "面向",
+ "UP": "高",
+ "NO COMPASS ON THIS DEVICE": "此设备没有指南针",
+ "RING IS NORTH-UP": "圆环以北为上",
+ "THERE": "就在那里",
+ "LOOK": "看",
+ "TURN RIGHT": "向右转",
+ "TURN LEFT": "向左转",
+ "POINT AT THEM ON · THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY": "指向他们已开启 · 左上角的圆环显示他们在你天空中的位置",
+ "POINT AT THEM OFF": "指向他们已关闭",
+ "POINTING FROM THE DEFAULT SPOT · TAP GPS FOR YOUR OWN SKY": "正从默认位置指向 · 点击 GPS 使用你自己的天空",
+ "NO COMPASS PERMISSION · THE RING STAYS NORTH-UP AND SAYS WHICH WAY TO FACE": "没有指南针权限 · 圆环保持以北为上，并告诉你面向哪边",
+ "POINT AT THEM — A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "指向他们 — 一个指南针箭头指向你真实天空中所选的星系，以及要看多高 · 需要手机的指南针 · IPHONE 会询问一次"
 }

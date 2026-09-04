@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=34" />
+<link rel="stylesheet" href="styles.css?v=35" />
 </head>
 <body class="intro introHud">
 
@@ -145,6 +145,7 @@
         <option value="3d" selected>3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM</option>
         <option value="flat">FLAT CHART</option>
       </select>
+      <label class="setChk"><input type="checkbox" id="ckPoint" />POINT AT THEM &#8212; A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK &#183; NEEDS THE PHONE'S COMPASS &#183; IPHONE ASKS ONCE</label>
       <label class="setChk"><input type="checkbox" id="ckTrueSky" />TRUE SKY POSITIONS — EACH SYSTEM AT ITS REAL RIGHT ASCENSION ROUND THE TURNTABLE (THEY BUNCH UP, LIKE THE REAL SKY)</label>
       <div class="setLbl">WHICH SYSTEMS SHOW</div>
       <div class="bdBtns"><span class="setBtn" id="bSysPick">PICK THE SYSTEMS…</span></div>
@@ -806,6 +807,7 @@
   <div id="phase" class="display"><span id="phaseTxt">ALIEN SYSTEM CHART</span> <span id="blink">▌</span><span id="hintDT">DOUBLE-TAP THE EARTH TO LOOK CLOSER</span></div>
   <div id="tapHint" class="display">TAP THE SCREEN TO SKIP TO THE NEXT STAGE</div>
   <div id="crumb" class="display"></div>
+  <div id="point" class="hide"><div id="pointRing"><div id="pointArrow"></div></div><div id="pointTxt"><b id="pointName"></b><span id="pointLine"></span><span id="pointHow"></span></div></div>
 </div>
 
 <div id="ctl" dir="ltr">
@@ -892,7 +894,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, point: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -7797,7 +7799,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -7906,6 +7908,60 @@ $("ckLore").onchange = (e) => (S.lore = e.target.checked);
 });
 $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loadPursue(); };
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
+/* ---------------- point at them: a compass arrow to the chosen system (09-04) ----------------
+   Alt/az from the system's RA/Dec and the target spot: sidereal time from the date, hour angle, the usual spherical triangle.
+   Heading from the phone compass when it has one; iPhone must be asked inside a tap, which the setting's own tap is. */
+function skyAltAz(raH, dec, lat, lon, when) {
+  const jd = (when || Date.now()) / 86400000 + 2440587.5, T = (jd - 2451545) / 36525;
+  const gmst = ((280.46061837 + 360.98564736629 * (jd - 2451545) + 0.000387933 * T * T) % 360 + 360) % 360;
+  const ha = (((gmst + lon - raH * 15) % 360 + 360) % 360) * Math.PI / 180, d = dec * Math.PI / 180, p = lat * Math.PI / 180;
+  const alt = Math.asin(Math.sin(d) * Math.sin(p) + Math.cos(d) * Math.cos(p) * Math.cos(ha)) * 180 / Math.PI;
+  const az = (Math.atan2(Math.sin(ha), Math.cos(ha) * Math.sin(p) - Math.tan(d) * Math.cos(p)) * 180 / Math.PI + 180 + 360) % 360;
+  return { alt, az };
+}
+let heading = null, pointTimer = 0, pointOn = false, pointSaid = false;
+const COMPASS8 = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+function compass8(az) { return COMPASS8[Math.round(az / 45) % 8]; }
+function onOrient(e) {
+  if (typeof e.webkitCompassHeading === "number") heading = e.webkitCompassHeading;             // iPhone: degrees clockwise from north
+  else if ((e.absolute || e.type === "deviceorientationabsolute") && typeof e.alpha === "number") heading = (360 - e.alpha) % 360;
+}
+function pointArm() { window.addEventListener("deviceorientationabsolute", onOrient); window.addEventListener("deviceorientation", onOrient); }
+function pointStart() {
+  pointStop();
+  if (!S.point) return;
+  pointOn = true;
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") {
+    const ask = () => DeviceOrientationEvent.requestPermission().then((r) => { if (r === "granted") pointArm(); else log("NO COMPASS PERMISSION \u00b7 THE RING STAYS NORTH-UP AND SAYS WHICH WAY TO FACE", "alert"); }).catch(() => {});
+    if (navigator.userActivation && !navigator.userActivation.isActive) document.addEventListener("pointerdown", ask, { once: true });   // a saved setting at boot: ask on the first touch
+    else ask();
+  } else pointArm();
+  pointTimer = setInterval(pointTick, 500); pointTick();
+}
+function pointStop() {
+  pointOn = false; clearInterval(pointTimer); pointTimer = 0; heading = null;
+  window.removeEventListener("deviceorientationabsolute", onOrient); window.removeEventListener("deviceorientation", onOrient);
+  $("point").classList.add("hide");
+}
+function pointTick() {
+  const el = $("point"); if (!pointOn) return;
+  const s = selected;
+  if (!s || s.ra === undefined || phase !== "chart" || allChannels) { el.classList.add("hide"); return; }
+  const q = skyAltAz(s.ra, s.dec, TARGET.lat, TARGET.lon), up = Math.round(q.alt), dir = compass8(q.az);
+  el.classList.remove("hide"); el.classList.toggle("down", q.alt < 0); el.classList.toggle("live", heading !== null);
+  $("pointName").textContent = String(s.name || "").toUpperCase();
+  $("pointLine").textContent = q.alt < 0 ? tx("BELOW THE HORIZON NOW") + " \u00b7 " + tx("FACE") + " " + dir : tx("FACE") + " " + dir + " \u00b7 " + up + "\u00b0 " + tx("UP");
+  let rot = q.az, how;
+  if (heading === null) how = tx("NO COMPASS ON THIS DEVICE") + " \u00b7 " + tx("RING IS NORTH-UP");
+  else {
+    const turn = ((q.az - heading + 540) % 360) - 180; rot = turn;
+    how = Math.abs(turn) < 8 ? tx("THERE") + (q.alt > 0 ? " \u00b7 " + tx("LOOK") + " " + up + "\u00b0 " + tx("UP") : "") : (turn > 0 ? tx("TURN RIGHT") : tx("TURN LEFT")) + " " + Math.round(Math.abs(turn)) + "\u00b0";
+  }
+  $("pointArrow").style.transform = "rotate(" + rot.toFixed(1) + "deg)";
+  $("pointHow").textContent = how;
+  if (!pointSaid && Math.abs(TARGET.lat - 39.76849) < 1e-4 && Math.abs(TARGET.lon + 86.15806) < 1e-4) { pointSaid = true; log("POINTING FROM THE DEFAULT SPOT \u00b7 TAP GPS FOR YOUR OWN SKY", "cy"); }
+}
+$("ckPoint").onchange = (e) => { S.point = e.target.checked; pointStart(); log(S.point ? "POINT AT THEM ON \u00b7 THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY" : "POINT AT THEM OFF", "cy"); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
@@ -7974,6 +8030,7 @@ if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApp
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
 applyS();                                                       // first visit too: every control shows what the console actually holds
+if (S.point) pointStart();                                      // the compass ring, when he left it on
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
 if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }

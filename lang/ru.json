@@ -637,5 +637,21 @@
  "TRIPS": "ПОЛЁТОВ",
  "NOTE SAVED · ON THIS DEVICE ONLY": "ЗАМЕТКА СОХРАНЕНА · ТОЛЬКО НА ЭТОМ УСТРОЙСТВЕ",
  "NOTE CLEARED": "ЗАМЕТКА УДАЛЕНА",
- "NOTHING TO EXPORT YET · FLY ONE FIRST": "ПОКА НЕЧЕГО ЭКСПОРТИРОВАТЬ · СНАЧАЛА СОВЕРШИ ПОЛЁТ"
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "ПОКА НЕЧЕГО ЭКСПОРТИРОВАТЬ · СНАЧАЛА СОВЕРШИ ПОЛЁТ",
+ "POINT AT THEM": "УКАЖИ НА НИХ",
+ "A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "СТРЕЛКА КОМПАСА К ВЫБРАННОЙ СИСТЕМЕ В ТВОЁМ НАСТОЯЩЕМ НЕБЕ И НА КАКОЙ ВЫСОТЕ СМОТРЕТЬ · НУЖЕН КОМПАС ТЕЛЕФОНА · IPHONE СПРОСИТ ОДИН РАЗ",
+ "BELOW THE HORIZON NOW": "СЕЙЧАС ЗА ГОРИЗОНТОМ",
+ "FACE": "СМОТРИ НА",
+ "UP": "ВВЕРХ",
+ "NO COMPASS ON THIS DEVICE": "НА ЭТОМ УСТРОЙСТВЕ НЕТ КОМПАСА",
+ "RING IS NORTH-UP": "КОЛЬЦО СЕВЕРОМ ВВЕРХ",
+ "THERE": "ТАМ",
+ "LOOK": "СМОТРИ",
+ "TURN RIGHT": "ПОВЕРНИСЬ ВПРАВО НА",
+ "TURN LEFT": "ПОВЕРНИСЬ ВЛЕВО НА",
+ "POINT AT THEM ON · THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY": "УКАЖИ НА НИХ ВКЛЮЧЕНО · КОЛЬЦО СЛЕВА ВВЕРХУ ПОКАЗЫВАЕТ, ГДЕ ОНИ В ТВОЁМ НЕБЕ",
+ "POINT AT THEM OFF": "УКАЖИ НА НИХ ВЫКЛЮЧЕНО",
+ "POINTING FROM THE DEFAULT SPOT · TAP GPS FOR YOUR OWN SKY": "ПЕЛЕНГ ИЗ МЕСТА ПО УМОЛЧАНИЮ · НАЖМИ GPS ДЛЯ СВОЕГО НЕБА",
+ "NO COMPASS PERMISSION · THE RING STAYS NORTH-UP AND SAYS WHICH WAY TO FACE": "НЕТ РАЗРЕШЕНИЯ НА КОМПАС · КОЛЬЦО ОСТАЁТСЯ СЕВЕРОМ ВВЕРХ И ГОВОРИТ, КУДА СМОТРЕТЬ",
+ "POINT AT THEM — A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "УКАЖИ НА НИХ — СТРЕЛКА КОМПАСА К ВЫБРАННОЙ СИСТЕМЕ В ТВОЁМ НАСТОЯЩЕМ НЕБЕ И НА КАКОЙ ВЫСОТЕ СМОТРЕТЬ · НУЖЕН КОМПАС ТЕЛЕФОНА · IPHONE СПРОСИТ ОДИН РАЗ"
 }

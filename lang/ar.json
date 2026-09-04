@@ -637,5 +637,21 @@
  "TRIPS": "رحلات",
  "NOTE SAVED · ON THIS DEVICE ONLY": "تم حفظ الملاحظة · على هذا الجهاز فقط",
  "NOTE CLEARED": "تم مسح الملاحظة",
- "NOTHING TO EXPORT YET · FLY ONE FIRST": "لا شيء للتصدير بعد · قم برحلة أولاً"
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "لا شيء للتصدير بعد · قم برحلة أولاً",
+ "POINT AT THEM": "أشر إليهم",
+ "A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "سهم بوصلة نحو النظام المختار في سمائك الحقيقية، وكم ترفع نظرك · يحتاج بوصلة الهاتف · IPHONE يسأل مرة واحدة",
+ "BELOW THE HORIZON NOW": "تحت الأفق الآن",
+ "FACE": "واجه",
+ "UP": "للأعلى",
+ "NO COMPASS ON THIS DEVICE": "لا بوصلة في هذا الجهاز",
+ "RING IS NORTH-UP": "الحلقة شمالها للأعلى",
+ "THERE": "هناك",
+ "LOOK": "انظر",
+ "TURN RIGHT": "استدر يميناً",
+ "TURN LEFT": "استدر يساراً",
+ "POINT AT THEM ON · THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY": "أشر إليهم مفعّل · الحلقة أعلى اليسار تُظهر أين هم في سمائك",
+ "POINT AT THEM OFF": "أشر إليهم متوقف",
+ "POINTING FROM THE DEFAULT SPOT · TAP GPS FOR YOUR OWN SKY": "التوجيه من الموقع الافتراضي · اضغط GPS لسمائك أنت",
+ "NO COMPASS PERMISSION · THE RING STAYS NORTH-UP AND SAYS WHICH WAY TO FACE": "لا إذن للبوصلة · تبقى الحلقة شمالها للأعلى وتقول أي جهة تواجه",
+ "POINT AT THEM — A COMPASS ARROW TO THE CHOSEN SYSTEM IN YOUR REAL SKY, AND HOW HIGH TO LOOK · NEEDS THE PHONE'S COMPASS · IPHONE ASKS ONCE": "أشر إليهم — سهم بوصلة نحو النظام المختار في سمائك الحقيقية، وكم ترفع نظرك · يحتاج بوصلة الهاتف · IPHONE يسأل مرة واحدة"
 }
