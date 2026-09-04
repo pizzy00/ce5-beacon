@@ -153,10 +153,14 @@
       <div class="setLbl">PINCH INTO A SYSTEM AT THE FRONT — HOLD THEIR HOME FOR <span id="vSys">7.5</span>S</div>
       <input type="range" id="rSys" min="3" max="20" step="0.5" value="15.5" />
       <label class="setChk"><input type="checkbox" id="ckTrails" checked />COLOURED TRAILS BEHIND THE SYSTEMS AS THEY TURN</label>
+      <div class="setLbl">A DARK BACKING BEHIND THE SYSTEM NAMES &#8212; <span id="vLblBack">35</span>% &#183; EASIER TO READ OVER THE PHOTOGRAPH &#183; 0 = NONE</div>
+      <input type="range" id="rLblBack" min="0" max="80" step="5" value="35" />
       <label class="setChk"><input type="checkbox" id="ckAttract" checked />THE CONTACTS TAKE TURNS WHILE YOU WATCH — UNTIL YOU PICK ONE</label>
       <label class="setChk"><input type="checkbox" id="ckTraffic" checked />PIXEL TRAFFIC — ON THE ROUTES, BETWEEN THE SYSTEMS, OUT TO THE HABITABLE WORLDS AND IN AND OUT OF OPEN SPACE</label>
       <div class="setLbl">HOW FAST THE SHIPS RUN — <span id="vShip">1.0</span>×</div>
       <input type="range" id="rShip" min="10" max="1000" step="10" value="100" />
+      <div class="setLbl">HOW MANY SHIPS &#8212; <span id="vShipN">50</span>% OF THE LANES &#183; NEAR ONES BRIGHT AND BIG, FAR ONES DIM AND SMALL</div>
+      <input type="range" id="rShipN" min="10" max="100" step="10" value="50" />
       <label class="setChk"><input type="checkbox" id="ckShipRnd" />RANDOM — EVERY SHIP AT ITS OWN SPEED · WHO KNOWS HOW FAST THEY REALLY GO</label>
       <div class="setLbl">NAMED TRAVELLERS ON THE CHART — <span id="vFleetN">3</span> AT A TIME</div>
       <input type="range" id="rFleetN" min="0" max="6" step="1" value="3" />
@@ -849,7 +853,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.2, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -1319,10 +1323,23 @@ function ageTell() {                                             // the ranking,
   log("THIS IS HOW LONG THE STAR HAS BEEN BURNING \u00b7 IT DOES NOT SAY WHERE ANYONE CAME FROM, OR WHEN THEY GOT THERE \u00b7 A YOUNG STAR CAN STILL HAVE VISITORS, AND AN OLD ONE CAN BE EMPTY \u00b7 WE DO NOT KNOW, AND THAT IS THE POINT", "cy");
   for (const q of r) log("  " + q.name + " \u00b7 " + ageLine(q.id) + " \u00b7 " + SYS_AGE[q.id].w, "cy");
 }
-function label(x, y, main, sub, color, align, sz) {
+function label(x, y, main, sub, color, align, sz, back) {
   const fs = sz || 10;
   ctx.textAlign = align || "left";
-  ctx.fillStyle = color; ctx.font = fs.toFixed(1) + "px ui-monospace, Menlo, monospace";
+  ctx.font = fs.toFixed(1) + "px ui-monospace, Menlo, monospace";
+  if (back > 0.004 && main) {                                    // a soft dark plate under the words: they read over a busy sky
+    const w1 = ctx.measureText(main).width;
+    ctx.font = (fs * 0.9).toFixed(1) + "px ui-monospace, Menlo, monospace";
+    const w2 = sub ? ctx.measureText(sub).width : 0, w = Math.max(w1, w2);
+    const x0 = align === "right" ? x - w : align === "center" ? x - w / 2 : x;
+    const top = y - fs * 0.95, hgt = (sub ? fs * 1.2 + fs * 0.9 * 0.95 : fs * 0.95) + fs * 0.35;
+    ctx.save(); ctx.fillStyle = "rgba(0,0,0," + Math.min(0.8, back).toFixed(3) + ")"; ctx.shadowColor = "rgba(0,0,0," + Math.min(0.8, back).toFixed(3) + ")"; ctx.shadowBlur = fs * 0.9;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x0 - fs * 0.5, top - fs * 0.15, w + fs, hgt, fs * 0.45); else ctx.rect(x0 - fs * 0.5, top - fs * 0.15, w + fs, hgt);
+    ctx.fill(); ctx.restore();
+    ctx.font = fs.toFixed(1) + "px ui-monospace, Menlo, monospace";
+  }
+  ctx.fillStyle = color;
   ctx.shadowColor = color; ctx.shadowBlur = 6;
   ctx.fillText(main, x, y);
   ctx.shadowBlur = 0; ctx.fillStyle = "rgba(232,226,212,0.55)";
@@ -3623,20 +3640,25 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
   const spd = (i, k) => (S.shipSpd || 1) *                      // his slider, and in random mode every lane has its own idea of fast
     (S.shipRnd ? 0.35 + 1.9 * (((i * 37 + k * 91 + 17) % 23) / 23) : 1);
   const ikOf = (s) => (s && s.ik !== undefined ? s.ik : 1);
+  const SD = S.shipN === undefined ? 1 : S.shipN;               // how many ships he wants: every lane keeps or drops itself by a fixed hash, so the set never flickers
+  const lane = (i, k, g) => (((i * 7 + k * 13 + g * 31) * 0.6180339887) % 1) < SD + 1e-6;
+  const dp = (q) => (q && q.pk !== undefined ? 0.3 + 0.7 * dofK(q.pk) : q && q.k !== undefined ? 0.3 + 0.7 * dofK(q.k) : 1);   // depth: near = bright and big, far = dim and small
+  const dot = (x, y, base, a, col, z) => { const r = base * (0.7 + 0.5 * z); ctx.globalAlpha = a * z; ctx.fillStyle = col; ctx.fillRect(x - r / 2, y - r / 2, r, r); return r; };
   for (let i = 0; i < SYSTEMS.length; i++) {
     const s = SYSTEMS[i], a = posOf(s);
     if (!a || a.x === undefined || ikOf(s) <= 0) continue;
     const l1 = Math.hypot(px - a.x, py - a.y), l2 = Math.hypot(sx - px, sy - py), tot = l1 + l2;
     if (tot < 1) continue;
-    const LD = landAt(i, sx, sy);
+    const LD = landAt(i, sx, sy), z0 = dp(s);
     for (let k = 0; k < 3; k++) {
+      if (!lane(i, k, 1)) continue;
       let u = (t * spd(i, k) * (0.055 + (i % 3) * 0.018) + i * 0.37 + k * 0.33) % 1;
       if ((i + k) % 2) u = 1 - u;
-      const d = u * tot;
+      const d = u * tot, z = z0 + (1 - z0) * (d / tot);         // out at the star it carries the star's depth; at Earth it is right here
       const x = d < l1 ? a.x + (px - a.x) * (d / l1) : px + (LD.x - px) * ((d - l1) / l2);
       const y = d < l1 ? a.y + (py - a.y) * (d / l1) : py + (LD.y - py) * ((d - l1) / l2);
-      ctx.globalAlpha = 0.65 * ikOf(s); ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.8, 1.8);
-      ctx.globalAlpha = 0.22 * ikOf(s); ctx.fillRect(x - 1.8, y - 1.8, 3.6, 3.6);
+      const r = dot(x, y, 1.8, 0.65 * ikOf(s), s.c, z);
+      ctx.globalAlpha = 0.22 * ikOf(s) * z; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     }
   }
   for (let i = 0; i < SYSTEMS.length; i++) {                    // and between the systems themselves
@@ -3644,33 +3666,34 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
       const a = SYSTEMS[i], b = SYSTEMS[(i + step) % SYSTEMS.length], pa = posOf(a), pb = posOf(b);
       if (!pa || !pb || pa.x === undefined || pb.x === undefined || ikOf(a) < 1 || ikOf(b) < 1) continue;
       for (let k = 0; k < 2; k++) {
+        if (!lane(i, k, 2 + step)) continue;
         let u = (t * spd(i + step, k) * (0.03 + ((i + k) % 3) * 0.012) + i * 0.29 + k * 0.5 + step * 0.17) % 1;
         if ((i + k + step) % 2) u = 1 - u;
-        const x = pa.x + (pb.x - pa.x) * u, y = pa.y + (pb.y - pa.y) * u;
-        ctx.globalAlpha = 0.45; ctx.fillStyle = k ? b.c : a.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+        const x = pa.x + (pb.x - pa.x) * u, y = pa.y + (pb.y - pa.y) * u, za = dp(a), zb = dp(b);
+        dot(x, y, 1.6, 0.45, k ? b.c : a.c, za + (zb - za) * u);
       }
     }
   }
   if (exoOf && S.exo) {                                         // the habitable worlds get visitors too
     for (let i = 0; i < EXOPLANETS.length; i++) {
       const e = EXOPLANETS[i], s = SYSTEMS[i % SYSTEMS.length], pe = exoOf(e), ps = posOf(s);
-      if (!pe || !ps || pe.x === undefined || ps.x === undefined || ikOf(s) < 1) continue;
+      if (!pe || !ps || pe.x === undefined || ps.x === undefined || ikOf(s) < 1 || !lane(i, 5, 6)) continue;
       let u = (t * spd(i, 5) * (0.025 + (i % 4) * 0.008) + i * 0.41) % 1; if (i % 2) u = 1 - u;
-      const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u;
-      ctx.globalAlpha = 0.5; ctx.fillStyle = u > 0.5 ? e.c : s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+      const x = ps.x + (pe.x - ps.x) * u, y = ps.y + (pe.y - ps.y) * u, za = dp(s), zb = dp(pe);
+      dot(x, y, 1.6, 0.5, u > 0.5 ? e.c : s.c, za + (zb - za) * u);
     }
   }
   for (let i = 0; i < SYSTEMS.length; i++) {                    // the depth lanes: at the camera, or away to their stars
     const s = SYSTEMS[i], a = posOf(s);
-    if (!a || a.x === undefined || ikOf(s) < 1) continue;
+    if (!a || a.x === undefined || ikOf(s) < 1 || !lane(i, 1, 7)) continue;
     let u = (t * spd(i + 5, 1) * 0.045 + i * 0.61) % 1;
     const toward = i % 2 === 0;                                  // half come for a look, half head home
     const uu = toward ? u : 1 - u;
     if (uu > 0.965) continue;                                    // right at the glass: gone past us
     const tx = a.x + (a.x - W * 0.5) * 0.9, ty = H * 1.2;        // past the bottom of the screen, flaring outward
     const x = a.x + (tx - a.x) * uu * uu, y = a.y + (ty - a.y) * uu * uu;
-    const r = 0.9 + uu * uu * 8;                                 // it swells as it nears the glass
-    ctx.globalAlpha = 0.2 + 0.55 * uu; ctx.fillStyle = s.c;
+    const z0 = dp(s), r = (0.9 + uu * uu * 8) * (0.7 + 0.5 * (z0 + (1 - z0) * uu));   // it swells as it nears the glass; a far star's ship starts small
+    ctx.globalAlpha = (0.2 + 0.55 * uu) * (z0 + (1 - z0) * uu); ctx.fillStyle = s.c;
     ctx.fillRect(x - r / 2, y - r / 2, r, r);
     if (r > 3.5) { ctx.globalAlpha = 0.12; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   }
@@ -3679,12 +3702,13 @@ function drawTraffic(t, posOf, px, py, sx, sy, exoOf) {         // single pixels
     const s = SYSTEMS[i], a = posOf(s);
     if (!a || a.x === undefined || ikOf(s) < 1) continue;
     for (let k = 0; k < 2; k++) {
+      if (!lane(i, k, 8)) continue;
       const ang = i * 1.9 + k * 2.4 + Math.sin(t * 0.05 + i) * 0.3;   // each lane leans a little over time
       let u = (t * spd(i + 3, k) * (0.03 + ((i + k) % 3) * 0.008) + i * 0.23 + k * 0.5) % 1;
       if ((i + k) % 2) u = 1 - u;                                // half of them leave, half arrive
       const x = a.x + Math.cos(ang) * far * u, y = a.y + Math.sin(ang) * far * u;
       if (x < -4 || y < -4 || x > W + 4 || y > H + 4) continue;
-      ctx.globalAlpha = 0.55 * (1 - u * 0.6); ctx.fillStyle = s.c; ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+      dot(x, y, 1.6, 0.55 * (1 - u * 0.6), s.c, dp(s));
     }
   }
   ctx.globalAlpha = 1;
@@ -4229,7 +4253,7 @@ function drawChart3D(t) {
     }
     ctx.globalAlpha = Math.max(0.45, depth);
     const right = x > sx;
-    label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, S.ages ? ageLine(s.id) : s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))));
+    label(x + (right ? -12 : 12) * kk, y - 8 * kk, s.name, S.ages ? ageLine(s.id) : s.tag, s.c, right ? "right" : "left", Math.max(6.5, 10 * (0.62 + 0.5 * dofK(k))), S.lblBack);
     if (S.ages) ageBar(x + (right ? -12 : 12) * kk, y + 6 * kk, s.id, right ? "right" : "left", kk);   // the words breathe with the depth: near = bigger and brighter, far = small and dim, never gone
     ctx.globalAlpha = 1;
   }
@@ -7099,7 +7123,7 @@ const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc
 const SETUP_CLAMP = {                                            // a bent code cannot push a slider past its own ends
   vol: [0, 1], breath: [2, 8], spaceMul: [0.5, 2], flyby: [2, 25], originMul: [0.5, 3], diveMul: [0.5, 2], arrHold: [0, 40],
   nInt: [0.3, 1], nStretch: [0.5, 3], nRepeat: [1, 8], nWarn: [2, 15], pHold: [0.5, 5], bOrbit: [4, 30], bSites: [1, 8],
-  bHold: [3, 25], bFly: [3, 15], mWpm: [5, 90], mInt: [0.1, 1], sysHold: [3, 20], shipSpd: [0.1, 10], fleetN: [0, 6],
+  bHold: [3, 25], bFly: [3, 15], mWpm: [5, 90], mInt: [0.1, 1], sysHold: [3, 20], shipSpd: [0.1, 10], shipN: [0.1, 1], lblBack: [0, 0.8], fleetN: [0, 6],
   spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [12, 21], uTime: [1, 100000] };
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
@@ -7607,6 +7631,7 @@ function loadSettings() {
   if (S.voice === false) S.voiceSex = "off";                    // the old tick box, unticked = NONE
   S.voice = S.voiceSex !== "off";
   if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;
+  if (!(S.shipN >= 0.1 && S.shipN <= 1)) S.shipN = 0.5; if (!(S.lblBack >= 0 && S.lblBack <= 0.8)) S.lblBack = 0.35;   // half the ships, a soft plate under the names
   if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1) || (S.skyA === 0.35 && !S.skyASet)) S.skyA = 0.2;   // 20% keeps the systems readable on a bright phone; an untouched 35% steps down   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
   if (S.guideAuto === undefined) S.guideAuto = true;
   if (S.pyr === undefined) S.pyr = true;
@@ -7660,6 +7685,7 @@ function applyS() {                                             // push S into e
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster); chk("ckIso", S.iso);
   set("rFleetN", S.fleetN); txt("vFleetN", S.fleetN); chk("ckFleetTag", S.fleetTag); chk("ckPoles", S.poles);
   set("rShip", Math.round(S.shipSpd * 100)); txt("vShip", (+S.shipSpd).toFixed(1)); chk("ckShipRnd", S.shipRnd);
+  set("rShipN", Math.round(S.shipN * 100)); txt("vShipN", Math.round(S.shipN * 100)); set("rLblBack", Math.round(S.lblBack * 100)); txt("vLblBack", Math.round(S.lblBack * 100));
   set("rArr", 40 - S.arrHold); txt("vArr", String(S.arrHold)); set("rBcn", 10 - S.bcnHold); txt("vBcn", String(+S.bcnHold.toFixed(2)));
   chk("ckBcnStay", S.bcnStay); set("selFinal", S.finalZ);
   set("rVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100)); txt("vVol", Math.round((S.vol === undefined ? 0.7 : S.vol) * 100));
@@ -7782,6 +7808,8 @@ $("ckRoadster").onchange = (e) => (S.roadster = e.target.checked);
 $("ckIso").onchange = (e) => (S.iso = e.target.checked);
 $("ckShipRnd").onchange = (e) => (S.shipRnd = e.target.checked);
 $("rShip").oninput = (e) => { S.shipSpd = +e.target.value / 100; $("vShip").textContent = S.shipSpd.toFixed(1); };
+$("rShipN").oninput = (e) => { S.shipN = +e.target.value / 100; $("vShipN").textContent = e.target.value; };
+$("rLblBack").oninput = (e) => { S.lblBack = +e.target.value / 100; $("vLblBack").textContent = e.target.value; };
 $("ckTraffic").onchange = (e) => (S.traffic = e.target.checked);
 $("rFleetN").oninput = (e) => { S.fleetN = +e.target.value; $("vFleetN").textContent = S.fleetN; };
 $("ckFleetTag").onchange = (e) => (S.fleetTag = e.target.checked);
