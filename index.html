@@ -6829,9 +6829,11 @@ function siteOpen(q, quiet) {                                   // the card for 
 }
 function siteClose() { $("sitePick").classList.add("hide"); siteAt = null; voiceStop(); }
 function siteStep(d) { const L = siteList(); if (!L.length) return; const i = Math.max(0, L.indexOf(siteAt)); sfx("key"); siteOpen(L[(i + d + L.length) % L.length]); }
+const earthLook = () => (globeView && !globeView.out) || earthZoom > 1.05;   // leaned into the Earth: only what is ON it answers a tap (his call, 09-04)
 function chartTap(cx, cy) {
   const cand = [];                                               // everything under the finger; the nearest (by its own reach) wins
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
+    if (m.id === "luna" && earthLook()) continue;                 // leaned in: the Moon is not on offer
     const d = Math.hypot(cx - m.x, cy - m.y); if (d > 22) continue;
     const o = MODES.find((q) => q.id === m.id); if (!o) continue;
     cand.push({ k: d / 22, act: () => { pickDeparture(o);
@@ -6844,7 +6846,7 @@ function chartTap(cx, cy) {
   for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); siteOpen(h.q); } }); }   // an old place: its card, and the voice
   for (const h of nukeHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(620, 620, 0.09, 0.05); log(h.q.n + " \u2014 " + h.q.s, "rd"); } }); }   // a test site: its line   // an old place: its story
   if (cand.length) { cand.sort((a, b) => a.k - b.k)[0].act(); return true; }
-  if ((globeView && !globeView.out) || earthZoom > 1.05) return false;   // looking at the world: the sky is behind glass
+  if (earthLook()) return false;                                 // looking at the world: the sky is behind glass
   const G = earthGeom();
   let best = null, bd = 34;                                      // nearest marker wins; in 3D the near side wins ties
   for (const s of SYSTEMS) {
@@ -6922,13 +6924,12 @@ const endPtr = (e) => {
     if (onEarth && now - lastEarthTap < 350) { lastEarthTap = 0; clearTimeout(tapDefer); globeToggle(); }   // double-tap the world: up front, or back
     else {
       lastEarthTap = onEarth ? now : 0;
-      if (globeView && !globeView.out && !onEarth) globeToggle();   // a tap on the sky puts the world back
+      if (globeView && !globeView.out && !onEarth) { /* leaned in: the sky is inert; double-tap the world to come back */ }
       else if (onEarth) {                                        // a first tap on the world waits for a second before it picks anything
         clearTimeout(tapDefer);
         tapDefer = setTimeout(() => {
           if (phase !== "chart") return;
-          const took = chartTap(px, py);
-          if (!took && globeView && !globeView.out && earthZoom > 1.6) globeToggle();   // leaned in so far there is no sky left to tap: the world itself gives way
+          chartTap(px, py);                                      // a miss while leaned in does nothing: the world stays up (his call, 09-04)
         }, 340);
       }
       else chartTap(px, py);
