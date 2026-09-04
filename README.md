@@ -36,4 +36,4 @@ then open http://localhost:8000/ in Chrome. It needs to be served over http, not
 
 ## Ideas
 
-Open an issue. Group sessions exist now: the people key top right opens a room, the host reads four letters out, everyone else joins, and the host's START flies every phone together (over PeerJS, no location shared). A WebGL Earth is next.
+Open an issue. Group sessions exist now: the people key top right opens a room, the host reads four letters out, everyone else joins, and the host's START flies every phone together (over PeerJS, no location shared). A WebGL Earth (`earthgl.js`, the same globe as a fragment shader) sits behind a setting in THE EARTH box, off until it has been tested on real tablets.

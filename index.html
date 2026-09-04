@@ -203,6 +203,7 @@
         <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
         <option value="procedural">DRAWN — THE BUILT-IN MAP, NO DOWNLOAD</option>
       </select>
+      <label class="setChk"><input type="checkbox" id="ckGl" />WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE</label>
       <div class="setLbl">CLOUD LAYER — <span id="vCloud">15</span>% · SEE-THROUGH, NEVER HIDES THE GROUND</div>
       <input type="range" id="rCloud" min="0" max="40" step="1" value="15" />
       <div class="setLbl">CLOUD DRIFT — <span id="vCloudSpd">0.6</span>° PER SECOND ON ITS OWN</div>
@@ -903,7 +904,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
-  crt: false, vig: false, red: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
+  crt: false, vig: false, red: false, gl: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
@@ -3467,10 +3468,20 @@ function drawEarthHub(t) {
   }
   if (IK.moon > 0.5 && (!behind || Math.hypot(mx - sx, my - sy) > RZ + mr * 0.4)) modeHit.push({ id: "luna", x: mx, y: my });
   if (earthTex) {                                               // the real thing: land, sea, cloud, night side
-    const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTiltDraw, sunV,
-      { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
     const gx = Math.round((sx - RZ) * DPR) / DPR, gy = Math.round((sy - RZ) * DPR) / DPR;   // whole device pixels: no second resample
-    ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2);                   // no crop: closer means bigger
+    let drew = false;
+    if (S.gl && window.EARTHGL) {                                 // the setting: the same globe on the graphics chip, every frame
+      if (!EARTHGL.fail) {
+        const gc = EARTHGL.draw({ tex: earthTex, night: earthNight, clouds: earthClouds, R: RZ, dpr: DPR, rot: earthRot, tilt: earthTiltDraw, sun: sunV, cloudRot: earthRot + cloudDrift, cloudAmt: S.cloudA });
+        if (gc) { ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2); drew = true; }
+      }
+      if (!drew && EARTHGL.fail && !glSaid) { glSaid = true; earthRef.dirty = true; log("WEBGL EARTH OFF · THE DRAWN GLOBE STAYS", "alert"); }
+    }
+    if (!drew) {
+      const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTiltDraw, sunV,
+        { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
+      ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2);                 // no crop: closer means bigger
+    }
   } else {
     const og = ctx.createRadialGradient(sx - RZ * 0.35, sy - RZ * 0.4, RZ * 0.1, sx, sy, RZ);
     og.addColorStop(0, "#1c538f"); og.addColorStop(0.7, "#123963"); og.addColorStop(1, "#0a2140");
@@ -3486,7 +3497,8 @@ function drawEarthHub(t) {
     ctx.fillText("buf " + (g2 ? g2.buf : "-") + " lin " + (g2 ? (g2.lin ? 1 : 0) : "-") + " ow " + (g2 ? g2.ow : "-")
       + " z" + earthZoom.toFixed(2) + " earth " + Math.round(earthRef.ms || 0) + "ms x" + (earthRef.n | 0)
       + " moon " + Math.round(moonRef.ms || 0) + "ms cap " + glCap + " geo " + glGeoBuilds
-      + " fps " + (glFrameMs ? Math.round(1000 / glFrameMs) : "-") + " dpr " + DPR, Math.max(4, sx - RZ), Math.max(12, sy - RZ - 8));
+      + " fps " + (glFrameMs ? Math.round(1000 / glFrameMs) : "-") + " dpr " + DPR
+      + " gl " + (S.gl ? (window.EARTHGL && EARTHGL.ready && !EARTHGL.fail ? EARTHGL.buf + "/" + EARTHGL.ms.toFixed(1) + "ms" : "off") : "-"), Math.max(4, sx - RZ), Math.max(12, sy - RZ - 8));
     ctx.globalAlpha = 1;
   }
   if (PLANET_NEAR) for (const job of PLANET_NEAR) job();        // the near half of the rings passes in front of the world
@@ -4345,6 +4357,14 @@ function drawChart3D(t) {
 /* ---------------- THE ROSEN BRIDGE: a fold through an Einstein-Rosen throat after the crossing ---------------- */
 const BRIDGE_MS = 12000;                                         // the old constant; S.bridgeSec (his slider) rules the stage now
 let bridgeLoadP = null, bridgeOn = false;
+var glLoadP = null, glSaid = false;
+function glLoad() {                                              // earthgl.js, fetched once, only when the setting is on
+  if (glLoadP) return glLoadP;
+  glLoadP = new Promise((res, rej) => { const el = document.createElement("script"); el.src = "earthgl.js?v=1"; el.onload = res; el.onerror = rej; document.head.appendChild(el); })
+    .then(() => { earthRef.dirty = true; })
+    .catch(() => { glLoadP = null; log("WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS", "alert"); });
+  return glLoadP;
+}
 function bridgeLoad() {                                          // three.js + bridge.js, fetched once, only if the stage is on
   if (bridgeLoadP) return bridgeLoadP;
   const one = (src) => new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
@@ -7820,7 +7840,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -8091,6 +8111,7 @@ function pointTick() {
   $("pointHow").textContent = how;
   if (!pointSaid && Math.abs(TARGET.lat - 39.76849) < 1e-4 && Math.abs(TARGET.lon + 86.15806) < 1e-4) { pointSaid = true; log("POINTING FROM THE DEFAULT SPOT \u00b7 TAP GPS FOR YOUR OWN SKY", "cy"); }
 }
+$("ckGl").onchange = (e) => { S.gl = e.target.checked; glSaid = false; earthRef.dirty = true; if (S.gl) glLoad(); log(S.gl ? "WEBGL EARTH ON · THE GLOBE NOW RUNS ON THE GRAPHICS CHIP" : "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK", "cy"); };
 $("ckPoint").onchange = (e) => { S.point = e.target.checked; pointStart(); log(S.point ? "POINT AT THEM ON \u00b7 THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY" : "POINT AT THEM OFF", "cy"); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
@@ -8161,6 +8182,7 @@ setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
 applyS();                                                       // first visit too: every control shows what the console actually holds
 if (S.point) pointStart();                                      // the compass ring, when he left it on
+if (S.gl) glLoad();                                             // the WebGL Earth, when he left it on
 log("CE-5 BEACON CONSOLE — SHARED EDITION");
 log(hashLL ? "TARGET LOADED FROM SHARED LINK" : savedTarget ? "TARGET: SAVED ON THIS DEVICE" : "TARGET: " + ADDRESS.toUpperCase(), "cy");
 if (restored) { log("SAVED SETTINGS LOADED", "cy"); $("saveStat").textContent = "SAVED SETTINGS LOADED · SAVE AGAIN AFTER CHANGES"; }

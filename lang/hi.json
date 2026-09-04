@@ -686,5 +686,12 @@
  "OPENING A ROOM…": "कमरा खुल रहा है…",
  "JOINING…": "जुड़ रहे हैं…",
  "GROUP SESSION — ONE PHONE LEADS, THE OTHERS FOLLOW": "समूह सत्र — एक फोन आगे चलता है, बाकी साथ चलते हैं",
- "GROUP SESSIONS": "समूह सत्र"
+ "GROUP SESSIONS": "समूह सत्र",
+ "WEBGL EARTH (TEST)": "WEBGL पृथ्वी (परीक्षण)",
+ "THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "ग्राफिक्स चिप पर बना ग्लोब: ज़्यादा साफ़, और पिंच करते समय स्मूद · बंद = आज़माया हुआ बना हुआ ग्लोब",
+ "WEBGL EARTH ON · THE GLOBE NOW RUNS ON THE GRAPHICS CHIP": "WEBGL पृथ्वी चालू · ग्लोब अब ग्राफिक्स चिप पर चलता है",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK": "WEBGL पृथ्वी बंद · बना हुआ ग्लोब वापस",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE STAYS": "WEBGL पृथ्वी बंद · बना हुआ ग्लोब बना रहता है",
+ "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "WEBGL पृथ्वी लोड नहीं हुई · बना हुआ ग्लोब बना रहता है",
+ "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "WEBGL पृथ्वी (परीक्षण) — ग्राफिक्स चिप पर बना ग्लोब: ज़्यादा साफ़, और पिंच करते समय स्मूद · बंद = आज़माया हुआ बना हुआ ग्लोब"
 }

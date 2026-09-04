@@ -686,5 +686,12 @@
  "OPENING A ROOM…": "ОТКРЫВАЕМ КОМНАТУ…",
  "JOINING…": "ВХОДИМ…",
  "GROUP SESSION — ONE PHONE LEADS, THE OTHERS FOLLOW": "ГРУППОВОЙ СЕАНС — ОДИН ТЕЛЕФОН ВЕДЁТ, ОСТАЛЬНЫЕ СЛЕДУЮТ",
- "GROUP SESSIONS": "ГРУППОВЫЕ СЕАНСЫ"
+ "GROUP SESSIONS": "ГРУППОВЫЕ СЕАНСЫ",
+ "WEBGL EARTH (TEST)": "ЗЕМЛЯ WEBGL (ТЕСТ)",
+ "THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "ГЛОБУС, НАРИСОВАННЫЙ ГРАФИЧЕСКИМ ЧИПОМ: ЧЁТЧЕ И ПЛАВНО ПРИ МАСШТАБИРОВАНИИ · ВЫКЛ = ПРОВЕРЕННЫЙ РИСОВАННЫЙ ГЛОБУС",
+ "WEBGL EARTH ON · THE GLOBE NOW RUNS ON THE GRAPHICS CHIP": "ЗЕМЛЯ WEBGL ВКЛЮЧЕНА · ГЛОБУС ТЕПЕРЬ РАБОТАЕТ НА ГРАФИЧЕСКОМ ЧИПЕ",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK": "ЗЕМЛЯ WEBGL ВЫКЛЮЧЕНА · РИСОВАННЫЙ ГЛОБУС ВЕРНУЛСЯ",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE STAYS": "ЗЕМЛЯ WEBGL ВЫКЛЮЧЕНА · ОСТАЁТСЯ РИСОВАННЫЙ ГЛОБУС",
+ "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "ЗЕМЛЯ WEBGL НЕ ЗАГРУЗИЛАСЬ · ОСТАЁТСЯ РИСОВАННЫЙ ГЛОБУС",
+ "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "ЗЕМЛЯ WEBGL (ТЕСТ) — ГЛОБУС, НАРИСОВАННЫЙ ГРАФИЧЕСКИМ ЧИПОМ: ЧЁТЧЕ И ПЛАВНО ПРИ МАСШТАБИРОВАНИИ · ВЫКЛ = ПРОВЕРЕННЫЙ РИСОВАННЫЙ ГЛОБУС"
 }

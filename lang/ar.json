@@ -686,5 +686,12 @@
  "OPENING A ROOM…": "جارٍ فتح غرفة…",
  "JOINING…": "جارٍ الانضمام…",
  "GROUP SESSION — ONE PHONE LEADS, THE OTHERS FOLLOW": "جلسة جماعية — هاتف واحد يقود والبقية تتبع",
- "GROUP SESSIONS": "الجلسات الجماعية"
+ "GROUP SESSIONS": "الجلسات الجماعية",
+ "WEBGL EARTH (TEST)": "أرض WEBGL (تجريبي)",
+ "THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "الكرة الأرضية مرسومة على شريحة الرسوميات: أوضح وأسلس أثناء التكبير · إيقاف = الكرة المرسومة المجرّبة",
+ "WEBGL EARTH ON · THE GLOBE NOW RUNS ON THE GRAPHICS CHIP": "أرض WEBGL مفعّلة · الكرة الأرضية تعمل الآن على شريحة الرسوميات",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK": "أرض WEBGL متوقفة · عادت الكرة المرسومة",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE STAYS": "أرض WEBGL متوقفة · تبقى الكرة المرسومة",
+ "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "تعذّر تحميل أرض WEBGL · تبقى الكرة المرسومة",
+ "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "أرض WEBGL (تجريبي) — الكرة الأرضية مرسومة على شريحة الرسوميات: أوضح وأسلس أثناء التكبير · إيقاف = الكرة المرسومة المجرّبة"
 }

@@ -686,5 +686,12 @@
  "OPENING A ROOM…": "部屋を開いています…",
  "JOINING…": "参加しています…",
  "GROUP SESSION — ONE PHONE LEADS, THE OTHERS FOLLOW": "グループセッション — 一台が先導し、他は追従します",
- "GROUP SESSIONS": "グループセッション"
+ "GROUP SESSIONS": "グループセッション",
+ "WEBGL EARTH (TEST)": "WEBGL 地球（テスト）",
+ "THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "グラフィックチップで描く地球：より鮮明で、ピンチ中もなめらか · オフ = 実績ある描画の地球",
+ "WEBGL EARTH ON · THE GLOBE NOW RUNS ON THE GRAPHICS CHIP": "WEBGL 地球 オン · 地球はグラフィックチップで動いています",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK": "WEBGL 地球 オフ · 描画の地球に戻りました",
+ "WEBGL EARTH OFF · THE DRAWN GLOBE STAYS": "WEBGL 地球 オフ · 描画の地球のままです",
+ "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "WEBGL 地球を読み込めませんでした · 描画の地球のままです",
+ "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "WEBGL 地球（テスト） — グラフィックチップで描く地球：より鮮明で、ピンチ中もなめらか · オフ = 実績ある描画の地球"
 }
