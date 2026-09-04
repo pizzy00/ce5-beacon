@@ -21,7 +21,7 @@ then open http://localhost:8000/ in Chrome. It needs to be served over http, not
 ## What is in here
 
 - `index.html` is the whole app: the star chart, the shaded Earth, the journey stages, the descent, the settings, the guide.
-- `styles.css` and `sw.js` are the sheet and the service worker (offline cache).
+- `styles.css` and `sw.js` are the sheet and the service worker (offline cache). `room.js` is the group-session transport over `vendor/peerjs/`.
 - `voice/` holds the guide and the system read-outs, him and her, in English, Spanish, Portuguese, French, German, Russian, Chinese and Japanese.
 - `sky/` holds the photographs behind the chart. `earth/` holds the day, night and cloud maps. `species/` holds the portraits. `photos/` holds the missile photographs shown after the flash. `lang/` holds the interface translations.
 
@@ -36,4 +36,4 @@ then open http://localhost:8000/ in Chrome. It needs to be served over http, not
 
 ## Ideas
 
-Open an issue. A group mode that runs the same session on several phones over a room code is next on the list.
+Open an issue. Group sessions exist now: the people key top right opens a room, the host reads four letters out, everyone else joins, and the host's START flies every phone together (over PeerJS, no location shared). A WebGL Earth is next.

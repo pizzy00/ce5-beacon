@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=35" />
+<link rel="stylesheet" href="styles.css?v=36" />
 </head>
 <body class="intro introHud">
 
@@ -714,6 +714,17 @@
     <div class="infoFoot">SOURCES · SHELLENBERGER, WRITTEN TESTIMONY TO THE HOUSE COMMITTEE ON OVERSIGHT AND ACCOUNTABILITY, 13 NOV 2024 · RELEASED VIA REP. NANCY MACE · WHISTLEBLOWER NAMED AS MATTHEW BROWN · DOD DENIAL VIA SPOKESPERSON SUE GOUGH · FOIA REFUSAL 26 JAN 2026 · WE ARE NOT AFFILIATED WITH ANY OF THEM · ENGLISH ONLY FOR NOW</div>
   </div>
 </div>
+<div id="roomPick" class="hide">
+  <div id="roomCard">
+    <div class="setHead display">GROUP SESSION — ONE PHONE LEADS, THE OTHERS FOLLOW <span id="bRoomClose">✕</span></div>
+    <div class="setStat">THE HOST PRESSES START AND EVERY PHONE IN THE ROOM FLIES THE SAME JOURNEY ON THE HOST'S SETTINGS, EACH ONTO ITS OWN SPOT · ONLY TIMING, THE CHOSEN SYSTEM AND THE SETUP CODE TRAVEL · NO LOCATION EVER LEAVES A PHONE</div>
+    <div class="setLbl" id="roomStat">NOT IN A ROOM</div>
+    <div class="bdBtns"><span class="setBtn" id="bRoomHost">START A ROOM</span><span class="setBtn dim" id="bRoomLeave">LEAVE</span></div>
+    <div class="setLbl">JOIN A ROOM</div>
+    <div class="bdBtns"><input id="roomCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" /><span class="setBtn" id="bRoomJoin">JOIN</span></div>
+    <div class="setStat">THE HOST READS THE FOUR LETTERS OUT · EVERYONE ELSE TYPES THEM HERE · A ROOM NEEDS THE INTERNET ON EVERY PHONE, EVEN WHEN YOU ARE ALL STANDING TOGETHER · FOLLOWERS SEE THE HOST'S SYSTEM AND SETTINGS; THEIR OWN GPS SPOT STAYS THEIRS</div>
+  </div>
+</div>
 <div id="privPick" class="hide">
   <div id="privCard">
     <div class="setHead display">PRIVACY — IN PLAIN WORDS <span id="bPrivClose">✕</span></div>
@@ -723,6 +734,8 @@
     <div class="setStat">YOUR SETTINGS, YOUR CALL-SIGN, YOUR TRIP LOG AND YOUR TARGET SPOT LIVE IN THIS BROWSER'S OWN STORAGE AND NEVER LEAVE IT · IF YOU USE THE GPS KEY, YOUR POSITION IS READ BY YOUR OWN BROWSER, DRAWN ON YOUR OWN SCREEN, AND SENT TO NO SERVER OF OURS · THE ONE EXCEPTION IS THE PICTURE ITSELF: LIKE EVERY MAP APP EVER MADE, YOUR BROWSER ASKS A PUBLIC MAP SERVICE (ESRI WORLD IMAGERY) FOR THE IMAGE TILES OVER THAT AREA, AND IF YOU TYPE AN ADDRESS INSTEAD IT IS LOOKED UP BY OPENSTREETMAP · CLEARING BROWSER DATA ERASES ALL OF IT</div>
     <div class="setLbl">THE ONLY THINGS THAT EVER LEAVE</div>
     <div class="setStat">THE PUBLIC TRAVELLERS BOARD RECEIVES: ONE ANONYMOUS "VISIT" MARK PER DEVICE PER DAY (A RANDOM ID, A DATE, AND THE TWO-LETTER CODE OF THE LANGUAGE THIS CONSOLE IS SET TO — SO WE CAN SEE WHICH TRANSLATIONS ARE ACTUALLY BEING READ, AND NOTHING ELSE) · EACH TRIP YOU COMPLETE (YOUR MADE-UP CALL-SIGN + THE DESTINATION) · ANY IDEA YOU CHOOSE TO SEND (YOUR CALL-SIGN + YOUR WORDS) · ALL OF THAT IS PUBLIC BY DESIGN AND CONTAINS NOTHING ABOUT WHO YOU REALLY ARE</div>
+    <div class="setLbl">GROUP SESSIONS</div>
+    <div class="setStat">A ROOM SENDS ONLY TIMING, THE CHOSEN SYSTEM AND THE HOST'S SETUP CODE BETWEEN THE PHONES, THROUGH THE FREE PEERJS RELAY · NEVER A LOCATION, NEVER A NAME · NOTHING IS STORED ANYWHERE</div>
     <div class="setLbl">THE PLUMBING</div>
     <div class="setStat">THE SITE AND THE BOARD ARE HOSTED ON GITHUB, AND YOUR BROWSER TALKS TO GITHUB TO LOAD THEM · LIKE ANY WEB HOST, GITHUB KEEPS ORDINARY SERVER LOGS UNDER ITS OWN PRIVACY POLICY · THIS APP ADDS NOTHING ON TOP · THE WHOLE SOURCE IS PUBLIC AT GITHUB.COM/PIZZY00/CE5-BEACON, SO NONE OF THIS IS A PROMISE YOU HAVE TO TAKE ON FAITH</div>
   </div>
@@ -788,6 +801,7 @@
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M4.5 8V3.6a1 1 0 0 1 2 0V7M6.5 7V2.6a1 1 0 0 1 2 0V7M8.5 7V3.2a1 1 0 0 1 2 0V7.6M10.5 7.6V4.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5H7.4A3.4 3.4 0 0 1 4.5 13L2.6 9.9a1 1 0 0 1 1.7-1L4.5 9.6"/></svg>
 </button>
+<button id="bRoom" aria-label="Group session" title="Group session: one phone leads, the others follow"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 22 19"/></svg></button>
 <div id="fade"></div>
 <div id="crt"></div>
 <div id="vig"></div>
@@ -1110,6 +1124,7 @@ function setPhase(p, label) {
   if (p !== phase && typeof flyBump === "function" && document.body.classList.contains("run") && !/^(chart|active)$/.test(p)) flyBump();
   if (p !== phase && S.fades && !reduced && !/^(chart|active|photos|flash)$/.test(p)) stageFade();
   phase = p;
+  if (window.ROOM && ROOM.ok && p !== "chart") { roomStageAt = ROOM.now(); if (ROOM.role === "host") ROOM.send({ t: "phase", p, at: roomStageAt }); }
   $("phaseTxt").textContent = label;
   fitHud();
   if (typeof retShow === "function") retShow();                  // the crosshair re-decides on every stage, not only where someone remembered to ask
@@ -5367,6 +5382,7 @@ raf = requestAnimationFrame(loop);
 function engage() {
   introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
+  if (roomFollow() && !roomDriven) { log(tx("THE HOST STARTS") + " \u00b7 " + tx("YOU ARE IN ROOM") + " " + ROOM.code, "cy"); return; }   // a follower waits for the host
   runT0 = performance.now();                                    // the journal clock: pauses do not count (09-04)
   if (globeView && !globeView.out) {                            // the close key belongs to the world view, not to a flight
     gvFx(false); $("gvX").classList.add("hide"); globeView.out = performance.now() / 1000;
@@ -5408,6 +5424,7 @@ function engage() {
     cueStage("PICTURE THEM AT HOME"); cueSub(selected.tag + " · " + selected.name);
   }
   t0 = performance.now();
+  if (roomHost()) ROOM.send({ t: "engage", sel: selected ? selected.id : "", all: allChannels, setup: setupPack(), at: ROOM.now() });   // the room lifts off together
   $("bAll").classList.add("hide");                            // the arcade button stays: it turns into the stop
   $("chips").classList.add("hide"); retShow(false);
   $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
@@ -5817,6 +5834,7 @@ function runStep(i, token) {
   if (token !== diveToken || phase !== "dive") return;
   if (i >= divePlan.length) return arrive();
   diveStep = i;
+  if (roomHost()) ROOM.send({ t: "dive", i });
   const s = divePlan[i];
   cueStage(s.msg);
   retShow(true);
@@ -5898,7 +5916,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -5912,6 +5930,7 @@ function cardWatch() {
 }
 { const mo = new MutationObserver(cardWatch); CARD_IDS.forEach((id) => { if ($(id)) mo.observe($(id), { attributes: true, attributeFilter: ["class"] }); }); }
 function replay() {
+  if (roomHost() && phase !== "chart") ROOM.send({ t: "replay" });
   idleClear(); voiceStop();
   if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
   flyStop(); bridgeStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
@@ -6169,7 +6188,7 @@ $("bAll").onclick = () => {
   log(allChannels ? "ALL CHANNELS OPEN — " + SYSTEMS.length + " SYSTEMS HAILED" : "SINGLE CHANNEL: " + selected.name, "cy");
 };
 $("bReplay").onclick = replay;
-$("bStop").onclick = () => { log("ABORTED — BACK TO THE CHART", "alert"); replay(); };
+$("bStop").onclick = () => { if (roomHost()) ROOM.send({ t: "abort" }); log("ABORTED — BACK TO THE CHART", "alert"); replay(); };
 $("bTarget").onclick = () => {
   retargetMode = !retargetMode;
   $("bTarget").classList.toggle("on", retargetMode);
@@ -6773,6 +6792,8 @@ function faceTap(e) {                                            // a finger on 
   return true;
 }
 function skipCurrent() {
+  if (roomFollow() && !roomDriven) return;                       // the host skips for the room
+  if (roomHost()) ROOM.send({ t: "skip" });
   if (retargetMode && phase !== "flash") return;                  // aiming at a roof is not a skip; the flash still yields to a tap                                        // a tap anywhere mid-run: on to the next stage
   if (phase === "dive") return skipStep();
   if (phase === "triangle" || phase === "sites" || phase === "flash") return bermSkip();
@@ -6784,7 +6805,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7461,7 +7482,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -7908,6 +7929,115 @@ $("ckLore").onchange = (e) => (S.lore = e.target.checked);
 });
 $("ckPursue").onchange = (e) => { S.pursue = e.target.checked; if (S.pursue) loadPursue(); };
 $("ckUso").onchange = (e) => { S.uso = e.target.checked; if (S.uso) loadUso(); };
+/* ---------------- the room: one phone leads, the others follow (09-04) ----------------
+   room.js + PeerJS load on the first tap of the key. The host sends engage / phase / dive / skip / replay / abort with
+   its clock; a follower runs the same journey locally on the host's setup, re-anchoring its stage clock on each message. */
+let roomLoadP = null, roomDriven = false, roomStageAt = 0, roomRunAt = 0;
+const SPACE_STAGES = ["origin", "galaxy", "warp", "bridge", "polaris", "voyager", "sun", "starman", "jwst", "moon", "hubble", "iss", "earth"];
+const roomHost = () => !!(window.ROOM && ROOM.ok && ROOM.role === "host");
+const roomFollow = () => !!(window.ROOM && ROOM.ok && ROOM.role === "follower");
+function roomLoad() {
+  if (roomLoadP) return roomLoadP;
+  const one = (src) => new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
+  roomLoadP = (window.Peer ? Promise.resolve() : one("vendor/peerjs/peerjs.min.js?v=1"))
+    .then(() => window.ROOM ? null : one("room.js?v=1"))
+    .then(roomWire)
+    .catch(() => { roomLoadP = null; log("THE ROOM CODE COULD NOT LOAD \u00b7 CHECK THE CONNECTION", "alert"); throw new Error("room load"); });
+  return roomLoadP;
+}
+function roomWire() {
+  if (!window.ROOM || ROOM.__wired) return; ROOM.__wired = true;
+  ROOM.onState = (st, x) => {
+    if (st === "hosting") log(tx("ROOM") + " " + x + " \u00b7 " + tx("OPEN \u00b7 READ THE FOUR LETTERS OUT \u00b7 YOU LEAD"), "cy");
+    else if (st === "joined") log(tx("IN ROOM") + " " + x + " \u00b7 " + tx("THE HOST STARTS"), "cy");
+    else if (st === "peers") log(x + " " + tx(x === 1 ? "PHONE IN THE ROOM" : "PHONES IN THE ROOM"), "cy");
+    else if (st === "lost") log("ROOM LOST \u00b7 RUNNING ON ITS OWN", "alert");
+    else if (st === "left") { log("LEFT THE ROOM", "cy"); roomOwnBack(); }
+    document.body.classList.toggle("follower", roomFollow());
+    roomStat();
+  };
+  ROOM.onJoin = (c) => { try { c.send(roomHello()); } catch (e) {} };
+  ROOM.onMsg = (m) => { if (roomFollow()) roomOn(m); };
+}
+function roomHello() {
+  const h = { t: "hello", setup: setupPack(), sel: selected ? selected.id : "", all: allChannels };
+  if (phase !== "chart") h.run = { p: phase, stageAt: roomStageAt };
+  return h;
+}
+let roomOwn = null;                                              // the follower's own setup, back on leave
+function roomFactory() {                                         // a code carries only what differs from the bench, so start there
+  const cl = (v) => JSON.parse(JSON.stringify(v));
+  for (const k of SETUP_KEYS) if (S_FACTORY[k] !== undefined) S[k] = cl(S_FACTORY[k]);
+  if (S_FACTORY.sysOn) S.sysOn = cl(S_FACTORY.sysOn);
+  if (S_FACTORY.loreBy) S.loreBy = cl(S_FACTORY.loreBy); else delete S.loreBy;
+}
+function roomTake(code) {                                        // apply a packed setup on top of the factory; never a spot, the system is picked apart
+  const o = setupUnpack(code);
+  roomFactory();
+  if (o) { delete o.t; delete o.d; setupApply(o, true); } else { applySystems(); applySky(); applyS(); applyScreen(); }
+}
+function roomOwnBack() { if (roomOwn === null) return; const own = roomOwn; roomOwn = null; roomTake(own); }
+function roomFollowSetup(m) {
+  if (typeof m.setup === "string") { try { if (roomOwn === null) roomOwn = setupPack(); roomTake(m.setup); } catch (e) {} }
+  if (m.sel) { const so = SYSTEMS.find((x) => x.id === m.sel); if (so && (!selected || selected.id !== so.id)) pickDeparture(so, true); }
+  if (typeof m.all === "boolean" && m.all !== allChannels) $("bAll").onclick();
+}
+function roomAnchor(at) { if (at) t0 = performance.now() - Math.max(0, ROOM.now() - at); }
+function roomEngage() { roomDriven = true; try { engage(); } finally { roomDriven = false; } }
+function roomCatchUp(p) {                                        // walk the space stages forward until we stand where the host stands
+  for (let k = 0; k < 16 && phase !== p && SPACE_STAGES.indexOf(phase) >= 0; k++) {
+    const next = stageAfter(phase);
+    if (phase === "earth" || (next === "earth" && S.terran === false && p === "dive")) { preDive(); break; }
+    advance(phase, performance.now());
+  }
+}
+function roomOn(m) {
+  if (m.t === "hello") {
+    roomFollowSetup(m);
+    if (m.run && phase === "chart") { roomEngage(); if (m.run.p !== "origin") roomCatchUp(m.run.p); roomAnchor(m.run.stageAt); }
+    return;
+  }
+  if (m.t === "engage") { if (phase !== "chart") replay(); roomFollowSetup(m); roomEngage(); roomAnchor(m.at); return; }
+  if (m.t === "phase") {
+    if (phase === "chart" || phase === "active") return;
+    const have = SPACE_STAGES.indexOf(phase), want = SPACE_STAGES.indexOf(m.p);
+    if (have >= 0 && ((want >= 0 && have < want) || m.p === "dive")) roomCatchUp(m.p);
+    if (phase === m.p && want >= 0) roomAnchor(m.at);
+    return;
+  }
+  if (m.t === "dive") { if (phase === "dive" && map && diveStep < m.i) { clearTimeout(holdTimer); const token = ++diveToken; map.stop(); runStep(m.i, token); } return; }
+  if (m.t === "skip") { roomDriven = true; try { skipCurrent(); } finally { roomDriven = false; } return; }
+  if (m.t === "replay") { if (phase !== "chart") replay(); return; }
+  if (m.t === "abort") { if (phase !== "chart") { log("THE HOST ABORTED \u2014 BACK TO THE CHART", "alert"); replay(); } return; }
+}
+function roomStat() {
+  const el = $("roomStat"); if (!el) return;
+  const on = !!(window.ROOM && ROOM.ok);
+  if (!on) el.textContent = tx("NOT IN A ROOM");
+  else if (ROOM.role === "host") el.textContent = tx("ROOM") + " " + ROOM.code + " \u00b7 " + ROOM.peers + " " + tx(ROOM.peers === 1 ? "PHONE IN" : "PHONES IN") + " \u00b7 " + tx("YOU LEAD");
+  else el.textContent = tx("IN ROOM") + " " + ROOM.code + " \u00b7 " + tx("THE HOST STARTS");
+  $("bRoomLeave").classList.toggle("dim", !on); $("bRoomHost").classList.toggle("dim", on); $("bRoom").classList.toggle("on", on);
+}
+$("bRoom").onclick = () => { sfx("cover"); $("settings").classList.add("hide"); $("roomPick").classList.remove("hide"); roomStat(); roomLoad().catch(() => {}); };
+$("bRoomClose").onclick = () => { sfx("cover"); $("roomPick").classList.add("hide"); };
+$("roomPick").addEventListener("click", (e) => { if (e.target === $("roomPick")) $("roomPick").classList.add("hide"); });
+$("bRoomHost").onclick = () => {
+  if (window.ROOM && ROOM.ok) return;
+  if (!navigator.onLine) return log("A ROOM NEEDS THE INTERNET", "alert");
+  $("roomStat").textContent = tx("OPENING A ROOM\u2026");
+  roomLoad().then(() => ROOM.host()).then(() => { $("roomCode").value = ""; roomStat(); }).catch(() => { log("COULD NOT OPEN A ROOM \u00b7 THE RELAY DID NOT ANSWER", "alert"); roomStat(); });
+};
+$("bRoomJoin").onclick = () => {
+  const c = $("roomCode").value.toUpperCase().replace(/[^A-Z]/g, "");
+  if (c.length !== 4) return log("A ROOM CODE IS FOUR LETTERS", "alert");
+  if (!navigator.onLine) return log("A ROOM NEEDS THE INTERNET", "alert");
+  $("roomStat").textContent = tx("JOINING\u2026") + " " + c;
+  roomLoad().then(() => ROOM.join(c)).then(() => roomStat()).catch(() => { log(tx("NO ROOM") + " " + c + " \u00b7 " + tx("CHECK THE LETTERS WITH THE HOST"), "alert"); roomStat(); });
+};
+$("bRoomLeave").onclick = () => { if (window.ROOM) ROOM.leave(); document.body.classList.remove("follower"); roomStat(); };
+$("roomCode").oninput = (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4); };
+$("roomCode").onkeydown = (e) => { if (e.key === "Enter") $("bRoomJoin").onclick(); };
+
 /* ---------------- point at them: a compass arrow to the chosen system (09-04) ----------------
    Alt/az from the system's RA/Dec and the target spot: sidereal time from the date, hour angle, the usual spherical triangle.
    Heading from the phone compass when it has one; iPhone must be asked inside a tap, which the setting's own tap is. */

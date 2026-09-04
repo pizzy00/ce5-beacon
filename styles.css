@@ -725,6 +725,29 @@ body.run #bShare, body.active #bShare { opacity: 0.3; }
 #bRed.on { color: #ff5a3c; border-color: rgba(255,90,60,0.7); background: linear-gradient(180deg, rgba(60,14,8,0.95), rgba(30,4,2,0.95)); }
 body.run #bRed, body.active #bRed { opacity: 0.3; }
 #bShare { top: calc(196px + env(safe-area-inset-top, 0px)); }   /* after the shared block so it wins */
+#bRoom { position: fixed; right: 10px; top: calc(234px + env(safe-area-inset-top, 0px)); z-index: 9;
+  width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
+  background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
+#bRoom svg { width: 16px; height: 16px; display: block; }
+#bRoom:active { background: rgba(255,196,107,0.25); }
+#bRoom.on { color: #9be7ff; border-color: rgba(155,231,255,0.7); box-shadow: 0 0 8px rgba(155,231,255,0.35), 0 2px 7px rgba(0,0,0,0.65); }
+body.run #bRoom, body.active #bRoom { opacity: 0.3; }
+body.intro #bRoom { opacity: 0 !important; }
+/* the room card: same glass as the privacy card */
+#roomPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#roomPick.hide { display: none; }
+#roomCard { max-width: 520px; width: calc(100% - 24px); max-height: 78vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#roomCard .setHead { position: relative; }
+#roomCard #bRoomClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#roomCode { width: 9.5ch; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 700 18px ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }
+#roomStat { color: var(--cyan); }
+body.follower #bEngage { filter: saturate(0.4) brightness(0.8); }
 body.intro #bLang, body.intro #bRed, body.intro #bShare { opacity: 0 !important; }
 /* red night mode: layer A keeps every pixel's brightness but turns its hue red, layer B multiplies the green and blue
    channels away, so white text comes out red instead of pink. Both sit above everything, even the opening. */
