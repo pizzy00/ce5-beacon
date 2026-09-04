@@ -695,5 +695,8 @@
  "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "WEBGL 地球を読み込めませんでした · 描画の地球のままです",
  "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "WEBGL 地球（テスト） — グラフィックチップで描く地球：より鮮明で、ピンチ中もなめらか · オフ = 実績ある描画の地球",
  "VOICE VOLUME —": "声の音量 —",
- "% · ITS OWN KNOB, APART FROM THE MASTER VOLUME": "% · 主音量とは別の専用つまみ"
+ "% · ITS OWN KNOB, APART FROM THE MASTER VOLUME": "% · 主音量とは別の専用つまみ",
+ "WEBGL EARTH — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, SMOOTHER, AND LIGHTER ON THE PHONE · OFF = THE DRAWN GLOBE, WHICH ALSO STEPS IN ON ITS OWN IF THE CHIP CANNOT": "WEBGL 地球 — グラフィックチップで描く地球：より鮮明、より滑らか、スマホにも軽い · オフ = 描画版の地球。チップが対応しない場合は自動でこちらに切り替わります",
+ "WEBGL EARTH": "WEBGL 地球",
+ "THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, SMOOTHER, AND LIGHTER ON THE PHONE · OFF = THE DRAWN GLOBE, WHICH ALSO STEPS IN ON ITS OWN IF THE CHIP CANNOT": "グラフィックチップで描く地球：より鮮明、より滑らか、スマホにも軽い · オフ = 描画版の地球。チップが対応しない場合は自動でこちらに切り替わります"
 }

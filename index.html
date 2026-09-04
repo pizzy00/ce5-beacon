@@ -205,7 +205,7 @@
         <option value="photo" selected>NASA PHOTO — BLUE MARBLE DAY · BLACK MARBLE NIGHT · REAL CLOUD COVER</option>
         <option value="procedural">DRAWN — THE BUILT-IN MAP, NO DOWNLOAD</option>
       </select>
-      <label class="setChk"><input type="checkbox" id="ckGl" />WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE</label>
+      <label class="setChk"><input type="checkbox" id="ckGl" />WEBGL EARTH — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, SMOOTHER, AND LIGHTER ON THE PHONE · OFF = THE DRAWN GLOBE, WHICH ALSO STEPS IN ON ITS OWN IF THE CHIP CANNOT</label>
       <div class="setLbl">CLOUD LAYER — <span id="vCloud">15</span>% · SEE-THROUGH, NEVER HIDES THE GROUND</div>
       <input type="range" id="rCloud" min="0" max="40" step="1" value="15" />
       <div class="setLbl">CLOUD DRIFT — <span id="vCloudSpd">0.6</span>° PER SECOND ON ITS OWN</div>
@@ -909,7 +909,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
-  crt: false, vig: false, red: false, gl: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
+  crt: false, vig: false, red: false, gl: true, glDef: 0, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
@@ -8191,6 +8191,7 @@ $("rPhoto").oninput = (e) => { S.pHold = 5.5 - +e.target.value; $("vPhoto").text
 
 /* boot log */
 const restored = loadSettings();
+if (S.glDef !== 2) { S.gl = true; S.glDef = 2; }                // 09-04: the WebGL Earth is the default now (his tablet verdict); saves from the test week come along once, then the switch is theirs
 const sysParam = (location.search.match(/[?&]s=([a-z0-9]+)/) || [])[1];   // a shared card opens on its own system (09-04)
 if (sysParam) { const so = SYSTEMS.find((x) => x.id === sysParam); if (so) { try { pickDeparture(so, true); } catch (e) {} } }
 const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a whole tuning, handed over in a link
