@@ -748,6 +748,26 @@ body.intro #bRoom { opacity: 0 !important; }
   letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }
 #roomStat { color: var(--cyan); }
 body.follower #bEngage { filter: saturate(0.4) brightness(0.8); }
+/* the site card: a place on the Earth, read out */
+#sitePick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; }
+#sitePick.hide { display: none; }
+#siteCard { max-width: 480px; width: calc(100% - 24px); max-height: 80vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,210,122,0.45);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#siteCard .setHead { position: relative; color: #ffd27a; }
+#siteCard.claim .setHead { color: #ff9b5e; }
+#siteCard.claim { border-color: rgba(255,155,94,0.45); }
+#siteCard #bSiteClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#siteLine { color: #ffd27a; font-size: 9.5px; line-height: 1.5; }
+#siteCard.claim #siteLine { color: #ff9b5e; }
+#siteStory { margin-top: 10px; font-size: 12.5px; line-height: 1.55; color: rgba(232,226,212,0.9); text-transform: none; letter-spacing: 0.02em; }
+#siteWhere { color: rgba(232,226,212,0.55); }
+#siteBtns { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "prev next" "hear hear"; gap: 8px; }
+#siteBtns .setBtn { cursor: pointer; text-align: center; }
+#bSitePrev { grid-area: prev; } #bSiteNext { grid-area: next; } #bSiteHear { grid-area: hear; }
+@media (min-width: 700px) { #siteBtns { grid-template-columns: 1fr 1fr 1fr; grid-template-areas: "prev hear next"; } }
+@media (min-width: 700px) { #siteStory { font-size: 14px; } }
 body.intro #bLang, body.intro #bRed, body.intro #bShare { opacity: 0 !important; }
 /* red night mode: layer A keeps every pixel's brightness but turns its hue red, layer B multiplies the green and blue
    channels away, so white text comes out red instead of pink. Both sit above everything, even the opening. */

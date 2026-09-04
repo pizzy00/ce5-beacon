@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=40" />
+<link rel="stylesheet" href="styles.css?v=41" />
 </head>
 <body class="intro introHud">
 
@@ -729,6 +729,16 @@
     <div class="setLbl">JOIN A ROOM</div>
     <div class="bdBtns"><input id="roomCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" /><span class="setBtn" id="bRoomJoin">JOIN</span></div>
     <div class="setStat">THE HOST READS THE FOUR LETTERS OUT · EVERYONE ELSE TYPES THEM HERE · A ROOM NEEDS THE INTERNET ON EVERY PHONE, EVEN WHEN YOU ARE ALL STANDING TOGETHER · FOLLOWERS SEE THE HOST'S SYSTEM AND SETTINGS; THEIR OWN GPS SPOT STAYS THEIRS</div>
+  </div>
+</div>
+<div id="sitePick" class="hide" role="dialog" aria-label="A place on the Earth">
+  <div id="siteCard">
+    <div class="setHead display"><span id="siteName">.</span> <span id="bSiteClose">✕</span></div>
+    <div class="setStat" id="siteLine"></div>
+    <div id="siteStory"></div>
+    <div class="setStat" id="siteWhere"></div>
+    <div class="bdBtns" id="siteBtns"><span class="setBtn" id="bSitePrev">◂ PREVIOUS PLACE</span><span class="setBtn" id="bSiteHear">HEAR IT AGAIN</span><span class="setBtn" id="bSiteNext">NEXT PLACE ▸</span></div>
+    <div class="infoFoot">GOLD = A PLACE BUILT TO THE SKY · ORANGE = A CLAIM, TOLD AS A CLAIM · THE WORLD TURNS TO EACH ONE · SWITCH THE PLACES OFF IN ⚙ SETTINGS</div>
   </div>
 </div>
 <div id="privPick" class="hide">
@@ -1486,36 +1496,67 @@ const TEST_SITES = [                                             // every known 
 let nukeHit = [];                                                // the test sites on the globe, for a tap
 let siteHit = [];                                                // the sky-aligned places on the globe, for a tap
 const SKY_SITES = [                                              // where the old ones watched the sky, and what they lined up with
-  { n: "GIZA", lat: 29.979, lon: 31.134, s: "THE GREAT PYRAMID IS SQUARE TO TRUE NORTH WITHIN 1/20 OF A DEGREE \u00b7 SHAFTS AIMED AT ORION\u2019S BELT AND THUBAN" },
-  { n: "STONEHENGE", lat: 51.179, lon: -1.826, s: "THE AXIS TAKES THE MIDSUMMER SUNRISE AND THE MIDWINTER SUNSET" },
-  { n: "TEOTIHUACAN", lat: 19.692, lon: -98.844, s: "THE AVENUE OF THE DEAD IS TURNED 15.5\u00b0 EAST OF NORTH \u00b7 THE PYRAMID OF THE SUN FACES THE PLEIADES SETTING" },
-  { n: "CHICHEN ITZA", lat: 20.683, lon: -88.568, s: "ON THE EQUINOX THE SUN DRAWS A SERPENT OF LIGHT DOWN EL CASTILLO\u2019S STAIR" },
-  { n: "NAZCA", lat: -14.739, lon: -75.130, s: "LINES ACROSS THE DESERT, SOME OF THEM POINTING AT THE SOLSTICE SUN" },
-  { n: "ANGKOR WAT", lat: 13.412, lon: 103.867, s: "ON THE SPRING EQUINOX THE SUN RISES DEAD OVER THE CENTRAL TOWER" },
-  { n: "MACHU PICCHU", lat: -13.163, lon: -72.545, s: "THE INTIHUATANA STONE CATCHES THE SUN ON THE SOLSTICES \u00b7 THE TORREON WINDOW TAKES THE JUNE SUNRISE" },
-  { n: "NEWGRANGE", lat: 53.695, lon: -6.475, s: "5,200 YEARS OLD \u00b7 THE MIDWINTER SUNRISE RUNS DOWN THE PASSAGE AND LIGHTS THE CHAMBER" },
-  { n: "CHACO CANYON", lat: 36.061, lon: -107.971, s: "THE SUN DAGGER: A BLADE OF LIGHT CROSSES A SPIRAL AT NOON ON THE SUMMER SOLSTICE" },
-  { n: "G\u00d6BEKLI TEPE", lat: 37.223, lon: 38.922, s: "THE OLDEST TEMPLE WE KNOW, 11,500 YEARS \u00b7 SOME SAY ITS PILLARS TRACKED SIRIUS" },
-  { n: "KARNAK", lat: 25.719, lon: 32.657, s: "THE TEMPLE AXIS TAKES THE MIDWINTER SUNRISE" },
-  { n: "ABU SIMBEL", lat: 22.337, lon: 31.626, s: "TWICE A YEAR THE SUN REACHES 60 M INTO THE ROCK AND LIGHTS THE SEATED GODS" },
-  { n: "CARNAC", lat: 47.593, lon: -3.079, s: "3,000 STANDING STONES IN ROWS \u00b7 SOLSTICE SIGHTLINES CLAIMED ACROSS THEM" },
-  { n: "MNAJDRA", lat: 35.827, lon: 14.436, s: "MALTA, 5,500 YEARS \u00b7 THE EQUINOX SUN COMES STRAIGHT THROUGH THE DOOR" },
-  { n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" },
-  { n: "S-4 \u00b7 PAPOOSE LAKE", lat: 37.09, lon: -115.79, claim: "lazar", s: "BOB LAZAR, 1989: NINE CRAFT IN HANGARS CUT INTO THE MOUNTAIN SOUTH OF AREA 51 \u00b7 HIS CLAIM, NEVER SHOWN" },
-  { n: "CALLANISH", lat: 58.198, lon: -6.745, s: "LEWIS, 5,000 YEARS \u00b7 EVERY 18.6 YEARS THE MOON SKIMS THE HILLS ALONG THE STONE AVENUE" },
-  { n: "MAESHOWE", lat: 58.998, lon: -3.188, s: "ORKNEY, 5,000 YEARS \u00b7 THE MIDWINTER SUNSET RUNS DOWN THE PASSAGE" },
-  { n: "NABTA PLAYA", lat: 22.508, lon: 30.725, s: "A STONE CIRCLE IN THE SAHARA OLDER THAN STONEHENGE, SET TO THE SUMMER SOLSTICE SUNRISE" },
-  { n: "CHANKILLO", lat: -9.559, lon: -78.229, s: "PERU, 2,300 YEARS \u00b7 THIRTEEN TOWERS ON A RIDGE MARK WHERE THE SUN RISES THROUGH THE YEAR" },
-  { n: "GOSECK", lat: 51.198, lon: 11.865, s: "GERMANY, 6,900 YEARS \u00b7 GATES IN THE RING TAKE THE MIDWINTER SUNRISE AND SUNSET" },
-  { n: "CAHOKIA", lat: 38.655, lon: -90.062, s: "WOODHENGE \u00b7 A CIRCLE OF POSTS MARKS THE EQUINOX AND SOLSTICE SUNRISES" },
-  { n: "BIGHORN MEDICINE WHEEL", lat: 44.826, lon: -107.922, s: "28 SPOKES \u00b7 CAIRNS SIGHT THE SOLSTICE SUNRISE AND THE RISING OF ALDEBARAN, RIGEL AND SIRIUS" },
-  { n: "UXMAL", lat: 20.360, lon: -89.771, s: "THE GOVERNOR\u2019S PALACE FACES WHERE VENUS RISES AT ITS SOUTHERNMOST" },
-  { n: "XOCHICALCO", lat: 18.804, lon: -99.296, s: "A SHAFT INTO A CAVE LETS THE SUN STRAIGHT DOWN ON THE DAYS IT PASSES OVERHEAD" },
-  { n: "PETRA", lat: 30.322, lon: 35.452, s: "THE MONASTERY TAKES THE MIDWINTER SUNSET \u00b7 THE URN TOMB THE EQUINOX SUNRISE" },
-  { n: "KARAHUNJ", lat: 39.551, lon: 46.028, s: "ARMENIA \u00b7 STONES WITH BORED HOLES, SAID TO SIGHT THE SUN AND STARS (A CLAIM, DISPUTED)" },
-  { n: "MEXICO \u00b7 CRASH COUNTRY", lat: 23.6, lon: -102.5, claim: "anon", s: "THE 2023 /X/ ANON: THE UNIT\u2019S CRAFT AVOID PARTS OF MEXICO BECAUSE THEY CRASH THERE OFTEN \u00b7 A CLAIM" },
-  { n: "FUKUSHIMA", lat: 37.42, lon: 141.03, claim: "anon", s: "MARCH 2011 \u00b7 A 2023 /X/ ANON SAID THE UNIT SENT CRAFT HERE FOR WEEKS, DRAWN TO THE RADIATION \u00b7 A CLAIM" }
+  { id: "giza", n: "GIZA", lat: 29.979, lon: 31.134, s: "THE GREAT PYRAMID IS SQUARE TO TRUE NORTH WITHIN 1/20 OF A DEGREE \u00b7 SHAFTS AIMED AT ORION\u2019S BELT AND THUBAN" },
+  { id: "stonehenge", n: "STONEHENGE", lat: 51.179, lon: -1.826, s: "THE AXIS TAKES THE MIDSUMMER SUNRISE AND THE MIDWINTER SUNSET" },
+  { id: "teoti", n: "TEOTIHUACAN", lat: 19.692, lon: -98.844, s: "THE AVENUE OF THE DEAD IS TURNED 15.5\u00b0 EAST OF NORTH \u00b7 THE PYRAMID OF THE SUN FACES THE PLEIADES SETTING" },
+  { id: "chichen", n: "CHICHEN ITZA", lat: 20.683, lon: -88.568, s: "ON THE EQUINOX THE SUN DRAWS A SERPENT OF LIGHT DOWN EL CASTILLO\u2019S STAIR" },
+  { id: "nazca", n: "NAZCA", lat: -14.739, lon: -75.130, s: "LINES ACROSS THE DESERT, SOME OF THEM POINTING AT THE SOLSTICE SUN" },
+  { id: "angkor", n: "ANGKOR WAT", lat: 13.412, lon: 103.867, s: "ON THE SPRING EQUINOX THE SUN RISES DEAD OVER THE CENTRAL TOWER" },
+  { id: "machu", n: "MACHU PICCHU", lat: -13.163, lon: -72.545, s: "THE INTIHUATANA STONE CATCHES THE SUN ON THE SOLSTICES \u00b7 THE TORREON WINDOW TAKES THE JUNE SUNRISE" },
+  { id: "newgrange", n: "NEWGRANGE", lat: 53.695, lon: -6.475, s: "5,200 YEARS OLD \u00b7 THE MIDWINTER SUNRISE RUNS DOWN THE PASSAGE AND LIGHTS THE CHAMBER" },
+  { id: "chaco", n: "CHACO CANYON", lat: 36.061, lon: -107.971, s: "THE SUN DAGGER: A BLADE OF LIGHT CROSSES A SPIRAL AT NOON ON THE SUMMER SOLSTICE" },
+  { id: "gobekli", n: "G\u00d6BEKLI TEPE", lat: 37.223, lon: 38.922, s: "THE OLDEST TEMPLE WE KNOW, 11,500 YEARS \u00b7 SOME SAY ITS PILLARS TRACKED SIRIUS" },
+  { id: "karnak", n: "KARNAK", lat: 25.719, lon: 32.657, s: "THE TEMPLE AXIS TAKES THE MIDWINTER SUNRISE" },
+  { id: "abusimbel", n: "ABU SIMBEL", lat: 22.337, lon: 31.626, s: "TWICE A YEAR THE SUN REACHES 60 M INTO THE ROCK AND LIGHTS THE SEATED GODS" },
+  { id: "carnac", n: "CARNAC", lat: 47.593, lon: -3.079, s: "3,000 STANDING STONES IN ROWS \u00b7 SOLSTICE SIGHTLINES CLAIMED ACROSS THEM" },
+  { id: "mnajdra", n: "MNAJDRA", lat: 35.827, lon: 14.436, s: "MALTA, 5,500 YEARS \u00b7 THE EQUINOX SUN COMES STRAIGHT THROUGH THE DOOR" },
+  { id: "rapanui", n: "RAPA NUI", lat: -27.113, lon: -109.350, s: "EASTER ISLAND \u00b7 SEVEN MOAI AT AHU AKIVI FACE THE EQUINOX SUNSET" },
+  { id: "s4", n: "S-4 \u00b7 PAPOOSE LAKE", lat: 37.09, lon: -115.79, claim: "lazar", s: "BOB LAZAR, 1989: NINE CRAFT IN HANGARS CUT INTO THE MOUNTAIN SOUTH OF AREA 51 \u00b7 HIS CLAIM, NEVER SHOWN" },
+  { id: "callanish", n: "CALLANISH", lat: 58.198, lon: -6.745, s: "LEWIS, 5,000 YEARS \u00b7 EVERY 18.6 YEARS THE MOON SKIMS THE HILLS ALONG THE STONE AVENUE" },
+  { id: "maeshowe", n: "MAESHOWE", lat: 58.998, lon: -3.188, s: "ORKNEY, 5,000 YEARS \u00b7 THE MIDWINTER SUNSET RUNS DOWN THE PASSAGE" },
+  { id: "nabta", n: "NABTA PLAYA", lat: 22.508, lon: 30.725, s: "A STONE CIRCLE IN THE SAHARA OLDER THAN STONEHENGE, SET TO THE SUMMER SOLSTICE SUNRISE" },
+  { id: "chankillo", n: "CHANKILLO", lat: -9.559, lon: -78.229, s: "PERU, 2,300 YEARS \u00b7 THIRTEEN TOWERS ON A RIDGE MARK WHERE THE SUN RISES THROUGH THE YEAR" },
+  { id: "goseck", n: "GOSECK", lat: 51.198, lon: 11.865, s: "GERMANY, 6,900 YEARS \u00b7 GATES IN THE RING TAKE THE MIDWINTER SUNRISE AND SUNSET" },
+  { id: "cahokia", n: "CAHOKIA", lat: 38.655, lon: -90.062, s: "WOODHENGE \u00b7 A CIRCLE OF POSTS MARKS THE EQUINOX AND SOLSTICE SUNRISES" },
+  { id: "bighorn", n: "BIGHORN MEDICINE WHEEL", lat: 44.826, lon: -107.922, s: "28 SPOKES \u00b7 CAIRNS SIGHT THE SOLSTICE SUNRISE AND THE RISING OF ALDEBARAN, RIGEL AND SIRIUS" },
+  { id: "uxmal", n: "UXMAL", lat: 20.360, lon: -89.771, s: "THE GOVERNOR\u2019S PALACE FACES WHERE VENUS RISES AT ITS SOUTHERNMOST" },
+  { id: "xochicalco", n: "XOCHICALCO", lat: 18.804, lon: -99.296, s: "A SHAFT INTO A CAVE LETS THE SUN STRAIGHT DOWN ON THE DAYS IT PASSES OVERHEAD" },
+  { id: "petra", n: "PETRA", lat: 30.322, lon: 35.452, s: "THE MONASTERY TAKES THE MIDWINTER SUNSET \u00b7 THE URN TOMB THE EQUINOX SUNRISE" },
+  { id: "karahunj", n: "KARAHUNJ", lat: 39.551, lon: 46.028, s: "ARMENIA \u00b7 STONES WITH BORED HOLES, SAID TO SIGHT THE SUN AND STARS (A CLAIM, DISPUTED)" },
+  { id: "mexico", n: "MEXICO \u00b7 CRASH COUNTRY", lat: 23.6, lon: -102.5, claim: "anon", s: "THE 2023 /X/ ANON: THE UNIT\u2019S CRAFT AVOID PARTS OF MEXICO BECAUSE THEY CRASH THERE OFTEN \u00b7 A CLAIM" },
+  { id: "fukushima", n: "FUKUSHIMA", lat: 37.42, lon: 141.03, claim: "anon", s: "MARCH 2011 \u00b7 A 2023 /X/ ANON SAID THE UNIT SENT CRAFT HERE FOR WEEKS, DRAWN TO THE RADIATION \u00b7 A CLAIM" }
 ];
+const SITE_STORY = {
+  giza: "Giza, Egypt. The Great Pyramid was raised about 4,500 years ago and its sides sit square to true north within a twentieth of a degree, a precision nobody matched for thousands of years. Narrow shafts run out of the two inner chambers, and when they were built they pointed at Orion's Belt, at Sirius, and at Thuban, the pole star of that age.",
+  stonehenge: "Stonehenge, England. The stones went up in stages over 1,500 years, starting around 5,000 years ago. Stand at the centre on midsummer morning and the sun rises over the Heel Stone, straight down the avenue. Turn around on midwinter evening and it sets between the tallest pair. The people who built it buried their dead here and gathered for the turning of the year.",
+  teoti: "Teotihuacan, Mexico. The city held perhaps 100,000 people around the year 400, and nobody knows what they called themselves. The Avenue of the Dead is turned fifteen and a half degrees east of north, and the Pyramid of the Sun faces the point where the Pleiades set. On the days the sun passes straight overhead, the Pleiades rise just before dawn.",
+  chichen: "Chichen Itza, Mexico. El Castillo is a Maya temple with 91 steps on each of its four sides, 365 with the top platform. On the spring and autumn equinox the late sun throws the corner of the pyramid across the north stair, and a serpent of light and shadow slides down to the stone snake head at the bottom.",
+  nazca: "Nazca, Peru. Between 2,000 and 1,500 years ago people scraped the dark stones off the desert to draw lines, triangles, a hummingbird, a monkey, a spider, some of them hundreds of metres long. From the ground you see almost nothing. From the air the whole plain is drawn on. A few of the long lines point at where the sun rises and sets on the solstices.",
+  angkor: "Angkor Wat, Cambodia. The largest religious building on Earth, raised in the 1100s as a model of the Hindu universe, with five towers for the peaks of Mount Meru. On the morning of the spring equinox, watched from the western causeway, the sun climbs straight over the central tower.",
+  machu: "Machu Picchu, Peru. An Inca estate on a ridge 2,400 metres up, built in the 1400s and never found by the Spanish. The Intihuatana, a carved stone, catches the sun on the solstices, and the window of the Torreon takes the June sunrise. The stones fit so tightly that a blade will not go between them.",
+  newgrange: "Newgrange, Ireland. A great mound of earth and white quartz built about 5,200 years ago, older than Stonehenge and the pyramids. Above the doorway is a small opening called the roof box. For a few minutes each morning around midwinter, the rising sun shines through it, along the 19 metre passage, and lights the chamber at the heart of the mound.",
+  chaco: "Chaco Canyon, New Mexico. A thousand years ago the Ancestral Puebloans built great houses here with hundreds of rooms. High on Fajada Butte three slabs of rock lean against a cliff. At noon on the summer solstice a single blade of sunlight passes between them and cuts straight through the centre of a spiral carved on the wall.",
+  gobekli: "Gobekli Tepe, Turkey. Stone circles with carved pillars up to five metres tall, raised around 11,500 years ago by hunters, before farming, before pottery, before the wheel. It is the oldest temple we know of. Some have argued the pillars were set to track Sirius as it first appeared over the horizon, though that reading is disputed.",
+  karnak: "Karnak, Egypt. The largest temple complex of ancient Egypt, built and added to for 2,000 years. Its main axis runs from the Nile toward the point on the horizon where the sun rises at midwinter, so that on that morning the first light passes through gate after gate to the sanctuary at the far end.",
+  abusimbel: "Abu Simbel, Egypt. Ramesses the Second cut this temple into the cliff around 1260 BC, with four seated statues of himself, twenty metres tall, at the door. Twice a year, in February and October, the rising sun reaches sixty metres into the rock and lights three of the four gods seated at the back. The fourth, the god of the underworld, stays in the dark.",
+  carnac: "Carnac, France. More than 3,000 standing stones set in long rows across the Breton countryside, raised over centuries starting around 6,500 years ago. Some rows run for more than a kilometre. Sightlines to the solstice sunrise and sunset have been claimed along them, though what the rows were for is still argued.",
+  mnajdra: "Mnajdra, Malta. A temple of soft limestone built about 5,500 years ago on a cliff above the sea. Its lower building faces the equinox sunrise exactly, so that twice a year the first light comes straight through the doorway and down the central passage. On the solstices the sun lights a stone on the left or the right of the door instead.",
+  rapanui: "Rapa Nui, Easter Island. The moai are stone figures, hundreds of them, carved between 1250 and 1500 and stood on platforms called ahu. Almost all of them face inland, toward the villages. The seven at Ahu Akivi are different: they look out to sea, and they face the point where the sun sets on the equinox.",
+  s4: "S-4, Papoose Lake, Nevada. In 1989 Bob Lazar said he had worked at a site south of Area 51, where nine craft were kept in hangars cut into the side of a mountain, and that he had studied one of them. This is his claim. No hangar, no craft and no record of his work there has ever been shown.",
+  callanish: "Callanish, Isle of Lewis, Scotland. A cross of standing stones set around a small circle, raised about 5,000 years ago. Every 18.6 years the moon reaches its lowest path across the sky, and from the stone avenue it can be watched skimming the hills to the south, seeming to set into the circle itself.",
+  maeshowe: "Maeshowe, Orkney, Scotland. A chambered tomb under a grass mound, about 5,000 years old, built with stone slabs so finely laid that the walls are still tight. For three weeks around midwinter the setting sun shines down the long entry passage and lights the back wall of the chamber. Vikings broke in around 1150 and left runes on the walls.",
+  nabta: "Nabta Playa, Egypt. A small stone circle in the Sahara, about 7,000 years old, older than Stonehenge. It was raised when this desert was grassland with a seasonal lake and cattle herders camped beside it. Two pairs of upright stones frame the summer solstice sunrise, the time the rains came.",
+  chankillo: "Chankillo, Peru. Thirteen stone towers stand in a line along a ridge, built about 2,300 years ago. From a marked spot below, the sun rises between a different pair of towers each week of the year, from the far left at the June solstice to the far right in December. It is the oldest known solar observatory in the Americas.",
+  goseck: "Goseck, Germany. A ring of ditches and wooden palisades about 75 metres across, built about 6,900 years ago and found from the air in 1991. Two of its three gates open toward the points where the sun rose and set at midwinter. It is one of the oldest known structures built to the sky.",
+  cahokia: "Cahokia, Illinois. A thousand years ago this was the largest city north of Mexico, with earthen mounds and perhaps 20,000 people. West of the great mound stood Woodhenge, a circle of tall red cedar posts. From a post at the centre, marked posts on the ring line up with the sunrise on the equinoxes and the solstices.",
+  bighorn: "Bighorn Medicine Wheel, Wyoming. A ring of stones 24 metres across on a mountain shoulder nearly 3,000 metres up, with 28 spokes and cairns around the rim. Lines between the cairns point at the summer solstice sunrise and sunset, and at the places where Aldebaran, Rigel and Sirius first rise before dawn in the summer.",
+  uxmal: "Uxmal, Mexico. A Maya city of the 800s and 900s, with a long low building called the Governor's Palace. Its doorway faces a point on the horizon well off the line of every other building, and that point is where Venus rises at its southernmost. Hundreds of Venus glyphs are carved into the palace front.",
+  xochicalco: "Xochicalco, Mexico. A hilltop city of about 1,300 years ago. Below it a cave was widened into a chamber, and a shaft was cut through the roof to the surface. On the days when the sun passes straight overhead, in May and July, its light drops down the shaft and lands as a bright disc on the chamber floor.",
+  petra: "Petra, Jordan. A city carved into rose coloured rock by the Nabataeans around 2,000 years ago. On the midwinter afternoon the setting sun enters the Monastery and lights the platform where a sacred stone stood. The Urn Tomb takes the equinox sunrise straight through its door.",
+  karahunj: "Karahunj, Armenia. More than 200 standing stones on a high plateau, and about 80 of them have a hole bored through near the top. Some researchers say the holes were for sighting the sun, the moon and bright stars, and that the site is thousands of years old. Others say the holes are later and the alignments are chance. That argument is not settled.",
+  mexico: "Mexico. In 2023 an anonymous poster on the 4chan board /x/ claimed to have worked inside a program studying the unit in the Bermuda Triangle, and said its craft avoid parts of Mexico because they crash there unusually often. That is the whole of the source. No record backs it, and it is shown here as a claim.",
+  fukushima: "Fukushima, Japan. In March 2011 an earthquake and tsunami flooded the Fukushima Daiichi power plant and three of its reactors melted down. The same 2023 anonymous poster claimed the unit sent craft here for weeks afterward, drawn to the radiation. That is a claim from one unverified source, and nothing more."
+};
 let earthAuto = true, earthResume = 0;
 var ctlTop = 0;                                                 // var: resize() measures the console before this line runs
 function measureCtl() {
@@ -6671,6 +6712,20 @@ function pickDeparture(o, auto) {                               // auto: attract
   locSync();
   if (auto) locGlide();
 }
+let siteAt = null;                                              // the place on the card
+const siteList = () => SKY_SITES.filter((q) => !q.claim || loreOn(q.claim));   // the pins that are on the world right now
+function siteOpen(q, quiet) {                                   // the card for a place on the Earth; the voice reads its story
+  siteAt = q;
+  $("siteName").textContent = q.n; $("siteLine").textContent = tx(q.s);
+  $("siteStory").textContent = tx(SITE_STORY[q.id] || ""); $("siteStory").dir = uiLang === "ar" ? "rtl" : "ltr";
+  $("siteWhere").textContent = Math.abs(q.lat).toFixed(2) + "\u00b0 " + (q.lat < 0 ? "S" : "N") + " \u00b7 " + Math.abs(q.lon).toFixed(2) + "\u00b0 " + (q.lon < 0 ? "W" : "E");
+  $("siteCard").classList.toggle("claim", !!q.claim);
+  $("settings").classList.add("hide"); $("sitePick").classList.remove("hide");
+  earthGoal = { lon: q.lon }; earthAuto = false; earthVel = 0; clearTimeout(earthResume);   // the world turns to it
+  if (!quiet) voiceSay("site-" + q.id);
+}
+function siteClose() { $("sitePick").classList.add("hide"); siteAt = null; voiceStop(); }
+function siteStep(d) { const L = siteList(); if (!L.length) return; const i = Math.max(0, L.indexOf(siteAt)); sfx("key"); siteOpen(L[(i + d + L.length) % L.length]); }
 function chartTap(cx, cy) {
   const cand = [];                                               // everything under the finger; the nearest (by its own reach) wins
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
@@ -6683,7 +6738,7 @@ function chartTap(cx, cy) {
   }
   for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
   for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 9) cand.push({ k: d / 9, act: () => { blip(980, 980, 0.07, 0.04); usoRead(h.r); } }); }   // a teal dot: a water sighting
-  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); } }); }
+  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); siteOpen(h.q); } }); }   // an old place: its card, and the voice
   for (const h of nukeHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(620, 620, 0.09, 0.05); log(h.q.n + " \u2014 " + h.q.s, "rd"); } }); }   // a test site: its line   // an old place: its story
   if (cand.length) { cand.sort((a, b) => a.k - b.k)[0].act(); return true; }
   if ((globeView && !globeView.out) || earthZoom > 1.05) return false;   // looking at the world: the sky is behind glass
@@ -6841,7 +6896,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7518,7 +7573,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -8056,6 +8111,11 @@ function roomStat() {
 }
 $("bRoom").onclick = () => { sfx("cover"); $("settings").classList.add("hide"); $("roomPick").classList.remove("hide"); roomStat(); roomLoad().catch(() => {}); };
 $("bRoomClose").onclick = () => { sfx("cover"); $("roomPick").classList.add("hide"); };
+$("bSiteClose").onclick = () => { sfx("cover"); siteClose(); };
+$("sitePick").addEventListener("click", (e) => { if (e.target === $("sitePick")) siteClose(); });
+$("bSiteHear").onclick = () => { if (siteAt) { sfx("key"); voiceSay("site-" + siteAt.id); } };
+$("bSitePrev").onclick = () => siteStep(-1);
+$("bSiteNext").onclick = () => siteStep(1);
 $("roomPick").addEventListener("click", (e) => { if (e.target === $("roomPick")) $("roomPick").classList.add("hide"); });
 $("bRoomHost").onclick = () => {
   if (window.ROOM && ROOM.ok) return;
