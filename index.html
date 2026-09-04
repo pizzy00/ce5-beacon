@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=31" />
+<link rel="stylesheet" href="styles.css?v=32" />
 </head>
 <body class="intro introHud">
 
@@ -100,6 +100,7 @@
     <div class="setRow">
       <label class="setChk"><input type="checkbox" id="ckCrt" />TV SCAN LINES OVER EVERYTHING</label>
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
+      <label class="setChk"><input type="checkbox" id="ckRed" />RED NIGHT MODE &#8212; THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE &#183; THE MOON KEY TOP RIGHT FLIPS IT TOO</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
       <div class="setLbl">THE VOICE &#8212; READS THE FIRST-NIGHT GUIDE, AND WHO YOU ARE CALLING WHEN YOU PICK A SYSTEM OR TAP THEIR PORTRAIT</div>
@@ -183,8 +184,8 @@
         <option value="eso">THE WHOLE MILKY WAY &#8212; A 360&#176; PANORAMA OF OUR OWN GALAXY FROM THE INSIDE</option>
         <option value="off">NONE &#8212; THE DRAWN SKY ONLY</option>
       </select>
-      <div class="setLbl">HOW BRIGHT THE PHOTOGRAPH SITS &#8212; <span id="vSky">20</span>%</div>
-      <input type="range" id="rSky" min="10" max="100" step="5" value="20" />
+      <div class="setLbl">HOW BRIGHT THE PHOTOGRAPH SITS &#8212; <span id="vSky">10</span>%</div>
+      <input type="range" id="rSky" min="10" max="100" step="5" value="10" />
       <div class="setLbl">PHOTOGRAPHS: NASA, ESA, H. TEPLITZ AND M. RAFELSKI (IPAC/CALTECH), A. KOEKEMOER (STSCI), R. WINDHORST (ASU), Z. LEVAY (STSCI) &#183; NASA, ESA, G. ILLINGWORTH, D. MAGEE, P. OESCH (UCSC), R. BOUWENS (LEIDEN) AND THE HUDF09 TEAM &#183; ESO / S. BRUNIER &#183; CC BY 4.0</div>
     </div>
     </div>
@@ -779,6 +780,8 @@
     <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor" stroke="none"/><path d="M11 6l4 4M15 6l-4 4"/></svg>
 </button>
 <button id="bLang" aria-label="Language" title="Language"><span id="langGlyph">A</span></button>
+<button id="bRed" aria-label="Red night mode" title="Red night mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/></svg></button>
+<button id="bShare" aria-label="Share a picture of tonight" title="Share a picture of tonight, with the link on it"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></button>
 <button id="bIdea" aria-label="Send an idea" title="Send an idea">
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M4.5 8V3.6a1 1 0 0 1 2 0V7M6.5 7V2.6a1 1 0 0 1 2 0V7M8.5 7V3.2a1 1 0 0 1 2 0V7.6M10.5 7.6V4.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5H7.4A3.4 3.4 0 0 1 4.5 13L2.6 9.9a1 1 0 0 1 1.7-1L4.5 9.6"/></svg>
@@ -786,6 +789,8 @@
 <div id="fade"></div>
 <div id="crt"></div>
 <div id="vig"></div>
+<div id="redA"></div>
+<div id="redB"></div>
 
 <div id="guide" class="hide" dir="ltr" role="dialog" aria-label="First-night guide">
   <div id="guideSpot"></div>
@@ -826,7 +831,7 @@
     <button class="btn hide key" id="bReplay">Replay</button>
     <button class="btn cy hide key" id="bTone">Tone</button>
     <button class="btn hide key" id="bSend">Send</button>
-    <button class="btn cy hide key" id="bCard" title="A picture of tonight to share">Card</button>
+    <button class="btn cy hide key" id="bCard" title="A picture of tonight to share, with the link on it">Card</button>
     <button class="btn hide key" id="bTarget">Retarget</button>
     <button class="btn cy key" id="bGps">GPS</button>
     <button class="btn cy key" id="bBoard" aria-label="Travellers board" title="Travellers board">LOG</button>
@@ -848,10 +853,10 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
-  crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
+  crt: false, vig: false, red: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
-  deep: false, deepA: 0.15, sky: "hudf", skyA: 0.2, spin: 0.05, trails: true, planets: true, traffic: true,
+  deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
@@ -6125,7 +6130,8 @@ function retShow(on) {                                        // on = the camera
   const show = phase === "bridge" ? false : S.ret === "off" ? false : S.ret === "always" ? inRun : retWant && inRun && !RET_SPACE.test(phase);   // never in the throat (his note)
   const el = $("reticle"); if (el) el.classList.toggle("on", show);
 }
-function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); }
+function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); applyRed(); }
+function applyRed() { document.body.classList.toggle("red", !!S.red); $("bRed").classList.toggle("on", !!S.red); }   // two blend layers: hue to red, then the green and blue channels multiplied away (09-04)
 function useGps() {
   if (!navigator.geolocation) { $("addrStatus").textContent = "GPS UNAVAILABLE IN THIS BROWSER"; return log("GPS UNAVAILABLE", "alert"); }
   log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING...";
@@ -6837,11 +6843,17 @@ function buildCard() {
   c.fillText("C E - 5   B E A C O N", Wc / 2, 130);
   c.fillStyle = "rgba(240,236,226,0.7)"; c.font = "26px " + mono;
   const d = new Date(), months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-  c.fillText("A NIGHT OUT \u00b7 " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear(), Wc / 2, 178);
-  // the picture: the render when we have it, else the star itself
-  const kind = (s.tag || "").split(" ")[0], pic = (S.face !== "sketch" && SPECIES[kind]) ? faceFor(kind, s, performance.now() / 1000) : null;
+  const onChart = phase === "chart";                          // on the chart the card carries the sky itself (09-04)
+  c.fillText((onChart ? "THE SKY TONIGHT" : "A NIGHT OUT") + " \u00b7 " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear(), Wc / 2, 178);
+  // the picture: the chart while we are on it, the render when we have it, else the star itself
+  const kind = (s.tag || "").split(" ")[0], pic = (!onChart && S.face !== "sketch" && SPECIES[kind]) ? faceFor(kind, s, performance.now() / 1000) : null;
   const bx = 260, by = 230, bw = 560, bh = 690;
-  if (pic) {
+  if (onChart && cvs.width > 0 && ctlTop > 40) {
+    const srcW = cvs.width, srcH = Math.min(cvs.height, Math.round(ctlTop * DPR)), want = bw / bh;   // the sky band above the console, cover-fit
+    let sw = srcW, sh = srcW / want, sx = 0, sy = Math.max(0, (srcH - sh) / 2);
+    if (sh > srcH) { sh = srcH; sw = srcH * want; sx = (srcW - sw) / 2; sy = 0; }
+    c.fillStyle = "#000"; c.fillRect(bx, by, bw, bh); c.drawImage(cvs, sx, sy, sw, sh, bx, by, bw, bh);
+  } else if (pic) {
     const im = pic.img, iw = im.naturalWidth, ih = im.naturalHeight, want = bw / bh;
     let sw = iw, sh = iw / want, sx = 0, sy = (ih - sh) / 2;
     if (sh > ih) { sh = ih; sw = ih * want; sx = (iw - sw) / 2; sy = 0; }
@@ -6857,7 +6869,7 @@ function buildCard() {
   c.fillStyle = s.c || "#ffc46b"; c.font = "600 58px " + disp;
   c.fillText(String(s.name || "EARTH").toUpperCase(), Wc / 2, 1010);
   c.fillStyle = "rgba(240,236,226,0.85)"; c.font = "28px " + mono;
-  c.fillText((pic ? pic.title : (s.tag || "")).toUpperCase(), Wc / 2, 1058);
+  c.fillText((pic ? pic.title : (s.tag || "")).toUpperCase().slice(0, 44), Wc / 2, 1058);
   c.fillStyle = "#9be7ff"; c.font = "26px " + mono;
   c.fillText("CALLED FROM " + cardSpot(), Wc / 2, 1120);
   c.fillText(cardRoute(), Wc / 2, 1160);
@@ -6865,8 +6877,9 @@ function buildCard() {
   const msg = '"' + String(S.msg || "").toUpperCase().slice(0, 42) + '"';
   c.fillText(msg, Wc / 2, 1222);
   c.fillStyle = "rgba(240,236,226,0.55)"; c.font = "22px " + mono;
-  c.fillText(pic ? "AN AI RENDER FROM WITNESS DESCRIPTIONS \u00b7 NOT A PHOTOGRAPH" : "A FREE CONSOLE FOR A CLOSE ENCOUNTER", Wc / 2, 1272);
-  c.fillText("PIZZY00.GITHUB.IO/CE5-BEACON", Wc / 2, 1304);
+  c.fillText(pic ? "AN AI RENDER FROM WITNESS DESCRIPTIONS \u00b7 NOT A PHOTOGRAPH" : "A FREE CONSOLE FOR A CLOSE ENCOUNTER \u00b7 NO ACCOUNT \u00b7 WORKS OFFLINE", Wc / 2, 1272);
+  c.fillStyle = "#ffc46b"; c.font = "600 26px " + mono;
+  c.fillText(cardLink(), Wc / 2, 1306);                          // the live link, baked in: the picture alone brings people here
   return cv;
 }
 function shareCard() {
@@ -6875,7 +6888,7 @@ function shareCard() {
   cv.toBlob((blob) => {
     if (!blob) { log("THE CARD DID NOT DRAW", "alert"); return; }
     const file = new File([blob], "ce5-beacon-night.png", { type: "image/png" });
-    const text = "A night out with CE-5 Beacon \u00b7 " + (selected ? selected.name : "EARTH") + " \u00b7 " + publicLink();
+    const text = (phase === "chart" ? "The sky tonight on CE-5 Beacon \u00b7 " : "A night out with CE-5 Beacon \u00b7 ") + (selected ? selected.name : "EARTH") + " \u00b7 " + shareLink();
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file], title: "CE-5 Beacon", text }).then(() => log("CARD SHARED", "cy")).catch(() => {});
       return;
@@ -7223,6 +7236,8 @@ function setupApply(o, quiet) {                                  // the factory 
 }
 function shareLink() { const v = ($("shareIn") && $("shareIn").value) || ""; return v || location.href.split("#")[0]; }
 function publicLink() { return location.origin + location.pathname; }   // never the #ll= spot: this one goes to strangers
+function shareLink() { return publicLink() + (selected && selected.id ? "?s=" + selected.id : ""); }   // opens on the same system (09-04)
+function cardLink() { return shareLink().replace(/^https?:\/\//, "").replace(/\/$/, ""); }   // lower case: the path and ?s= are case-sensitive, people retype what they see
 const SHARE_TEXT = "CE-5 Beacon: a free retro console for inviting a close encounter. Pick a system, press START, ride the route to your own roof.";
 $("bFresh").onclick = () => { sfx("cover"); freshCopy(); };
 $("bSetupGet").onclick = () => {
@@ -7632,7 +7647,7 @@ function loadSettings() {
   S.voice = S.voiceSex !== "off";
   if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;
   if (!(S.shipN >= 0.1 && S.shipN <= 1)) S.shipN = 0.5; if (!(S.lblBack >= 0 && S.lblBack <= 0.8)) S.lblBack = 0.35;   // half the ships, a soft plate under the names
-  if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1) || (S.skyA === 0.35 && !S.skyASet)) S.skyA = 0.2;   // 20% keeps the systems readable on a bright phone; an untouched 35% steps down   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
+  if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1) || ((S.skyA === 0.35 || S.skyA === 0.2) && !S.skyASet)) S.skyA = 0.1;   // 20% keeps the systems readable on a bright phone; an untouched 35% steps down   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
   if (S.guideAuto === undefined) S.guideAuto = true;
   if (S.pyr === undefined) S.pyr = true;
   if (S.terran === undefined) S.terran = true;                  // saves from before the switch                        // saves from before the pyramids stood
@@ -7674,7 +7689,7 @@ function applyS() {                                             // push S into e
   locSync();
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
-  chk("ckCrt", S.crt); chk("ckVig", S.vig); set("selRet", S.ret); applyScreen();
+  chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
@@ -7767,9 +7782,12 @@ $("rWpm").oninput = (e) => { S.mWpm = +e.target.value; $("vWpm").textContent = S
 $("rMInt").oninput = (e) => { S.mInt = +e.target.value / 100; $("vMInt").textContent = e.target.value; };
 $("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
 $("bCard").onclick = () => { sfx("key"); shareCard(); };
+$("bShare").onclick = () => { sfx("key"); shareCard(); };                  // the chart's own share, top right (09-04)
 $("msgMorse").textContent = morseString(S.msg);
 $("ckCrt").onchange = (e) => { S.crt = e.target.checked; applyScreen(); };
 $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
+$("ckRed").onchange = (e) => { S.red = e.target.checked; applyRed(); log(S.red ? "RED NIGHT MODE ON \u00b7 YOUR EYES STAY DARK-ADAPTED" : "RED NIGHT MODE OFF", "cy"); };
+$("bRed").onclick = () => { S.red = !S.red; $("ckRed").checked = S.red; applyRed(); log(S.red ? "RED NIGHT MODE ON \u00b7 YOUR EYES STAY DARK-ADAPTED" : "RED NIGHT MODE OFF", "cy"); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
 $("selChart").onchange = (e) => (S.chart3d = e.target.value === "3d");
 $("ckFades").onchange = (e) => (S.fades = e.target.checked);
@@ -7843,6 +7861,8 @@ $("rPhoto").oninput = (e) => { S.pHold = 5.5 - +e.target.value; $("vPhoto").text
 
 /* boot log */
 const restored = loadSettings();
+const sysParam = (location.search.match(/[?&]s=([a-z0-9]+)/) || [])[1];   // a shared card opens on its own system (09-04)
+if (sysParam) { const so = SYSTEMS.find((x) => x.id === sysParam); if (so) { try { pickDeparture(so, true); } catch (e) {} } }
 const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a whole tuning, handed over in a link
 let setupCame = 0;
 if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApply(o, true) ? 1 : 0; }

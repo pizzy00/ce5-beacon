@@ -686,6 +686,26 @@
 #bLang.callout { animation: fsPulse 1.6s ease-out infinite; }
 #bLang #langGlyph { font: 700 13px ui-monospace, Menlo, monospace; }
 body.run #bLang, body.active #bLang { opacity: 0.3; }
+#bShare svg { width: 15px; height: 15px; display: block; }
+#bShare:active { background: rgba(255,196,107,0.25); }
+body.run #bShare, body.active #bShare { opacity: 0.3; }
+#bRed, #bShare { position: fixed; right: 10px; top: calc(158px + env(safe-area-inset-top, 0px)); z-index: 9;
+  width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
+  background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
+#bRed svg { width: 15px; height: 15px; display: block; }
+#bRed:active { background: rgba(255,196,107,0.25); }
+#bRed.on { color: #ff5a3c; border-color: rgba(255,90,60,0.7); background: linear-gradient(180deg, rgba(60,14,8,0.95), rgba(30,4,2,0.95)); }
+body.run #bRed, body.active #bRed { opacity: 0.3; }
+#bShare { top: calc(196px + env(safe-area-inset-top, 0px)); }   /* after the shared block so it wins */
+body.intro #bLang, body.intro #bRed, body.intro #bShare { opacity: 0 !important; }
+/* red night mode: layer A keeps every pixel's brightness but turns its hue red, layer B multiplies the green and blue
+   channels away, so white text comes out red instead of pink. Both sit above everything, even the opening. */
+#redA, #redB { position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
+#redA { background: #ff2a10; mix-blend-mode: color; }
+#redB { background: #ff3a1a; mix-blend-mode: multiply; z-index: 41; }
+body.red #redA, body.red #redB { opacity: 1; }
 body.intro #bLang { opacity: 0 !important; pointer-events: none !important; }
 #langHint { position: fixed; right: 48px; top: calc(123px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
   color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
