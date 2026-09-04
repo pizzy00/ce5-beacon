@@ -512,7 +512,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
     display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
   #bMute { top: calc(44px + env(safe-area-inset-top, 0px)); right: 10px; }
-  #bIdea { top: calc(272px + env(safe-area-inset-top, 0px)); right: 10px; }   /* the foot of the column */
+  #bIdea { top: calc(234px + env(safe-area-inset-top, 0px)); right: 10px; }   /* the foot of the column, same 38 px step */
   #bMute:active, #bIdea:active { background: rgba(255,196,107,0.25); }
   #bMute.callout, #bIdea.callout { animation: fsPulse 1.6s ease-out infinite; }
   #bMute svg, #bIdea svg { width: 16px; height: 16px; display: block; }
@@ -525,7 +525,7 @@
     background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
     box-shadow: 0 0 12px rgba(0,0,0,0.7); }
   #muteHint { top: calc(47px + env(safe-area-inset-top, 0px)); }
-  #ideaHint { top: calc(275px + env(safe-area-inset-top, 0px)); }
+  #ideaHint { top: calc(237px + env(safe-area-inset-top, 0px)); }
   #muteHint.hide, #ideaHint.hide { display: none; }
   #ideaPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
     display: flex; align-items: center; justify-content: center; }
