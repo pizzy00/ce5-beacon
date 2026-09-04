@@ -761,6 +761,15 @@ body.intro #bLang { opacity: 0 !important; pointer-events: none !important; }
   background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
   box-shadow: 0 0 12px rgba(0,0,0,0.7); }
 #langHint.hide { display: none; }
+#redHint, #shareHint, #roomHint { position: fixed; right: 48px; z-index: 9; pointer-events: none;
+  color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
+  background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+#redHint { top: calc(161px + env(safe-area-inset-top, 0px)); }
+#shareHint { top: calc(199px + env(safe-area-inset-top, 0px)); }
+#roomHint { top: calc(237px + env(safe-area-inset-top, 0px)); }
+#redHint.hide, #shareHint.hide, #roomHint.hide { display: none; }
+#bRed.callout, #bShare.callout, #bRoom.callout { animation: fsPulse 1.6s ease-out infinite; }
 #langPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
   display: flex; align-items: center; justify-content: center; }
 #langPick.hide { display: none; }

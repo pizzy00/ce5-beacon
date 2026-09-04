@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=36" />
+<link rel="stylesheet" href="styles.css?v=37" />
 </head>
 <body class="intro introHud">
 
@@ -111,6 +111,8 @@
       </select>
       <div class="setLbl">READING SPEED &#8212; <span id="vVoice">1.3</span>&#215; · 1 = AS RECORDED, SLOW AND EASY</div>
       <input type="range" id="rVoice" min="0.8" max="1.6" step="0.05" value="1.3" />
+      <div class="setLbl">VOICE VOLUME &#8212; <span id="vVoiceVol">55</span>% · ITS OWN KNOB, APART FROM THE MASTER VOLUME</div>
+      <input type="range" id="rVoiceVol" min="0" max="100" step="5" value="55" />
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
       <label class="setChk"><input type="checkbox" id="ckGuideAuto" checked />THE GUIDE MOVES ON BY ITSELF &#8212; TWO SECONDS AFTER THE VOICE FINISHES A CARD, THE NEXT ONE COMES UP · NEEDS THE VOICE ON</label>
@@ -577,6 +579,9 @@
 <div id="muteHint" class="hide display">MUTE EVERY SOUND ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
 <div id="langHint" class="hide display">CHOOSE YOUR LANGUAGE ▸</div>
+<div id="redHint" class="hide display">RED NIGHT MODE · SAVE YOUR NIGHT EYES ▸</div>
+<div id="shareHint" class="hide display">SHARE A CARD WITH THE LINK ▸</div>
+<div id="roomHint" class="hide display">GROUP SESSION · ONE PHONE LEADS ▸</div>
 <div id="langPick" class="hide">
   <div id="langCard">
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
@@ -909,7 +914,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, point: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, point: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, voiceVol: 0.55, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -4128,7 +4133,7 @@ function fpsTick(t) {
   fpsRaf = requestAnimationFrame(fpsTick);
 }
 let fsShown = false, calloutQueue = [];
-const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"]];
+const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"]];
 function fsCallout() {                                           // the corner keys introduce themselves one at a time
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;
@@ -4201,10 +4206,12 @@ function guideShow(i) {
   const top = midY > H * 0.5 ? Math.max(12, r.y - ch - 16) : Math.min(H - ch - 12, r.y + r.h + 16);
   card.style.top = top + "px";
 }
+function guideDue() { let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY) || ""; } catch (e) {} return !(seen || S.noGuide); }
 function guideStart(force) {
-  if (!force && (phase !== "chart" || intro)) return;
+  if (!force && (phase !== "chart" || intro)) return;         // the opening still running: it will ask again
   let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY) || ""; } catch (e) {}
-  if ((seen || S.noGuide) && !force) return;
+  if ((seen || S.noGuide) && !force) { fsCallout(); return; }
+  fsCalloutOff(); fsShown = false;                            // the corner keys wait: they introduce themselves once the guide closes
   $("settings").classList.add("hide");
   $("guide").classList.remove("hide");
   sfx("cover");                                                 // the card slides in with the same sound as the other cards
@@ -4214,6 +4221,7 @@ function guideEnd() {
   if (!$("guide").classList.contains("hide")) sfx("cover");
   $("guide").classList.add("hide"); guideAt = -1; clearTimeout(guideAutoT); voiceStop();
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
+  setTimeout(fsCallout, 500);                                   // then the corner keys introduce themselves, one at a time
 }
 $("guideNext").onclick = () => { sfx("key"); guideShow(guideAt + 1); };
 $("guideSkip").onclick = () => { sfx("key"); guideEnd(); };
@@ -4221,8 +4229,9 @@ $("guideLang").onclick = () => { sfx("cover"); langBuild(); $("langPick").classL
 $("bGuide").onclick = () => { sfx("key"); guideStart(true); };
 window.addEventListener("resize", () => { if (guideAt >= 0) guideShow(guideAt); });
 function introAfter() {                                         // everything else preloads once the opening is done
-  fsCallout(); ambStart();
-  setTimeout(() => guideStart(false), 2200);                    // the first night: four spotlights, once
+  ambStart();
+  if (!guideDue()) fsCallout();                                 // the keys introduce themselves now, or once the guide has closed
+  setTimeout(() => guideStart(false), 2200);                    // the first night: nine spotlights, once
   if (S.pursue) loadPursue(); if (S.uso) loadUso();
   try { NUKE_PHOTOS.forEach((p, i) => setTimeout(() => { const im = new Image(); im.src = p.src; }, i * 400)); } catch (e) {}
   try { if (S.cache !== "off" && !precached) precacheTiles(); } catch (e) {}
@@ -6791,10 +6800,11 @@ cvs.addEventListener("wheel", (e) => {
 const VOICE_SYS = new Set(["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"]);   // the read-outs that exist
 let voiceEl = null, voiceName = "", faceRect = null;
 function voiceStop() { if (voiceEl) { try { voiceEl.pause(); } catch (e) {} } voiceEl = null; voiceName = ""; }
+const voiceVol = () => Math.max(0, Math.min(1, S.voiceVol === undefined ? 0.55 : +S.voiceVol || 0));   // its own knob, apart from the master
 function voiceSay(name, onEnd) {                                 // muted means muted; the voice switch is its own
   voiceStop();
   if (muted || !S.voice) return false;
-  const a = new Audio("voice/" + (VOICE_LANGS.has(uiLang) ? uiLang + "/" : "") + (S.voiceSex === "f" ? "f/" : "") + name + ".mp3"); a.preload = "auto"; a.volume = 0.95;
+  const a = new Audio("voice/" + (VOICE_LANGS.has(uiLang) ? uiLang + "/" : "") + (S.voiceSex === "f" ? "f/" : "") + name + ".mp3"); a.preload = "auto"; a.volume = voiceVol();
   a.playbackRate = S.voiceRate || 1.3; try { a.preservesPitch = true; } catch (e) {}   // a touch quicker than recorded, same pitch
   voiceEl = a; voiceName = name;
   a.onerror = () => {                                           // a language clip not there yet: the English one steps in
@@ -7282,13 +7292,13 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages", "voiceVol"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"];   // appended, never reordered
 const SETUP_CLAMP = {                                            // a bent code cannot push a slider past its own ends
   vol: [0, 1], breath: [2, 8], spaceMul: [0.5, 2], flyby: [2, 25], originMul: [0.5, 3], diveMul: [0.5, 2], arrHold: [0, 40],
   nInt: [0.3, 1], nStretch: [0.5, 3], nRepeat: [1, 8], nWarn: [2, 15], pHold: [0.5, 5], bOrbit: [4, 30], bSites: [1, 8],
   bHold: [3, 25], bFly: [3, 15], mWpm: [5, 90], mInt: [0.1, 1], sysHold: [3, 20], shipSpd: [0.1, 10], shipN: [0.1, 1], lblBack: [0, 0.8], fleetN: [0, 6],
-  spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [12, 21], uTime: [1, 100000] };
+  voiceVol: [0, 1], spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [12, 21], uTime: [1, 100000] };
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
   let t = (Math.round(v * 1000) / 1000).toString();
@@ -7843,7 +7853,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -8119,6 +8129,8 @@ $("ckPoint").onchange = (e) => { S.point = e.target.checked; pointStart(); log(S
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
+$("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
+$("rVoiceVol").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
 $("rVoice").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
 $("selVoice").onchange = (e) => {                               // HIM, HER, or none; hear the change at once
   S.voiceSex = e.target.value; S.voice = S.voiceSex !== "off";
@@ -8182,7 +8194,7 @@ const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a wh
 let setupCame = 0;
 if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApply(o, true) ? 1 : 0; }
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
-setTimeout(fsCallout, 14000);                                    // with the opening off (or stuck) the callout still comes   // the files, whichever way the opening went
+setTimeout(() => { if (guideDue() && intro) return; fsCallout(); }, 14000);   // with the opening off (or stuck) the callout still comes; on the first night the guide hands over to it   // the files, whichever way the opening went
 applyS();                                                       // first visit too: every control shows what the console actually holds
 if (S.point) pointStart();                                      // the compass ring, when he left it on
 if (S.gl) glLoad();                                             // the WebGL Earth, when he left it on

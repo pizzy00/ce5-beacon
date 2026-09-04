@@ -693,5 +693,7 @@
  "WEBGL EARTH OFF · THE DRAWN GLOBE IS BACK": "ЗЕМЛЯ WEBGL ВЫКЛЮЧЕНА · РИСОВАННЫЙ ГЛОБУС ВЕРНУЛСЯ",
  "WEBGL EARTH OFF · THE DRAWN GLOBE STAYS": "ЗЕМЛЯ WEBGL ВЫКЛЮЧЕНА · ОСТАЁТСЯ РИСОВАННЫЙ ГЛОБУС",
  "WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS": "ЗЕМЛЯ WEBGL НЕ ЗАГРУЗИЛАСЬ · ОСТАЁТСЯ РИСОВАННЫЙ ГЛОБУС",
- "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "ЗЕМЛЯ WEBGL (ТЕСТ) — ГЛОБУС, НАРИСОВАННЫЙ ГРАФИЧЕСКИМ ЧИПОМ: ЧЁТЧЕ И ПЛАВНО ПРИ МАСШТАБИРОВАНИИ · ВЫКЛ = ПРОВЕРЕННЫЙ РИСОВАННЫЙ ГЛОБУС"
+ "WEBGL EARTH (TEST) — THE GLOBE DRAWN ON THE GRAPHICS CHIP: SHARPER, AND SMOOTH WHILE YOU PINCH · OFF = THE PROVEN DRAWN GLOBE": "ЗЕМЛЯ WEBGL (ТЕСТ) — ГЛОБУС, НАРИСОВАННЫЙ ГРАФИЧЕСКИМ ЧИПОМ: ЧЁТЧЕ И ПЛАВНО ПРИ МАСШТАБИРОВАНИИ · ВЫКЛ = ПРОВЕРЕННЫЙ РИСОВАННЫЙ ГЛОБУС",
+ "VOICE VOLUME —": "ГРОМКОСТЬ ГОЛОСА —",
+ "% · ITS OWN KNOB, APART FROM THE MASTER VOLUME": "% · ОТДЕЛЬНЫЙ РЕГУЛЯТОР, НЕЗАВИСИМО ОТ ОБЩЕЙ ГРОМКОСТИ"
 }
