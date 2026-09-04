@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=42" />
+<link rel="stylesheet" href="styles.css?v=43" />
 </head>
 <body class="intro introHud">
 
@@ -272,7 +272,7 @@
       <div class="setLbl">BREATH PACE — <span id="vBreath">3.2</span>S PER IN / OUT</div>
       <input type="range" id="rBreath" min="2" max="8" step="0.2" value="6.8" />
       <div class="setStat">LEFT = BIG SLOW LUNGS · RIGHT = QUICK BREATHS</div>
-      <label class="setChk"><input type="checkbox" id="ckBar" checked />A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT</label>
+      <label class="setChk"><input type="checkbox" id="ckBar" checked />A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT</label>
     </div>
     <div class="setRow">
       <div class="setLbl">EACH FLYBY HOLDS — <span id="vFly">5.0</span>S <span class="setNote">(POLARIS · VOYAGER · SOL · WEBB · LUNA · HUBBLE · ISS · EARTH)</span></div>
@@ -5878,10 +5878,12 @@ function breathBar(on, inhale) {                                 // something to
   const c = $("cue"); if (!c) return;
   const b = c.querySelector(".bar"), i = b && b.querySelector("i");
   if (!i) return;
-  if (!on || !S.bBar) { c.classList.remove("breathing"); i.classList.remove("in"); return; }
+  if (!on || !S.bBar) { c.classList.remove("breathing"); i.classList.remove("wide"); return; }
+  if (!c.classList.contains("breathing")) {                      // start wide with no transition, so the first breath in draws it together instead of jumping
+    i.style.transitionDuration = "0s"; i.classList.add("wide"); c.classList.add("breathing"); void b.offsetWidth;
+  }
   i.style.transitionDuration = Math.max(0.4, S.breath) + "s";     // it always takes exactly as long as the pace they set
-  if (!c.classList.contains("breathing")) { c.classList.add("breathing"); void b.offsetWidth; }   // let the first breath open, not jump
-  i.classList.toggle("in", !!inhale);
+  i.classList.toggle("wide", !inhale);                           // his call (09-04): it spreads on the out-breath and draws in on the in-breath
 }
 function startBreath() {
   let inhale = true;

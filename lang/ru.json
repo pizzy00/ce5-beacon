@@ -11,7 +11,7 @@
  "3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM": "3D — НЕБО ВРАЩАЕТСЯ ВОКРУГ ЗЕМЛИ · ТЯНИТЕ, ЧТОБЫ ВРАЩАТЬ · ЩИПОК ДЛЯ ЗУМА",
  "5 — A REGION": "5 — РЕГИОН",
  "8 — CITY AND COAST": "8 — ГОРОД И ПОБЕРЕЖЬЕ",
- "A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ПОЛОСА ДЫХАНИЯ ПОД СЛОВАМИ: ОНА РАСКРЫВАЕТСЯ НА ВДОХЕ И ЗАКРЫВАЕТСЯ НА ВЫДОХЕ, ВСЕГДА В ТЕМПЕ СВЕРХУ · ДЫШИТЕ ВМЕСТЕ С НЕЙ, А НЕ ЧИТАЙТЕ ЕЕ",
+ "A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ПОЛОСА ДЫХАНИЯ ПОД СЛОВАМИ: ОНА СЖИМАЕТСЯ НА ВДОХЕ И РАСКРЫВАЕТСЯ НА ВЫДОХЕ, ВСЕГДА В ТЕМПЕ, ЗАДАННОМ ВЫШЕ · ДЫШИТЕ С НЕЙ, А НЕ ЧИТАЙТЕ ЕЁ",
  "A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT": "ЗАЛП — ПОСЛЕ ПЕРВОЙ ОСТАЛЬНЫЕ ИДУТ СО СЛУЧАЙНЫМИ ИНТЕРВАЛАМИ БЕЗ ВТОРОГО ОТСЧЁТА, БОЛЬШИНСТВО ДАЛЕКО И ТУСКЛЕЕ · ТАК ЭТО ВЫГЛЯДИТ ИЗ МЕСТА, КОТОРОЕ НЕ ЗАДЕТО",
  "A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)": "КАСАНИЕ ЗВЕЗДЫ СРАЗУ ПРИБЛИЖАЕТ: ПОЯВЛЯЮТСЯ РОДНАЯ СИСТЕМА И НАБРОСОК, ЗАТЕМ ГАСНУТ (ИЛИ УБЕРИТЕ ИХ КАСАНИЕМ)",
  "A bright light in slow, deliberate flashes, or tones played into the night. Signals say where you are and that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)": "Яркий свет медленными, нарочитыми вспышками, или тоны, звучащие в ночь. Сигналы говорят, где вы и что вы всерьёз. (ТОН даёт мягкую несущую 528 / 432 Гц.)",
@@ -800,5 +800,6 @@
  "ACCEPTED": "ПРИНЯТА",
  "REFUSED": "ОТКЛОНЕНА",
  "TOUCH ACTIVE": "КАСАНИЕ АКТИВНО",
- "NO TOUCH ACTIVATION": "НЕТ АКТИВАЦИИ КАСАНИЕМ"
+ "NO TOUCH ACTIVATION": "НЕТ АКТИВАЦИИ КАСАНИЕМ",
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ОНА СЖИМАЕТСЯ НА ВДОХЕ И РАСКРЫВАЕТСЯ НА ВЫДОХЕ, ВСЕГДА В ТЕМПЕ, ЗАДАННОМ ВЫШЕ · ДЫШИТЕ С НЕЙ, А НЕ ЧИТАЙТЕ ЕЁ"
 }

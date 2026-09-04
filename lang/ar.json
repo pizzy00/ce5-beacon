@@ -11,7 +11,7 @@
  "3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM": "ثلاثي الأبعاد — السماء تدور حول الأرض · اسحب للتدوير · اقرص للتقريب",
  "5 — A REGION": "5 — منطقة",
  "8 — CITY AND COAST": "8 — مدينة وساحل",
- "A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "شريط تنفُّس تحت الكلمات: يتسع مع الشهيق وينغلق مع الزفير، دائماً بالإيقاع المضبوط فوق · تنفّس معه بدلاً من قراءته",
+ "A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "شريط تنفّس تحت الكلمات: ينكمش وأنت تستنشق وينفتح على اتساعه وأنت تزفر، دائمًا بالإيقاع المضبوط أعلاه · تنفّس معه بدل أن تقرأه",
  "A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT": "رشقة — بعد الأولى تنفجر البقية بفواصل عشوائية دون عد تنازلي ثانٍ، معظمها بعيد وأخفت · هكذا يبدو المشهد من مكان لم يُصَب",
  "A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)": "نقرة على نجم تقترب مباشرة: يظهر النظام الأم والرسم ثم يتلاشيان (أو انقرهما للإخفاء)",
  "A bright light in slow, deliberate flashes, or tones played into the night. Signals say where you are and that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)": "ضوء ساطع بومضات بطيئة مقصودة، أو نغمات تُبث في الليل. الإشارات تقول أين أنت وأنك جاد. (النغمة تبث موجة ناعمة 528/432 هرتز.)",
@@ -800,5 +800,6 @@
  "ACCEPTED": "مقبول",
  "REFUSED": "مرفوض",
  "TOUCH ACTIVE": "اللمس نشط",
- "NO TOUCH ACTIVATION": "لا تفعيل باللمس"
+ "NO TOUCH ACTIVATION": "لا تفعيل باللمس",
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ينكمش وأنت تستنشق وينفتح على اتساعه وأنت تزفر، دائمًا بالإيقاع المضبوط أعلاه · تنفّس معه بدل أن تقرأه"
 }

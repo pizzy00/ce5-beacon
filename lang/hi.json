@@ -11,7 +11,7 @@
  "3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM": "3D — आकाश पृथ्वी के चारों ओर घूमता है · घुमाने के लिए खींचें · ज़ूम के लिए पिंच करें",
  "5 — A REGION": "5 — एक क्षेत्र",
  "8 — CITY AND COAST": "8 — शहर और तट",
- "A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "शब्दों के नीचे एक सांस पट्टी: सांस लेते समय खुलती है और छोड़ते समय बंद होती है, हमेशा ऊपर की रफ़्तार पर · इसे पढ़ने के बजाय इसके साथ सांस लें",
+ "A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "शब्दों के नीचे एक साँस की पट्टी: साँस लेते समय सिकुड़ती है और छोड़ते समय फैलती है, हमेशा ऊपर तय की गई गति पर · इसे पढ़ने के बजाय इसके साथ साँस लें",
  "A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT": "एक सैल्वो — पहली के बाद बाकी बिना दूसरी उलटी गिनती के यादृच्छिक अंतराल पर फटती हैं, अधिकतर दूर और मद्धम · जैसा उस जगह से दिखता है जो निशाने पर नहीं है",
  "A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)": "तारे पर टैप सीधे पास ले जाता है: गृह मंडल और स्केच उभरते हैं, फिर धुँधले हो जाते हैं (या टैप कर हटा दें)",
  "A bright light in slow, deliberate flashes, or tones played into the night. Signals say where you are and that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)": "धीमी, सोची-समझी चमकों में तेज़ रोशनी, या रात में बजाए गए स्वर। संकेत बताते हैं कि आप कहाँ हैं और आप गंभीर हैं। (टोन 528/432 हर्ट्ज़ की कोमल तरंग चलाता है।)",
@@ -800,5 +800,6 @@
  "ACCEPTED": "स्वीकार",
  "REFUSED": "अस्वीकार",
  "TOUCH ACTIVE": "टच सक्रिय",
- "NO TOUCH ACTIVATION": "टच सक्रियण नहीं"
+ "NO TOUCH ACTIVATION": "टच सक्रियण नहीं",
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "साँस लेते समय सिकुड़ती है और छोड़ते समय फैलती है, हमेशा ऊपर तय की गई गति पर · इसे पढ़ने के बजाय इसके साथ साँस लें"
 }

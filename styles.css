@@ -836,7 +836,7 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
 .ideaReply b { color: var(--amber); }
 #ideaMsg { width: 100%; margin-top: 4px; }
 
-/* the breathing bar: it opens while you breathe in and closes while you let go, taking exactly
+/* the breathing bar: it draws in while you breathe in and spreads wide while you let go, taking exactly
    as long as the pace slider says. Faint on purpose - the words above it stay the readable thing. */
 #cue .bar { margin: 0 auto; width: min(92vw, 900px); height: 0; opacity: 0; overflow: hidden;
   border-radius: 4px; background: rgba(107,227,255,0.05);
@@ -846,7 +846,7 @@ body:not(.run):not(.active) #bEngage.open .cap::after { opacity: 0.85; }
   background: linear-gradient(90deg, rgba(107,227,255,0) 0%, rgba(107,227,255,0.34) 24%,
     rgba(107,227,255,0.62) 50%, rgba(107,227,255,0.34) 76%, rgba(107,227,255,0) 100%);
   box-shadow: 0 0 9px rgba(107,227,255,0.28); transition: width 4s linear; }
-#cue .bar i.in { width: 100%; }
+#cue .bar i.wide { width: 100%; }
 
 /* why the flash and why the morse: said before anyone presses a thing.
    Green, not amber - this is the reason for the thing, not a warning about it. */

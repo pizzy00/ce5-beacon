@@ -11,7 +11,7 @@
  "3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM": "3D — 星空が地球の周りを回る · ドラッグで回転 · ピンチでズーム",
  "5 — A REGION": "5 — 地方",
  "8 — CITY AND COAST": "8 — 都市と海岸",
- "A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "文字の下の呼吸バー：息を吸う間は広がり、吐く間は閉じます。常に上のペースに合わせます · 読むのではなく、これと一緒に呼吸してください",
+ "A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "言葉の下の呼吸バー：息を吸うと縮み、吐くと大きく広がります。ペースは上で設定したとおり · 読むのではなく、いっしょに呼吸してください",
  "A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT": "斉射 — 最初の後、残りは二度目のカウントなしにランダムな間隔で起き、大半は遠く暗い · 撃たれていない場所から見た光景",
  "A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)": "星をタップすると近づく：母星系とスケッチが現れ、やがて消える（タップで消すことも）",
  "A bright light in slow, deliberate flashes, or tones played into the night. Signals say where you are and that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)": "ゆっくり意図的に明滅させる明るい光、または夜に流すトーン。合図はあなたの居場所と本気を伝えます。（トーンは穏やかな528/432Hzキャリアを流します。）",
@@ -800,5 +800,6 @@
  "ACCEPTED": "受け付けました",
  "REFUSED": "拒否されました",
  "TOUCH ACTIVE": "タッチ有効",
- "NO TOUCH ACTIVATION": "タッチによる有効化なし"
+ "NO TOUCH ACTIVATION": "タッチによる有効化なし",
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "息を吸うと縮み、吐くと大きく広がります。ペースは上で設定したとおり · 読むのではなく、いっしょに呼吸してください"
 }

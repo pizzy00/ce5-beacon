@@ -11,7 +11,7 @@
  "3D — THE SKY TURNS AROUND EARTH · DRAG TO SPIN · PINCH TO ZOOM": "3D — 星空绕地球旋转 · 拖动旋转 · 捏合缩放",
  "5 — A REGION": "5 — 一个地区",
  "8 — CITY AND COAST": "8 — 城市与海岸",
- "A BREATHING BAR UNDER THE WORDS: IT OPENS WHILE YOU BREATHE IN AND CLOSES WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "文字下方的呼吸条：吸气时张开，呼气时收拢，始终跟随上面设定的节奏 · 跟着它呼吸，而不是去读它",
+ "A BREATHING BAR UNDER THE WORDS: IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "文字下方的呼吸条：吸气时收拢，呼气时展开，始终按上面设定的节奏 · 跟着它呼吸，而不是去读它",
  "A SALVO — AFTER THE FIRST, THE REST GO OFF AT RANDOM GAPS WITH NO SECOND COUNTDOWN, MOST OF THEM FAR AWAY AND DIMMER · WHAT IT LOOKS LIKE FROM A PLACE THAT IS NOT HIT": "齐射 — 第一次之后，其余以随机间隔引爆，没有第二次倒计时，大多遥远且暗淡 · 这是从未被击中之地看到的景象",
  "A TAP ON A STAR LEANS STRAIGHT IN: THE HOME SYSTEM AND THE SKETCH COME UP, THEN FADE (OR TAP THEM AWAY)": "点击恒星直接靠近：家园星系和素描浮现，然后淡出（或点击移除）",
  "A bright light in slow, deliberate flashes, or tones played into the night. Signals say where you are and that you mean it. (TONE runs a soft 528 / 432 Hz carrier.)": "用缓慢而有意的闪光，或向夜空播放的音调。信号表明你在哪里，以及你是认真的。（音调播放柔和的528/432赫兹载波。）",
@@ -800,5 +800,6 @@
  "ACCEPTED": "已接受",
  "REFUSED": "被拒绝",
  "TOUCH ACTIVE": "触摸已激活",
- "NO TOUCH ACTIVATION": "无触摸激活"
+ "NO TOUCH ACTIVATION": "无触摸激活",
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "吸气时收拢，呼气时展开，始终按上面设定的节奏 · 跟着它呼吸，而不是去读它"
 }
