@@ -622,5 +622,20 @@
  "RESUMED": "ПРОДОЛЖЕНО",
  "RANDOM": "СЛУЧАЙНО",
  "NORMAL": "ОБЫЧНЫЙ",
- "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "КРАСНЫЙ НОЧНОЙ РЕЖИМ — ВЕСЬ ЭКРАН СТАНОВИТСЯ ТЁМНО-КРАСНЫМ, ЧТОБЫ СОХРАНИТЬ НОЧНОЕ ЗРЕНИЕ · КНОПКА С ЛУНОЙ СПРАВА ВВЕРХУ ТОЖЕ ЕГО ПЕРЕКЛЮЧАЕТ"
+ "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "КРАСНЫЙ НОЧНОЙ РЕЖИМ — ВЕСЬ ЭКРАН СТАНОВИТСЯ ТЁМНО-КРАСНЫМ, ЧТОБЫ СОХРАНИТЬ НОЧНОЕ ЗРЕНИЕ · КНОПКА С ЛУНОЙ СПРАВА ВВЕРХУ ТОЖЕ ЕГО ПЕРЕКЛЮЧАЕТ",
+ "EXPORT MY JOURNAL": "ЭКСПОРТ МОЕГО ДНЕВНИКА",
+ "EACH TRIP KEEPS HOW LONG IT RAN AND HOW MANY BREATHS · TAP + NOTE TO WRITE WHAT YOU SAW · NOTES NEVER LEAVE THIS DEVICE": "КАЖДЫЙ ПОЛЁТ ХРАНИТ СВОЮ ДЛИТЕЛЬНОСТЬ И ЧИСЛО ВДОХОВ · НАЖМИ + ЗАМЕТКА, ЧТОБЫ ЗАПИСАТЬ УВИДЕННОЕ · ЗАМЕТКИ НИКОГДА НЕ ПОКИДАЮТ ЭТО УСТРОЙСТВО",
+ "MIN": "МИН",
+ "H": "Ч",
+ "BREATHS": "ВДОХОВ",
+ "NOTE": "ЗАМЕТКА",
+ "EDIT": "ИЗМЕНИТЬ",
+ "SAVE NOTE": "СОХРАНИТЬ ЗАМЕТКУ",
+ "WHAT YOU SAW, FELT, HEARD · 280 LETTERS": "ЧТО ТЫ ВИДЕЛ, ЧУВСТВОВАЛ, СЛЫШАЛ · 280 ЗНАКОВ",
+ "JOURNAL OF": "ДНЕВНИК",
+ "EXPORTED": "ЭКСПОРТИРОВАНО",
+ "TRIPS": "ПОЛЁТОВ",
+ "NOTE SAVED · ON THIS DEVICE ONLY": "ЗАМЕТКА СОХРАНЕНА · ТОЛЬКО НА ЭТОМ УСТРОЙСТВЕ",
+ "NOTE CLEARED": "ЗАМЕТКА УДАЛЕНА",
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "ПОКА НЕЧЕГО ЭКСПОРТИРОВАТЬ · СНАЧАЛА СОВЕРШИ ПОЛЁТ"
 }

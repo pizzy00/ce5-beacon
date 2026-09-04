@@ -622,5 +622,20 @@
  "RESUMED": "استُؤنف",
  "RANDOM": "عشوائي",
  "NORMAL": "عادي",
- "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "الوضع الليلي الأحمر — تتحول الشاشة كلها إلى أحمر داكن لتحافظ على رؤيتك الليلية · زر القمر أعلى اليمين يبدّله أيضاً"
+ "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "الوضع الليلي الأحمر — تتحول الشاشة كلها إلى أحمر داكن لتحافظ على رؤيتك الليلية · زر القمر أعلى اليمين يبدّله أيضاً",
+ "EXPORT MY JOURNAL": "تصدير يومياتي",
+ "EACH TRIP KEEPS HOW LONG IT RAN AND HOW MANY BREATHS · TAP + NOTE TO WRITE WHAT YOU SAW · NOTES NEVER LEAVE THIS DEVICE": "كل رحلة تحفظ مدتها وعدد الأنفاس · اضغط + ملاحظة لتكتب ما رأيت · الملاحظات لا تغادر هذا الجهاز أبداً",
+ "MIN": "د",
+ "H": "س",
+ "BREATHS": "أنفاس",
+ "NOTE": "ملاحظة",
+ "EDIT": "تعديل",
+ "SAVE NOTE": "حفظ الملاحظة",
+ "WHAT YOU SAW, FELT, HEARD · 280 LETTERS": "ما رأيته وشعرت به وسمعته · 280 حرفاً",
+ "JOURNAL OF": "يوميات",
+ "EXPORTED": "تم التصدير",
+ "TRIPS": "رحلات",
+ "NOTE SAVED · ON THIS DEVICE ONLY": "تم حفظ الملاحظة · على هذا الجهاز فقط",
+ "NOTE CLEARED": "تم مسح الملاحظة",
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "لا شيء للتصدير بعد · قم برحلة أولاً"
 }

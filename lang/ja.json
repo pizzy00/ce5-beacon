@@ -622,5 +622,20 @@
  "RESUMED": "再開しました",
  "RANDOM": "ランダム",
  "NORMAL": "標準",
- "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "赤色ナイトモード — 画面全体が深い赤になり、暗順応した目を守ります · 右上の月キーでも切り替えられます"
+ "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "赤色ナイトモード — 画面全体が深い赤になり、暗順応した目を守ります · 右上の月キーでも切り替えられます",
+ "EXPORT MY JOURNAL": "ジャーナルを書き出す",
+ "EACH TRIP KEEPS HOW LONG IT RAN AND HOW MANY BREATHS · TAP + NOTE TO WRITE WHAT YOU SAW · NOTES NEVER LEAVE THIS DEVICE": "各旅は所要時間と呼吸の回数を記録します · + メモ をタップして見たものを書き留めましょう · メモはこの端末から出ません",
+ "MIN": "分",
+ "H": "時間",
+ "BREATHS": "呼吸",
+ "NOTE": "メモ",
+ "EDIT": "編集",
+ "SAVE NOTE": "メモを保存",
+ "WHAT YOU SAW, FELT, HEARD · 280 LETTERS": "見たもの、感じたもの、聞こえたもの · 280文字",
+ "JOURNAL OF": "ジャーナル：",
+ "EXPORTED": "書き出し",
+ "TRIPS": "回の旅",
+ "NOTE SAVED · ON THIS DEVICE ONLY": "メモを保存しました · この端末のみ",
+ "NOTE CLEARED": "メモを消去しました",
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "まだ書き出すものがありません · まず一度飛びましょう"
 }

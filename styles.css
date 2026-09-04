@@ -572,6 +572,13 @@
   [dir="rtl"] #settings :not(canvas):not(input):not(.key), [dir="rtl"] #info :not(canvas), [dir="rtl"] #board :not(canvas), [dir="rtl"] #log :not(canvas), [dir="rtl"] .pick :not(canvas), [dir="rtl"] #guideCard :not(canvas) {
     font-family: "Segoe UI", "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, "Geeza Pro", sans-serif !important; }   /* monospace Arabic reads as stretched strokes: a proper Arabic face for the cards */             /* LEFT = SLOW stays true in Arabic */
   .bdBtns { display: flex; gap: 8px; align-items: center; margin: 6px 0 6px; }
+  .bdNote { font-size: 10.5px; line-height: 1.5; color: var(--ink); margin: -2px 0 6px 12px; padding-left: 8px; border-left: 1px solid rgba(155,231,255,0.35); }
+  .bdNote.dim { border-left-color: transparent; }
+  .bdNoteEd { color: var(--cyan); letter-spacing: 0.08em; font-size: 9.5px; cursor: pointer; }
+  .bdNote.dim .bdNoteEd { color: var(--amber-dim); }
+  .bdNoteIn { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); color: var(--ink); border: 1px solid rgba(155,231,255,0.45); border-radius: 3px;
+    font: 12px ui-monospace, Menlo, Consolas, monospace; padding: 6px 8px; resize: none; }
+  .bdNote .bdBtns { margin: 4px 0 2px; }
   #bdName { flex: 1; min-width: 0; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: inherit;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 8px; border-radius: 3px; }
   .infoP { font-size: 11px; line-height: 1.55; color: var(--ink); margin-bottom: 10px; }

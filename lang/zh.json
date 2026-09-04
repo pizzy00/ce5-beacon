@@ -622,5 +622,20 @@
  "RESUMED": "已继续",
  "RANDOM": "随机",
  "NORMAL": "正常",
- "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "红色夜间模式 — 整个屏幕变为深红色，保护你的夜间视力 · 右上角的月亮键也可切换"
+ "RED NIGHT MODE — THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE · THE MOON KEY TOP RIGHT FLIPS IT TOO": "红色夜间模式 — 整个屏幕变为深红色，保护你的夜间视力 · 右上角的月亮键也可切换",
+ "EXPORT MY JOURNAL": "导出我的日志",
+ "EACH TRIP KEEPS HOW LONG IT RAN AND HOW MANY BREATHS · TAP + NOTE TO WRITE WHAT YOU SAW · NOTES NEVER LEAVE THIS DEVICE": "每次旅程都会记录用时和呼吸次数 · 点击 + 笔记 写下你看到的 · 笔记永远不会离开此设备",
+ "MIN": "分钟",
+ "H": "小时",
+ "BREATHS": "次呼吸",
+ "NOTE": "笔记",
+ "EDIT": "编辑",
+ "SAVE NOTE": "保存笔记",
+ "WHAT YOU SAW, FELT, HEARD · 280 LETTERS": "你看到、感受到、听到的 · 280 字",
+ "JOURNAL OF": "日志：",
+ "EXPORTED": "导出于",
+ "TRIPS": "次旅程",
+ "NOTE SAVED · ON THIS DEVICE ONLY": "笔记已保存 · 仅在此设备",
+ "NOTE CLEARED": "笔记已清除",
+ "NOTHING TO EXPORT YET · FLY ONE FIRST": "还没有可导出的内容 · 先飞一次"
 }

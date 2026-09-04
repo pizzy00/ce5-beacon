@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=33" />
+<link rel="stylesheet" href="styles.css?v=34" />
 </head>
 <body class="intro introHud">
 
@@ -447,7 +447,8 @@
     <div class="setRow">
       <div class="setLbl">YOUR LOG — THIS DEVICE</div>
       <div id="bdMine"></div>
-      <div class="bdBtns"><span class="setBtn dim" id="bdWipe">CLEAR MY LOG ON THIS DEVICE</span></div>
+      <div class="bdBtns"><span class="setBtn" id="bdExport">EXPORT MY JOURNAL</span><span class="setBtn dim" id="bdWipe">CLEAR MY LOG ON THIS DEVICE</span></div>
+      <div class="setStat">EACH TRIP KEEPS HOW LONG IT RAN AND HOW MANY BREATHS · TAP + NOTE TO WRITE WHAT YOU SAW · NOTES NEVER LEAVE THIS DEVICE</div>
     </div>
     <div class="setRow">
       <div class="setLbl">THE BOARD — EVERYONE</div>
@@ -5364,6 +5365,7 @@ raf = requestAnimationFrame(loop);
 function engage() {
   introSkip();                                                  // a run never waits on the opening
   if (phase !== "chart") return;
+  runT0 = performance.now();                                    // the journal clock: pauses do not count (09-04)
   if (globeView && !globeView.out) {                            // the close key belongs to the world view, not to a flight
     gvFx(false); $("gvX").classList.add("hide"); globeView.out = performance.now() / 1000;
   }
@@ -6853,6 +6855,10 @@ const BOARD_TOKEN = ["github_", "pat_", "11AJEIWCQ0G9GrjsTsiG", "2Q_37K2EnOkOq0M
 const BOARD_API = "https://api.github.com/repos/" + BOARD_REPO + "/contents/board.json?ref=main";   // fresh; the raw file is the fallback
 let boardDead = 0;                                               // 401/403/404 from filing: the key is dead or throttled, stop trying this session
 const LOG_KEY = "ce5.log.v1", NAME_KEY = "ce5.callsign", PEND_KEY = "ce5.pending.v1";
+let runT0 = 0;                                                   // when START was pressed, on the pausable clock
+function tx(en) { const h = langDict && langDict[nrm(en)]; return h || en; }   // a built string, through the dictionary
+function fmtDur(sec) { if (!(sec > 0)) return ""; if (sec < 60) return "<1 " + tx("MIN"); const m = Math.round(sec / 60); return m < 60 ? m + " " + tx("MIN") : Math.floor(m / 60) + " " + tx("H") + " " + String(m % 60).padStart(2, "0") + " " + tx("MIN"); }
+function tripMeta(r) { return r.dur > 0 ? " \u00b7 " + fmtDur(r.dur) + (r.br > 0 ? " \u00b7 " + r.br + " " + tx("BREATHS") : "") : ""; }
 var uiLangSeen = "";                                            // which language this console ended up in, for the head-count
 const CS_A = ["ZETA", "ORION", "LYRAN", "SIRIAN", "VEGAN", "ARCTURIAN", "PLEIADIAN", "ANDROMEDAN", "NORDIC", "GREY", "MANTID",
   "TALL WHITE", "VENUSIAN", "MARTIAN", "LUNAR", "DEEP", "POLARIS", "SOLAR", "TRIANGLE", "TAU CETI"];
@@ -6954,6 +6960,7 @@ function logTrip() {                                            // a run reached
   const s = selected || {};
   const trip = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)),
     n: callsign, d: s.name || "EARTH", ly: s.mode ? 0 : (s.ly || 0), t: Date.now() };
+  if (runT0 > 0) { trip.dur = Math.max(1, Math.round((performance.now() - runT0) / 1000)); trip.br = Math.round(trip.dur / (2 * (S.breath || 4))); }   // in + out = one breath
   const L = readLog(); L.push(trip); while (L.length > 200) L.shift();
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
   const ns = nightStats(L); if (ns.streak >= 2) log("NIGHT " + ns.streak + " IN A ROW" + (ns.streak >= ns.best ? " \u00b7 YOUR BEST" : ""), "cy");
@@ -7044,9 +7051,55 @@ function bdWhen(t) {
 }
 function bdRows(list, mine) {
   if (!list.length) return '<div class="setStat">NOTHING YET \u00b7 PRESS START AND FLY ONE</div>';
-  return list.map((r) => '<div class="bdRow' + (mine || r.n === callsign ? " me" : "") + '"><span><b>' + esc(r.n) + '</b> \u2192 ' + esc(r.d) +
-    '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + ' <i>' + bdWhen(r.t) + '</i></span></div>').join("");
+  return list.map((r) => '<div class="bdRow' + (mine || r.n === callsign ? " me" : "") + '"' + (mine ? ' data-id="' + esc(r.id || "") + '"' : "") + '><span><b>' + esc(r.n) + '</b> \u2192 ' + esc(r.d) +
+    '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + (mine ? tripMeta(r) : "") + ' <i>' + bdWhen(r.t) + '</i></span></div>' +
+    (mine ? bdNote(r) : "")).join("");
 }
+function bdNote(r) {                                             // the journal line under a trip of yours (09-04)
+  const id = esc(r.id || "");
+  if (r.note) return '<div class="bdNote" data-id="' + id + '"><span class="bdNoteTxt">' + esc(r.note) + '</span> <span class="bdNoteEd">' + tx("EDIT") + '</span></div>';
+  return '<div class="bdNote dim" data-id="' + id + '"><span class="bdNoteEd">+ ' + tx("NOTE") + '</span></div>';
+}
+function bdNoteOpen(id) {                                        // one editor at a time
+  const host = $("bdMine").querySelector('.bdNote[data-id="' + id + '"]'); if (!host) return;
+  const r = readLog().find((x) => x.id === id) || {};
+  host.classList.remove("dim");
+  host.innerHTML = '<textarea class="bdNoteIn" maxlength="280" rows="2" dir="auto" placeholder="' + esc(tx("WHAT YOU SAW, FELT, HEARD \u00b7 280 LETTERS")) + '"></textarea>' +
+    '<div class="bdBtns"><span class="setBtn bdNoteSave">' + tx("SAVE NOTE") + '</span></div>';
+  const ta = host.querySelector("textarea"); ta.value = r.note || ""; ta.focus();
+  const save = () => {
+    const L = readLog(); const t = L.find((x) => x.id === id); if (!t) return;
+    const v = ta.value.trim().slice(0, 280); if (v) t.note = v; else delete t.note;
+    try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+    host.outerHTML = bdNote(t); log(v ? "NOTE SAVED \u00b7 ON THIS DEVICE ONLY" : "NOTE CLEARED", "cy");
+  };
+  host.querySelector(".bdNoteSave").onclick = save;
+  ta.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); save(); } };
+}
+$("bdMine").addEventListener("click", (e) => { const ed = e.target.closest(".bdNoteEd"); if (!ed) return; const h = ed.closest(".bdNote"); if (h) bdNoteOpen(h.dataset.id); });
+function journalText() {
+  const L = readLog().slice().reverse();
+  const lines = ["CE-5 BEACON \u00b7 " + tx("JOURNAL OF") + " " + callsign, tx("EXPORTED") + " " + new Date().toLocaleString(), ""];
+  for (const r of L) {
+    const d = new Date(r.t);
+    lines.push(d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " \u00b7 " + r.d + (r.ly ? " \u00b7 " + fmtLy(r.ly) : "") + tripMeta(r));
+    if (r.note) lines.push("  " + r.note);
+    lines.push("");
+  }
+  lines.push(L.length + " " + tx("TRIPS") + " \u00b7 " + publicLink());
+  return lines.join("\n");
+}
+$("bdExport").onclick = () => {
+  const L = readLog(); if (!L.length) return log("NOTHING TO EXPORT YET \u00b7 FLY ONE FIRST", "alert");
+  const txt = journalText(), file = new File([txt], "ce5-journal.txt", { type: "text/plain" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: "CE-5 Beacon journal" }).then(() => log("JOURNAL SHARED \u00b7 " + L.length + " " + tx("TRIPS"), "cy")).catch(() => {});
+  } else {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: "text/plain" })); a.download = "ce5-journal.txt";
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    log("JOURNAL SAVED \u00b7 " + L.length + " " + tx("TRIPS"), "cy");
+  }
+};
 /* ---------------- your nights: how many, how many in a row ----------------
    Counted from the device log by local calendar day. A streak is unbroken nights ending tonight or last night. */
 function nightStats(L) {
@@ -7093,6 +7146,7 @@ function openBoard() {
   const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
   $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
     " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + nightsHtml(L) + bdRows(L.slice(0, 12), true);
+  if (L.length && L[0].id && !L[0].note && Date.now() - L[0].t < 600000) bdNoteOpen(L[0].id);   // just landed: the pen is already out
   const pend = readPending().filter((x) => !x.v).length;
   const note = !BOARD_TOKEN
     ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
