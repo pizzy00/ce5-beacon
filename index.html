@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=32" />
+<link rel="stylesheet" href="styles.css?v=33" />
 </head>
 <body class="intro introHud">
 
@@ -844,6 +844,39 @@
 
 <script>
 "use strict";
+
+/* ---------------- the pausable clock (09-04) ----------------
+   A card over a run (settings, the field card, the log, a picker) freezes it: performance.now() stops, every timer and
+   interval that was pending is held with its remaining time, the sound sleeps; close the card and it all carries on from the
+   same instant. Timers made while paused run normally, so the cards themselves keep working. */
+const _st = window.setTimeout.bind(window), _ct = window.clearTimeout.bind(window), _si = window.setInterval.bind(window), _ci = window.clearInterval.bind(window);
+const _pn = performance.now.bind(performance);
+let pauseAt = 0, pauseOff = 0, pauseSeq = 10000000;
+const timers = new Map();                                        // our id -> { fn, args, ms, due, iv, nat, held }
+performance.now = () => (pauseAt || _pn()) - pauseOff;
+const fireT = (id, e) => { timers.delete(id); if (typeof e.fn === "function") e.fn(...e.args); };
+window.setTimeout = function (fn, ms, ...args) {
+  const id = ++pauseSeq, e = { fn, args, ms: +ms || 0, due: Date.now() + (+ms || 0), iv: false, nat: 0, held: false };
+  e.nat = _st(() => fireT(id, e), e.ms); timers.set(id, e); return id;
+};
+window.setInterval = function (fn, ms, ...args) {
+  const id = ++pauseSeq, e = { fn, args, ms: +ms || 0, due: 0, iv: true, nat: 0, held: false };
+  e.nat = _si(() => { if (typeof fn === "function") fn(...args); }, e.ms); timers.set(id, e); return id;
+};
+window.clearTimeout = window.clearInterval = function (id) {
+  const e = timers.get(id); if (!e) { _ct(id); return; }
+  if (e.nat) { if (e.iv) _ci(e.nat); else _ct(e.nat); } timers.delete(id);
+};
+function pauseRun() {
+  if (pauseAt) return; pauseAt = _pn();
+  for (const [id, e] of timers) { if (!e.nat) continue; if (e.iv) _ci(e.nat); else { _ct(e.nat); e.left = Math.max(0, e.due - Date.now()); } e.nat = 0; e.held = true; }
+}
+function resumeRun() {
+  if (!pauseAt) return; pauseOff += _pn() - pauseAt; pauseAt = 0;
+  for (const [id, e] of timers) { if (!e.held) continue; e.held = false;
+    if (e.iv) e.nat = _si(() => { if (typeof e.fn === "function") e.fn(...e.args); }, e.ms);
+    else { e.due = Date.now() + e.left; e.nat = _st(() => fireT(id, e), e.left); } }
+}
 
 /* ---------------- target ---------------- */
 const ADDRESS = "Monument Circle, Indianapolis (default)";
@@ -4364,7 +4397,7 @@ function bridgeAudioStart() {
   if (muted || S.bridgeSnd === "off") return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();
     if (brG) return;
     const g = brG = ac.createGain(); g.gain.value = 0; g.connect(master());
     brO = ac.createOscillator(); brO.type = "sine"; brO.frequency.value = 41;
@@ -5245,6 +5278,7 @@ function advance(cur, ts) {
 }
 const DEEP_PHASES = { bridge: 1, polaris: 1, sun: 1, moon: 1, voyager: 1, starman: 1, jwst: 1, iss: 1, hubble: 1, earth: 1 };
 function loop(ts) {
+  ts = performance.now();                                         // the pausable clock, not the frame stamp (09-04)
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   const segF = () => Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.flyby * 1000)));   // his flyby slider, in seconds
@@ -5841,10 +5875,10 @@ function arrive() {
    Any touch or key resets the clock; an open card (settings, the field card, the log) holds it; 0 turns it off. */
 let idleTimer = 0, idleWarn = 0;
 function idleClear() { clearTimeout(idleTimer); clearTimeout(idleWarn); idleTimer = idleWarn = 0; }
-function idleArm() {
+function idleArm(secs) {
   idleClear();
   if (phase !== "active" || !S.idleBack) return;
-  const ms = S.idleBack * 1000;
+  const ms = (secs || S.idleBack) * 1000;
   if (ms > 15000) idleWarn = setTimeout(() => { if (phase === "active") log("QUIET \u00b7 BACK TO THE CHART IN 10 S \u00b7 TOUCH THE SCREEN TO STAY", "cy"); }, ms - 10000);
   idleTimer = setTimeout(idleFire, ms);
 }
@@ -5852,12 +5886,27 @@ function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
   if (["settings", "info", "board"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
 }
 document.addEventListener("pointerdown", () => { if (phase === "active") idleArm(); }, { passive: true, capture: true });
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
+/* a card over a run: the run waits (his ask, 09-04) */
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick"];
+function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
+function cardWatch() {
+  const up = cardUp();
+  if (up && !pauseAt && phase !== "chart") {
+    pauseRun(); try { if (ac) ac.suspend(); } catch (e) {} try { if (voiceEl) voiceEl.pause(); } catch (e) {}
+    log("PAUSED \u2014 THE RUN WAITS WHILE THIS CARD IS UP", "cy");
+  } else if (!up && pauseAt) {
+    resumeRun(); try { if (ac && !document.hidden) ac.resume(); } catch (e) {} try { if (voiceEl) voiceEl.play(); } catch (e) {}
+    log("RESUMED", "cy");
+  }
+}
+{ const mo = new MutationObserver(cardWatch); CARD_IDS.forEach((id) => { if ($(id)) mo.observe($(id), { attributes: true, attributeFilter: ["class"] }); }); }
 function replay() {
   idleClear(); voiceStop();
   if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
@@ -6183,7 +6232,7 @@ function morseWords(text) {
   return String(text || "").toUpperCase().split(/\s+/).map((w) => [...w].map((ch) => MORSE[ch] || "").filter(Boolean)).filter((w) => w.length);
 }
 function morseString(text) { return morseWords(text).map((w) => w.join(" ")).join("  /  "); }
-let morseToken = 0, morseHold = 0, morseGain = null, morseOsc = null;
+let morseToken = 0, morseHold = 0, morseGain = null, morseOsc = null, morseBusy = false;
 function morseKey(on) {
   const l = $("morse"); l.classList.remove("hide"); l.style.opacity = on ? S.mInt.toFixed(2) : "0";
   if (!S.mTone || muted) {
@@ -6201,7 +6250,7 @@ function morseKey(on) {
   } catch (e) {}
 }
 function stopMorse() {
-  ++morseToken; clearTimeout(morseHold);
+  ++morseToken; clearTimeout(morseHold); morseBusy = false;
   const l = $("morse"); l.style.opacity = "0"; l.classList.add("hide"); $("txMsg").classList.add("hide");
   if (morseGain && ac) { try { morseGain.gain.setTargetAtTime(0, ac.currentTime, 0.004); } catch (e) {} }
 }
@@ -6228,12 +6277,14 @@ function sendMorse(text) {
   };
   $("txMsg").classList.remove("hide"); paint(0);
   const total = plan.reduce((n, p) => n + p[1], 0) * unit;
+  morseBusy = true;
   log("TX MORSE @ " + S.mWpm + " WPM · " + Math.round(total / 1000) + " S", "cy");
   log(morseString(text).slice(0, 60) + (morseString(text).length > 60 ? "…" : ""), "cy");
   let i = 0;
   const step = () => {
     if (token !== morseToken) return;
     if (i >= plan.length) { morseKey(false); $("morse").classList.add("hide"); log("TX COMPLETE · " + words.length + " WORDS", "cy");
+      morseBusy = false; if (phase === "active") idleArm(Math.max(S.idleBack || 0, 20));   // the quiet clock starts over once the message is out, 20 s at the least (09-04)
       $("txMsg").innerHTML = "<b>" + esc(disp) + "</b>"; setTimeout(() => { if (token === morseToken) $("txMsg").classList.add("hide"); }, 2500); return; }
     const [on, units, at] = plan[i++];
     paint(at); morseKey(on);
@@ -6282,7 +6333,7 @@ function zoomFx(v, lo, hi) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     if (!zO) { zO = ac.createOscillator(); zO.type = "triangle"; zG = ac.createGain(); zG.gain.value = 0; zO.connect(zG); zG.connect(master()); zO.start(); }
     const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
     zO.frequency.setTargetAtTime(130 + n * 390, ac.currentTime, 0.03);   // in = higher, out = lower
@@ -6298,7 +6349,7 @@ function dragFx(kind, speed) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     let ch = dragCh[kind];
     if (!ch) {
       const len = ac.sampleRate, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
@@ -6323,7 +6374,7 @@ function blip(f0, f1, dur, vol) {                               // one small hon
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime, o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -6335,7 +6386,7 @@ function gvFx(up) {                                              // the world po
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime;
     const o = ac.createOscillator(); o.type = "sine";
     o.frequency.setValueAtTime(up ? 240 : 560, t); o.frequency.exponentialRampToValueAtTime(up ? 560 : 240, t + 0.45);
@@ -6364,7 +6415,7 @@ function openFx(kind, i) {                                       // the opening'
   if (!S.sfx || introFxOff || muted) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(master());
     const tone = (type, f0, f1, dur, vol, at) => {
       const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
@@ -6409,7 +6460,7 @@ function sfxBlast(farK) {                                        // the blast: a
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();
     const t = ac.currentTime, vol = 0.5 * Math.min(1, Math.max(0.15, farK || 1));
     const len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
     let last = 0;
@@ -6433,7 +6484,7 @@ function ambStart() {
   if (!S.amb || ambG || muted || phase !== "chart") return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(master());
     const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
     for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
@@ -6465,7 +6516,7 @@ function flyStart() {
   if (!S.flySnd || muted) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();
     if (flyN) return;
     const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
     let last = 0;
@@ -6494,7 +6545,7 @@ function sfx(kind) {
   if (!S.sfx) return;
   try {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === "suspended" && !document.hidden) ac.resume();
+    if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 0.9; out.connect(master());
     const noise = (dur, hp, vol, at) => {
       const n = ac.createBufferSource(), b = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0);
@@ -6729,7 +6780,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7411,7 +7462,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=5")
+  fetch("lang/" + uiLang + ".json?v=6")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });

@@ -567,7 +567,10 @@
   .bdRow i { font-style: normal; color: var(--amber-dim); font-size: 9px; letter-spacing: 0.08em; }
   .bdRow span:last-child { white-space: nowrap; max-width: 62%; overflow-wrap: anywhere; white-space: normal; text-align: right; }
   [dir="rtl"] .bdRow span, [dir="rtl"] .setStat, [dir="rtl"] .setChk, [dir="rtl"] .setLbl { unicode-bidi: plaintext; }   /* untranslated English lines keep their own order */
-  [dir="rtl"] input[type="range"] { direction: ltr; }             /* LEFT = SLOW stays true in Arabic */
+  [dir="rtl"] input[type="range"] { direction: ltr; }
+  [dir="rtl"] :not(canvas) { letter-spacing: 0 !important; }   /* tracking breaks Arabic joining: the letters come apart (09-04) */
+  [dir="rtl"] #settings :not(canvas):not(input):not(.key), [dir="rtl"] #info :not(canvas), [dir="rtl"] #board :not(canvas), [dir="rtl"] #log :not(canvas), [dir="rtl"] .pick :not(canvas), [dir="rtl"] #guideCard :not(canvas) {
+    font-family: "Segoe UI", "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, "Geeza Pro", sans-serif !important; }   /* monospace Arabic reads as stretched strokes: a proper Arabic face for the cards */             /* LEFT = SLOW stays true in Arabic */
   .bdBtns { display: flex; gap: 8px; align-items: center; margin: 6px 0 6px; }
   #bdName { flex: 1; min-width: 0; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: inherit;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 8px; border-radius: 3px; }
