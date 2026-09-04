@@ -103,6 +103,8 @@
       <label class="setChk"><input type="checkbox" id="ckRed" />RED NIGHT MODE &#8212; THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE &#183; THE MOON KEY TOP RIGHT FLIPS IT TOO</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
+      <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bSndTest">TRY THE SOUND</span></div>
+      <div class="setStat" id="sndStat" data-nol10n></div>
       <div class="setLbl">THE BUZZ · THE PHONE VIBRATES WITH THE SHOW · OFF UNTIL YOU TRY IT · ANDROID ONLY, IPHONES AND IPADS DO NOT ALLOW IT</div>
       <label class="setChk"><input type="checkbox" id="ckBuzz" />PHONE VIBRATION ON</label>
       <label class="setChk"><input type="checkbox" id="ckBuzzMorse" checked />THE MORSE CODE · A SHORT BUZZ FOR A DOT, A LONG ONE FOR A DASH</label>
@@ -778,8 +780,9 @@
     <textarea id="ideaTxt" dir="auto" maxlength="240" placeholder="YOUR IDEA (A FEW WORDS TO A FEW LINES)"></textarea>
     <div class="bdBtns" style="margin-top:8px"><span class="setBtn" id="bIdeaSend">SEND IT UP</span></div>
     <div class="setStat" id="ideaStat"></div>
+    <div class="setStat">PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE</div>
     <div class="setLbl" style="margin-top:14px">SENDING A GREETING TO THEM INSTEAD?</div>
-    <div class="setStat">THAT IS NOT AN IDEA FOR ME \u2014 IT IS THE MESSAGE YOUR BEACON TRANSMITS IN MORSE. SET IT HERE AND IT GOES OUT ON YOUR NEXT TRIP.</div>
+    <div class="setStat">THAT IS NOT AN IDEA FOR ME — IT IS THE MESSAGE YOUR BEACON TRANSMITS IN MORSE. SET IT HERE AND IT GOES OUT ON YOUR NEXT TRIP.</div>
     <input id="ideaMsg" dir="auto" maxlength="80" autocomplete="off" spellcheck="false" placeholder="ONE HUMAN. ZERO FEAR. NO ORBS." />
     <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bIdeaMsg">MAKE IT MY MESSAGE</span></div>
     <div class="setStat" id="ideaMsgStat"></div>
@@ -6426,8 +6429,28 @@ function master() {                                              // one hand on 
   return masterG;
 }
 let keepAlive = null, sndTold = false;
+let IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let iosGuard = null;                                             // iPhone: Web Audio obeys the ringer switch unless a media element is playing
+const SILENT_WAV = "data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";   // half a second of nothing, looped
+function iosGuardStart() {                                       // inside a tap: the silent loop puts the page in playback mode, so the pad and the opening play with the switch on silent
+  if (!IOS || muted) return;
+  try {
+    if (!iosGuard) { iosGuard = new Audio(SILENT_WAV); iosGuard.loop = true; iosGuard.setAttribute("playsinline", ""); iosGuard.preload = "auto"; }
+    if (iosGuard.paused) { const p = iosGuard.play(); if (p && p.catch) p.catch(() => {}); }
+  } catch (e) {}
+}
+function iosGuardStop() { try { if (iosGuard && !iosGuard.paused) iosGuard.pause(); } catch (e) {} }
+function sndStat() {                                             // the SOUND box tells the truth about the sound chip
+  const el = $("sndStat"); if (!el) return;
+  const st = ac ? String(ac.state).toUpperCase() : "NOT STARTED";
+  let t = tx("SOUND CHIP") + ": " + tx(st) + (ac ? " \u00b7 " + Math.round(ac.sampleRate) + " HZ" : "");
+  if (IOS) t += " \u00b7 " + tx(iosGuard && !iosGuard.paused ? "RINGER GUARD ON" : "RINGER GUARD OFF");
+  if (muted) t += " \u00b7 " + tx("MUTED");
+  el.textContent = t;
+}
 function audioUnlock() {                                         // the first touch wakes the sound chip for good
   try {
+    iosGuardStart();                                             // before the chip is made, so it is born in playback mode
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (muted) { try { ac.suspend(); } catch (e) {} } else if (ac.state !== "running") ac.resume();
     const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050);
@@ -6449,9 +6472,13 @@ function audioGuard() {                                          // Android naps
 }
 setInterval(audioGuard, 3000);
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) { voiceStop(); try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps, the voice too
-  else audioGuard();                                             // look back and it wakes
+  if (document.hidden) { voiceStop(); iosGuardStop(); try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps, the voice too
+  else { audioGuard(); iosGuardStart(); }                        // look back and it wakes
 });
+document.addEventListener("pointerdown", () => {                 // every touch: the guard back up and the chip running (iOS only resumes inside a gesture)
+  if (muted) return; iosGuardStart();
+  try { if (ac && ac.state !== "running") ac.resume(); } catch (e) {}
+}, { capture: true, passive: true });
 let introFxOff = false;                                          // a skip means silence, not a pile-up
 let zO = null, zG = null, zTimer = 0, zActive = false;           // the zoom: a quiet servo that follows the pinch
 function zoomFx(v, lo, hi) {
@@ -7371,6 +7398,7 @@ $("gvX").onclick = () => { if (phase === "chart" && globeView && !globeView.out)
 function applyMute() {
   $("bMute").classList.toggle("on", muted);
   try { if (muted && ac) ac.suspend(); else if (ac) ac.resume(); } catch (e) {}
+  if (muted) iosGuardStop(); else iosGuardStart();
   if (muted) { voiceStop(); ambStop(); flyStop(); bridgeAudioStop(); }
   else { ambStart(); if (document.body.classList.contains("run") && S.flySnd) flyStart(); }   // unmuted mid-flight: the wind comes back
 }
@@ -7634,6 +7662,7 @@ function walkTranslate() {
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let n;
     while ((n = w.nextNode())) {
+      if (n.parentElement && n.parentElement.closest("[data-nol10n]")) continue;   // a line that translates itself (pieces plus a number)
       if (n.__en === undefined) { if (nrm(n.nodeValue).length < 2) continue; n.__en = n.nodeValue; }
       const key = nrm(n.__en);
       const hit = langDict && langDict[key];
@@ -7781,14 +7810,30 @@ $("bIdeaMsg").onclick = () => {                                  // the greeting
   log("BEACON MESSAGE SET \u00b7 \"" + v + "\"", "cy");
 };
 $("ideaPick").addEventListener("click", (e) => { if (e.target === $("ideaPick")) $("ideaPick").classList.add("hide"); });
+const IDEA_DAY_KEY = "ce5.idea.day", IDEA_MAX_DAY = 6, IDEA_GAP = 90000;   // six a day per device, one every 90 seconds: a flood cannot bury the real asks
+let ideaLastAt = 0, ideaLastTxt = "";
+const ideaClean = (v) => String(v || "").normalize("NFC")     // the board's own alphabet: no links, code, markup or hidden characters, so what lands is what you see
+  .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, " ")
+  .toUpperCase().replace(/[^A-Z0-9 .'’\-—·À-ɏ]/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
+function ideaQuota() {                                           // today's count on this device
+  let d = null; try { d = JSON.parse(localStorage.getItem(IDEA_DAY_KEY) || "null"); } catch (e) {}
+  const today = new Date().toISOString().slice(0, 10);
+  return (d && d.day === today && typeof d.n === "number") ? d : { day: today, n: 0 };
+}
 $("bIdeaSend").onclick = () => {
-  const txt = ($("ideaTxt").value || "").replace(/\s+/g, " ").trim().slice(0, 240);
-  if (txt.length < 3) { $("ideaStat").textContent = "SAY A LITTLE MORE FIRST"; return; }
+  const txt = ideaClean($("ideaTxt").value);
+  if (txt.length < 3) { $("ideaStat").textContent = tx("SAY A LITTLE MORE FIRST"); return; }
+  if (txt === ideaLastTxt) { $("ideaStat").textContent = tx("YOU JUST SENT THAT ONE"); return; }
+  if (Date.now() - ideaLastAt < IDEA_GAP) { $("ideaStat").textContent = tx("ONE IDEA EVERY 90 SECONDS · WAIT A MOMENT"); return; }
+  const q = ideaQuota();
+  if (q.n >= IDEA_MAX_DAY) { $("ideaStat").textContent = tx("THAT IS TODAY'S SIX · MORE TOMORROW"); return; }
+  q.n++; try { localStorage.setItem(IDEA_DAY_KEY, JSON.stringify(q)); } catch (e) {}
+  ideaLastAt = Date.now(); ideaLastTxt = txt;
   const P = readPending();
   P.push({ id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-i"), n: callsign, txt }); while (P.length > 50) P.shift();
   try { localStorage.setItem(PEND_KEY, JSON.stringify(P)); } catch (e) {}
   flushPending(); $("ideaTxt").value = "";
-  $("ideaStat").textContent = "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES";
+  $("ideaStat").textContent = tx("SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES") + " · " + (IDEA_MAX_DAY - ideaQuota().n) + " " + tx("LEFT TODAY");
   log("IDEA FILED · THANK YOU, " + callsign, "cy");
 };
 $("bBoard").onclick = openBoard;
@@ -7958,7 +8003,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); chk("ckBuzz", !!S.buzz); chk("ckBuzzMorse", S.buzzMorse !== false); chk("ckBuzzNuke", S.buzzNuke !== false); chk("ckBuzzLand", S.buzzLand !== false); chk("ckBuzzBridge", S.buzzBridge !== false); buzzStat(); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); chk("ckBuzz", !!S.buzz); chk("ckBuzzMorse", S.buzzMorse !== false); chk("ckBuzzNuke", S.buzzNuke !== false); chk("ckBuzzLand", S.buzzLand !== false); chk("ckBuzzBridge", S.buzzBridge !== false); buzzStat(); sndStat(); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -8242,15 +8287,30 @@ $("ckBuzz").onchange = (e) => {                                  // the master: 
   S.buzz = e.target.checked; buzzStat();
   if (!S.buzz) { buzzOff(); log("THE BUZZ IS OFF", "cy"); return; }
   if (!buzzCan()) { log("THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT", "alert"); return; }
-  buzzRaw([60, 60, 60, 60, 220]); log("THE BUZZ IS ON · YOU SHOULD HAVE FELT THAT", "cy");
+  const okv = buzzRaw([60, 60, 60, 60, 220]);
+  log(okv ? "THE BUZZ IS ON · YOU SHOULD HAVE FELT THAT" : "THE BUZZ IS ON · BUT THE PHONE REFUSED THE SAMPLE · TRY THE BUZZ KEY BELOW", okv ? "cy" : "alert");
 };
 $("ckBuzzMorse").onchange = (e) => (S.buzzMorse = e.target.checked);
 $("ckBuzzNuke").onchange = (e) => (S.buzzNuke = e.target.checked);
 $("ckBuzzLand").onchange = (e) => (S.buzzLand = e.target.checked);
 $("ckBuzzBridge").onchange = (e) => (S.buzzBridge = e.target.checked);
+$("bSndTest").onclick = () => {                                  // inside the tap: a key click, then a note for two seconds, and the chip's state on the CRT
+  audioUnlock(); iosGuardStart();
+  try { sfx("key"); } catch (e) {}
+  try {
+    if (ac) { const t = ac.currentTime + 0.3, o = ac.createOscillator(), g = ac.createGain();
+      o.type = "sine"; o.frequency.value = 329.6; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.14, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+      o.connect(g); g.connect(master()); o.start(t); o.stop(t + 2.3); }
+  } catch (e) {}
+  sndStat();
+  log("SOUND TEST \u00b7 A CLICK, THEN A NOTE FOR TWO SECONDS", "cy");
+  log($("sndStat").textContent, "cy");
+};
 $("bBuzzTest").onclick = () => {                                 // works with the master off: it is a test
   if (!buzzCan()) return log("THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT", "alert");
-  buzzRaw([60, 60, 60, 60, 220, 120, 420]); log("BUZZ TEST · TICK, TICK, THUMP, THEN THE LONG ONE", "cy");
+  const okv = buzzRaw([400, 150, 700]);                          // long, gap, longer: nothing subtle
+  log(okv ? "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR"
+          : "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK SILENT MODE AND SYSTEM VIBRATION", okv ? "cy" : "alert");
 };
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
