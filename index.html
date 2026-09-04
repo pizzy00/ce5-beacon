@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=41" />
+<link rel="stylesheet" href="styles.css?v=42" />
 </head>
 <body class="intro introHud">
 
@@ -103,6 +103,14 @@
       <label class="setChk"><input type="checkbox" id="ckRed" />RED NIGHT MODE &#8212; THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE &#183; THE MOON KEY TOP RIGHT FLIPS IT TOO</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
+      <div class="setLbl">THE BUZZ · THE PHONE VIBRATES WITH THE SHOW · OFF UNTIL YOU TRY IT · ANDROID ONLY, IPHONES AND IPADS DO NOT ALLOW IT</div>
+      <label class="setChk"><input type="checkbox" id="ckBuzz" />PHONE VIBRATION ON</label>
+      <label class="setChk"><input type="checkbox" id="ckBuzzMorse" checked />THE MORSE CODE · A SHORT BUZZ FOR A DOT, A LONG ONE FOR A DASH</label>
+      <label class="setChk"><input type="checkbox" id="ckBuzzNuke" checked />THE NUKE · A HARD JOLT WITH THE FLASH, THEN THE RUMBLE</label>
+      <label class="setChk"><input type="checkbox" id="ckBuzzLand" checked />THE APPROACH AND THE LANDING · A TICK AT EACH HOLD, A DOUBLE THUMP AT TOUCHDOWN</label>
+      <label class="setChk"><input type="checkbox" id="ckBuzzBridge" checked />THE ROSEN BRIDGE · A SLOW THROB THAT QUICKENS THROUGH THE THROAT</label>
+      <div class="bdBtns"><span class="setBtn" id="bBuzzTest">TRY THE BUZZ</span></div>
+      <div class="setStat" id="buzzStat"></div>
       <div class="setLbl">THE VOICE &#8212; READS THE FIRST-NIGHT GUIDE, AND WHO YOU ARE CALLING WHEN YOU PICK A SYSTEM OR TAP THEIR PORTRAIT</div>
       <select id="selVoice">
         <option value="m" selected>HIM &#8212; DEEP AND SLOW</option>
@@ -779,8 +787,8 @@
     <div id="ideaList"><div class="setStat">READING THE BOARD…</div></div>
   </div>
 </div>
-<div id="tapBegin" class="hide"><div><span class="lead">TAP TO BEGIN</span><small>SOUND ON · BEST WITH THE VOLUME UP</small>
-<span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span><span class="why" id="whyFlash">WHY A NUCLEAR FLASH, AND WHY MORSE<em>THE SIGHTINGS THAT KEEP COMING BACK ARE THE ONES OVER OUR MISSILE FIELDS AND TEST SITES. SO THE FLASH HERE IS BAIT, ON PURPOSE: A FALSE ALARM, A HONEYPOT. IF THEY CAN SEE WHAT WE SEE, IT IS THE ONE SIGNAL WE KNOW HAS DRAWN THEM OUT BEFORE. NOTHING REAL DETONATES · AND MORSE BECAUSE IT IS THE OLDEST CODE WE STILL SEND: IF ANYONE HAS BEEN LISTENING TO THIS PLANET FOR A HUNDRED YEARS, IT IS THE ONE THEY HAVE HEARD THE MOST.</em></span><span class="why" id="whyRoute">THE ROUTE HOME IS YOURS TO SET<em>EVERY STOP ON THE WAY BACK TO EARTH IS A SWITCH IN ⚙ SETTINGS: POLARIS, VOYAGER, THE SUN, WEBB, LUNA, HUBBLE, THE ISS, STARLINK AND STARMAN'S ROADSTER. TURN ANY OF THEM ON OR OFF AND SET HOW LONG EACH ONE HOLDS. THE TRIP IS NEVER THE SAME TWICE UNLESS YOU WANT IT TO BE.</em></span><span class="why" id="whyUnit">AND ONE THING NOT TO BE SURE ABOUT<em>WHAT RISES IN THE TRIANGLE IS NOT PRESENTED AS ALIEN, BUT NOBODY IS SAYING IT IS OURS EITHER. THE UNIT IS SAID TO STAY HERE AND ALMOST NEVER LEAVE · WHERE IT CAME FROM IS UNKNOWN. IT MAY HAVE BEEN BUILT HERE, OR PUT HERE LONG BEFORE ANY OF US. ANYONE WHO TELLS YOU WHICH IS GUESSING · THIS CONSOLE RUNS ON LORE AND SAYS SO, BUT BEING UNPROVEN IS NOT THE SAME AS BEING UNTRUE. IT ONLY MEANS NOBODY HAS SHOWN IT YET.</em></span><span class="why" id="whyDev">STILL BEING BUILT · AND THAT IS THE POINT<em>THIS IS FOR FUN AND IT IS NOT FINISHED. I READ EVERY IDEA THAT COMES IN AND I SHIP WHAT MAKES SENSE · TWO STAR SYSTEMS WENT ON THE CHART THIS WEEK BECAUSE ONE TRAVELLER ASKED FOR THEM BY NAME. UNLESS IT IS INAPPROPRIATE I HAVE NO PROBLEM ADDING IT. OPEN, TRANSPARENT, AND A WHAT-IF · WHY NOT.</em></span><span class="why" id="whyGps">YOUR LOCATION NEVER LEAVES YOUR PHONE<em>USE THE GPS KEY OR PIN A SPOT AND THOSE COORDINATES STAY IN YOUR OWN BROWSER, ON YOUR OWN DEVICE · THERE IS NO SERVER OF MINE TO SEND THEM TO · THE BOARD ONLY EVER SEES A MADE-UP CALL-SIGN AND WHICH STAR YOU FLEW TO · CLEAR YOUR BROWSER DATA AND IT IS GONE · THE SATELLITE PICTURE COMES FROM A PUBLIC MAP SERVICE, LIKE ANY MAP APP · MORE UNDER PRIVACY.</em></span></div></div>
+<div id="tapBegin" class="hide"><span id="beginBg"><i></i><i></i></span><div><span class="lead">TAP TO BEGIN</span><small>SOUND ON · BEST WITH THE VOLUME UP</small>
+<span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span><span class="setBtn" id="bBeginMore">READ MORE</span><span id="beginMore" class="hide"><span class="why" id="whyFlash">WHY A NUCLEAR FLASH, AND WHY MORSE<em>THE SIGHTINGS THAT KEEP COMING BACK ARE THE ONES OVER OUR MISSILE FIELDS AND TEST SITES. SO THE FLASH HERE IS BAIT, ON PURPOSE: A FALSE ALARM, A HONEYPOT. IF THEY CAN SEE WHAT WE SEE, IT IS THE ONE SIGNAL WE KNOW HAS DRAWN THEM OUT BEFORE. NOTHING REAL DETONATES · AND MORSE BECAUSE IT IS THE OLDEST CODE WE STILL SEND: IF ANYONE HAS BEEN LISTENING TO THIS PLANET FOR A HUNDRED YEARS, IT IS THE ONE THEY HAVE HEARD THE MOST.</em></span><span class="why" id="whyRoute">THE ROUTE HOME IS YOURS TO SET<em>EVERY STOP ON THE WAY BACK TO EARTH IS A SWITCH IN ⚙ SETTINGS: POLARIS, VOYAGER, THE SUN, WEBB, LUNA, HUBBLE, THE ISS, STARLINK AND STARMAN'S ROADSTER. TURN ANY OF THEM ON OR OFF AND SET HOW LONG EACH ONE HOLDS. THE TRIP IS NEVER THE SAME TWICE UNLESS YOU WANT IT TO BE.</em></span><span class="why" id="whyUnit">AND ONE THING NOT TO BE SURE ABOUT<em>WHAT RISES IN THE TRIANGLE IS NOT PRESENTED AS ALIEN, BUT NOBODY IS SAYING IT IS OURS EITHER. THE UNIT IS SAID TO STAY HERE AND ALMOST NEVER LEAVE · WHERE IT CAME FROM IS UNKNOWN. IT MAY HAVE BEEN BUILT HERE, OR PUT HERE LONG BEFORE ANY OF US. ANYONE WHO TELLS YOU WHICH IS GUESSING · THIS CONSOLE RUNS ON LORE AND SAYS SO, BUT BEING UNPROVEN IS NOT THE SAME AS BEING UNTRUE. IT ONLY MEANS NOBODY HAS SHOWN IT YET.</em></span><span class="why" id="whyDev">STILL BEING BUILT · AND THAT IS THE POINT<em>THIS IS FOR FUN AND IT IS NOT FINISHED. I READ EVERY IDEA THAT COMES IN AND I SHIP WHAT MAKES SENSE · TWO STAR SYSTEMS WENT ON THE CHART THIS WEEK BECAUSE ONE TRAVELLER ASKED FOR THEM BY NAME. UNLESS IT IS INAPPROPRIATE I HAVE NO PROBLEM ADDING IT. OPEN, TRANSPARENT, AND A WHAT-IF · WHY NOT.</em></span><span class="why" id="whyGps">YOUR LOCATION NEVER LEAVES YOUR PHONE<em>USE THE GPS KEY OR PIN A SPOT AND THOSE COORDINATES STAY IN YOUR OWN BROWSER, ON YOUR OWN DEVICE · THERE IS NO SERVER OF MINE TO SEND THEM TO · THE BOARD ONLY EVER SEES A MADE-UP CALL-SIGN AND WHICH STAR YOU FLEW TO · CLEAR YOUR BROWSER DATA AND IT IS GONE · THE SATELLITE PICTURE COMES FROM A PUBLIC MAP SERVICE, LIKE ANY MAP APP · MORE UNDER PRIVACY.</em></span></span></div></div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
   <div class="warnBig display">CLOSE YOUR EYES</div>
@@ -920,11 +928,11 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
   crt: false, vig: false, red: false, gl: true, glDef: 0, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
-  polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
+  polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: false, jwst: false, hubble: false, terran: true, voyager: false, iss: false, starlink: false, starman: false, routeDef: 0,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
-  shipSpd: 1, shipRnd: false, shipN: 0.5, lblBack: 0.35, point: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, voiceVol: 0.55, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
+  shipSpd: 1, shipRnd: true, rndDef: 0, shipN: 0.5, lblBack: 0.35, point: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, buzz: false, buzzMorse: true, buzzNuke: true, buzzLand: true, buzzBridge: true, voice: true, voiceSex: "m", voiceRate: 1.3, voiceVol: 0.55, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
   loreBy: { lazar: true, lear: true, meier: true, contact: true, anon: true, doty: true } };   // whose claims show: each voice has its own switch
 const LORE_BY = ["lazar", "lear", "meier", "contact", "anon", "doty"];   // frozen order for the setup code: append, never insert
@@ -4431,13 +4439,13 @@ function bridgeLoad() {                                          // three.js + b
   return bridgeLoadP;
 }
 function bridgeStart() {
-  bridgeOn = true; bridgeAudioStart();
+  bridgeOn = true; bridgeAudioStart(); buzz("bridge", bridgeBuzz());
   const c = $("bridge"); c.classList.add("on"); cvs.style.background = "transparent";   // the WebGL sits under the 2D canvas
   const go = () => { if (bridgeOn && window.BRIDGE && !BRIDGE.fail) { if (BRIDGE.set) BRIDGE.set(S.bridgeLook, S.bridgeStyle); BRIDGE.start(c); } };
   if (window.BRIDGE) go(); else bridgeLoad().then(go);
 }
 function bridgeStop() {
-  bridgeOn = false;
+  bridgeOn = false; buzzOff();
   const c = $("bridge"); if (c) c.classList.remove("on");
   cvs.style.background = "";
   if (window.BRIDGE) BRIDGE.stop();
@@ -5653,6 +5661,7 @@ function runFlash(token) {
   layer.style.opacity = "0"; layer.classList.remove("hide");
   flashT0 = performance.now();
   sfxBlast(flashFar);                                            // the sound breaks with the light, far shots softer
+  buzz("nuke", flashFar >= 1 ? [420, 90, 240, 70, 160, 60, 110, 50, 70] : [140, 80, 70]);   // the jolt, then the rumble; a far shot is a nudge
   let quietSince = -1;
   const frame = () => {
     if (token !== bermToken || phase !== "flash") return;
@@ -5914,6 +5923,7 @@ function runStep(i, token) {
   const s = divePlan[i];
   cueStage(s.msg);
   retShow(true);
+  buzz("land", 35);                                           // a tick at each hold on the way down
   const z = i === divePlan.length - 1 ? S.finalZ : s.z;         // the last hold lands exactly where the setting says, high or low
   map.flyTo([TARGET.lat, TARGET.lon], z, { duration: reduced ? 1.5 : s.fly * S.diveMul });
   const landed = () => {
@@ -5954,6 +5964,7 @@ function arrive() {
   const callOut = () => {                                        // the message goes out last
     flyStop(); bridgeStop();                                    // on the ground: the wind dies
     blip(523, 523, 0.4, 0.05); setTimeout(() => blip(659, 659, 0.5, 0.045), 200);   // touchdown: two notes
+    buzz("land", [70, 80, 180]);                                // and two thumps in the hand
     setPhase("active", "BEACON ACTIVE"); document.body.classList.remove("holding");
     log('TX: "' + S.msg + '"', "alert");
     log("AWAITING RESPONSE...");
@@ -6331,6 +6342,22 @@ function morseWords(text) {
   return String(text || "").toUpperCase().split(/\s+/).map((w) => [...w].map((ch) => MORSE[ch] || "").filter(Boolean)).filter((w) => w.length);
 }
 function morseString(text) { return morseWords(text).map((w) => w.join(" ")).join("  /  "); }
+/* the buzz: the phone vibrates with the show (his ask, 09-04). Off by default. Android only: Apple never allowed navigator.vibrate */
+const BUZZ_KEY = { morse: "buzzMorse", nuke: "buzzNuke", land: "buzzLand", bridge: "buzzBridge" };
+function buzzCan() { return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"; }
+function buzzRaw(pat) { if (!buzzCan()) return false; try { return !!navigator.vibrate(pat); } catch (e) { return false; } }
+function buzz(kind, pat) { if (!S.buzz || S[BUZZ_KEY[kind]] === false) return; buzzRaw(pat); }
+function buzzOff() { if (S.buzz) buzzRaw(0); }
+function buzzStat() {
+  const el = $("buzzStat"); if (!el) return;
+  el.textContent = tx(!buzzCan() ? "THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT"
+    : S.buzz ? "ON · THE PHONE BUZZES WITH THE MORSE, THE NUKE, THE LANDING AND THE BRIDGE" : "OFF · TURN IT ON, THEN TRY IT");
+}
+function bridgeBuzz() {                                          // a throb that quickens through the throat, as long as his slider says
+  const total = Math.max(2000, (S.bridgeSec || 8) * 1000), pat = []; let t = 0, gap = 460;
+  while (t < total && pat.length < 400) { pat.push(28, gap); t += 28 + gap; gap = Math.max(70, gap - 22); }
+  return pat;
+}
 let morseToken = 0, morseHold = 0, morseGain = null, morseOsc = null, morseBusy = false;
 function morseKey(on) {
   const l = $("morse"); l.classList.remove("hide"); l.style.opacity = on ? S.mInt.toFixed(2) : "0";
@@ -6349,7 +6376,7 @@ function morseKey(on) {
   } catch (e) {}
 }
 function stopMorse() {
-  ++morseToken; clearTimeout(morseHold); morseBusy = false;
+  ++morseToken; clearTimeout(morseHold); morseBusy = false; buzzOff();
   const l = $("morse"); l.style.opacity = "0"; l.classList.add("hide"); $("txMsg").classList.add("hide");
   if (morseGain && ac) { try { morseGain.gain.setTargetAtTime(0, ac.currentTime, 0.004); } catch (e) {} }
 }
@@ -6386,7 +6413,7 @@ function sendMorse(text) {
       morseBusy = false; if (phase === "active") idleArm(Math.max(S.idleBack || 0, 20));   // the quiet clock starts over once the message is out, 20 s at the least (09-04)
       $("txMsg").innerHTML = "<b>" + esc(disp) + "</b>"; setTimeout(() => { if (token === morseToken) $("txMsg").classList.add("hide"); }, 2500); return; }
     const [on, units, at] = plan[i++];
-    paint(at); morseKey(on);
+    paint(at); morseKey(on); if (on) buzz("morse", Math.round(units * unit));   // the phone keys the code too
     morseHold = setTimeout(step, units * unit);
   };
   step();
@@ -6516,7 +6543,8 @@ function openFx(kind, i) {                                       // the opening'
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     const t = ac.currentTime, out = ac.createGain(); out.gain.value = 1; out.connect(master());
-    const tone = (type, f0, f1, dur, vol, at) => {
+    const tone = (type, f0, f1, dur, vol, at, sub) => {
+      if (f0 < 200 && !sub) tone(type, f0 * 2, (f1 || f0) * 2, dur, vol * 0.55, at, true);   // a phone speaker cannot play the low one: give it the octave above
       const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t);
       if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
       const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + (at || 0.05));
@@ -6537,7 +6565,7 @@ function openFx(kind, i) {                                       // the opening'
     else if (kind === "sun") { tone("sine", 220, 220, 1.6, 0.07, 0.5); tone("sine", 277, 277, 1.6, 0.05, 0.6); tone("sine", 330, 330, 1.6, 0.035, 0.7); }
     else if (kind === "choir") {                                 // a slow far-off chorus as the deep sky comes in
       const A = 1.8, HOLD = 1.6, R = 3.4, end = A + HOLD + R;
-      for (const f of [110, 164.8, 220, 261.6, 329.6]) {
+      for (const f of [110, 164.8, 220, 261.6, 329.6, 440, 523.2]) {   // the top two are for phone speakers
         for (const det of [-2.5, 2.5]) {
           const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f; o.detune.value = det;
           const g = ac.createGain(); g.gain.setValueAtTime(0, t);
@@ -6586,9 +6614,9 @@ function ambStart() {
     if (ac.state === "suspended" && !document.hidden && !pauseAt) ac.resume();   // never bail: the resume lands inside the gesture; a hidden tab stays quiet
     ambG = ac.createGain(); ambG.gain.value = 0; ambG.connect(master());
     const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900; f.Q.value = 0.3; f.connect(ambG);
-    for (const [fr, det] of [[110, -3], [110, 3], [164.8, -2], [164.8, 2]]) {   // the pad: A and E, barely there
+    for (const [fr, det, vol] of [[110, -3, 0.011], [110, 3, 0.011], [164.8, -2, 0.011], [164.8, 2, 0.011], [220, -2, 0.009], [220, 2, 0.009], [329.6, -1.5, 0.006], [329.6, 1.5, 0.006]]) {   // the pad: A and E, barely there; the upper four are what a phone speaker can actually play
       const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = fr; o.detune.value = det;
-      const g = ac.createGain(); g.gain.value = 0.011; o.connect(g); g.connect(f); o.start(); ambOsc.push(o);
+      const g = ac.createGain(); g.gain.value = vol; o.connect(g); g.connect(f); o.start(); ambOsc.push(o);
     }
     ambG.gain.setTargetAtTime(1, ac.currentTime, 2.5);
     const NOTES = [220, 261.6, 329.6, 392, 440, 523.2];
@@ -7350,7 +7378,7 @@ function applyMute() {
    Every setting has a fixed two-character slot from a frozen table. New settings are only
    ever APPENDED, never inserted, so a code shared today still opens years from now.
    zt, zd and zy are reserved for the target, the departure and the nine systems. */
-const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages", "voiceVol"];
+const SETUP_KEYS = ["breath", "spaceMul", "diveMul", "originMul", "flyby", "detail", "arrHold", "bTrig", "bSites", "bHold", "bFly", "nShot", "nInt", "nStretch", "nRepeat", "nWarn", "salvo", "motion", "bNow", "bPhotos", "pHold", "bOrbit", "msg", "mOn", "mTone", "mWpm", "mInt", "crt", "vig", "ret", "chart3d", "fades", "bcnHold", "bcnStay", "finalZ", "polaris", "sun", "moon", "jwst", "hubble", "voyager", "iss", "starlink", "starman", "nukeAll", "cache", "vol", "deep", "deepA", "spin", "trails", "planets", "traffic", "earthSrc", "cloudA", "cloudSpd", "uTime", "exo", "attract", "sysHold", "shipSpd", "shipRnd", "roadster", "sites", "opening", "faces", "sfx", "flySnd", "amb", "fps", "lore", "tapLook", "pursue", "uso", "trueSky", "bBar", "iso", "fleetN", "fleetTag", "poles", "ages", "voiceVol", "buzz", "buzzMorse", "buzzNuke", "buzzLand", "buzzBridge"];
 const SETUP_SYS = ["zeta", "plei", "siri", "arct", "vega", "orio", "andr", "proc", "drac", "erid", "acen"];   // appended, never reordered
 const SETUP_CLAMP = {                                            // a bent code cannot push a slider past its own ends
   vol: [0, 1], breath: [2, 8], spaceMul: [0.5, 2], flyby: [2, 25], originMul: [0.5, 3], diveMul: [0.5, 2], arrHold: [0, 40],
@@ -7520,9 +7548,11 @@ const LANGS = [
   ["en", "ENGLISH"], ["es", "ESPAÑOL"], ["zh", "中文"], ["hi", "हिन्दी"],
   ["ar", "العربية"], ["pt", "PORTUGUÊS"], ["fr", "FRANÇAIS"],
   ["ru", "РУССКИЙ"], ["de", "DEUTSCH"], ["ja", "日本語"]];
+const BEGIN_FACES = ["andromedans-f", "andromedans-m", "archquloid-f", "archquloid-m", "arcturians-f", "arcturians-m", "eben-f", "eben-m", "greys-f", "greys-m", "lyrans-f", "lyrans-m", "nordics-f", "nordics-m", "orion-f", "orion-m", "oriongrey-f", "oriongrey-m", "plejaren-f", "plejaren-m", "quadloid-f", "quadloid-m", "reptilians-f", "reptilians-m", "sirians-f", "sirians-m", "trantaloid-f", "trantaloid-m", "trantmask-f", "trantmask-m"];   // the portraits behind the splash
 const L10N = {
   begin:   { en: "TAP TO BEGIN", es: "TOCA PARA EMPEZAR", zh: "轻点开始", hi: "शुरू करने के लिए टैप करें", ar: "انقر للبدء", pt: "TOQUE PARA COMEÇAR", fr: "TOUCHEZ POUR COMMENCER", ru: "КОСНИТЕСЬ, ЧТОБЫ НАЧАТЬ", de: "TIPPEN ZUM STARTEN", ja: "タップして開始" },
   beginSub:{ en: "SOUND ON · BEST WITH THE VOLUME UP", es: "CON SONIDO · MEJOR CON VOLUMEN ALTO", zh: "开启声音·音量调高效果最佳", hi: "ध्वनि चालू · आवाज़ बढ़ाकर सुनें", ar: "الصوت مفعّل · ارفع مستوى الصوت", pt: "SOM LIGADO · MELHOR COM VOLUME ALTO", fr: "SON ACTIVÉ · MONTEZ LE VOLUME", ru: "СО ЗВУКОМ · ГРОМЧЕ — ЛУЧШЕ", de: "TON AN · AM BESTEN LAUT", ja: "サウンドON・音量を上げて" },
+  readMore:{ en: "READ MORE", es: "LEER MÁS", pt: "LER MAIS", fr: "LIRE LA SUITE", de: "MEHR LESEN", ru: "ЧИТАТЬ ДАЛЬШЕ", zh: "阅读更多", ja: "続きを読む", hi: "और पढ़ें", ar: "اقرأ المزيد" },
   warnHead:{ en: "⚠ PHOTOSENSITIVITY WARNING", es: "⚠ AVISO DE FOTOSENSIBILIDAD", zh: "⚠ 光敏感警告", hi: "⚠ प्रकाश संवेदनशीलता चेतावनी", ar: "⚠ تحذير لمرضى الحساسية للضوء", pt: "⚠ AVISO DE FOTOSSENSIBILIDADE", fr: "⚠ AVERTISSEMENT PHOTOSENSIBILITÉ", ru: "⚠ ФОТОЧУВСТВИТЕЛЬНОСТЬ", de: "⚠ WARNUNG: LICHTEMPFINDLICHKEIT", ja: "⚠ 光過敏性に関する警告" },
   routeHead: { en: "THE ROUTE HOME IS YOURS TO SET", es: "LA RUTA DE VUELTA ES TUYA", zh: "回地球的路线由你定", hi: "वापसी का रास्ता आपका है", ar: "طريق العودة ملكك أنت", pt: "A ROTA DE VOLTA É SUA", fr: "LA ROUTE DU RETOUR EST LA VÔTRE", ru: "МАРШРУТ НАЗАД — ВАШ", de: "DIE ROUTE ZURÜCK GEHÖRT DIR", ja: "帰りのルートはあなたが決める" },
   routeBody: { en: "EVERY STOP ON THE WAY BACK TO EARTH IS A SWITCH IN ⚙ SETTINGS: POLARIS, VOYAGER, THE SUN, WEBB, LUNA, HUBBLE, THE ISS, STARLINK AND STARMAN'S ROADSTER. TURN ANY OF THEM ON OR OFF AND SET HOW LONG EACH ONE HOLDS. THE TRIP IS NEVER THE SAME TWICE UNLESS YOU WANT IT TO BE.", es: "CADA PARADA EN EL CAMINO DE VUELTA A LA TIERRA ES UN INTERRUPTOR EN ⚙ AJUSTES: POLARIS, VOYAGER, EL SOL, WEBB, LA LUNA, HUBBLE, LA ISS, STARLINK Y EL ROADSTER DE STARMAN. ENCIENDE O APAGA LOS QUE QUIERAS Y DECIDE CUÁNTO DURA CADA UNO.", zh: "回地球路上的每一站都是 ⚙ 设置里的一个开关：北极星、旅行者号、太阳、韦伯、月球、哈勃、国际空间站、星链，以及星人的跑车。任意开关，并可设定每一站停留多久。", hi: "पृथ्वी लौटने के रास्ते का हर पड़ाव ⚙ सेटिंग्स में एक स्विच है: ध्रुव तारा, वॉयजर, सूर्य, वेब, चंद्रमा, हबल, आईएसएस, स्टारलिंक और स्टारमैन की रोडस्टर।", ar: "كل محطة في طريق العودة إلى الأرض هي مفتاح في ⚙ الإعدادات: النجم القطبي، فويجر، الشمس، ويب، القمر، هابل، محطة الفضاء، ستارلينك، وسيارة ستارمان.", pt: "CADA PARADA NO CAMINHO DE VOLTA À TERRA É UM INTERRUPTOR EM ⚙ AJUSTES: POLARIS, VOYAGER, O SOL, WEBB, A LUA, HUBBLE, A ISS, STARLINK E O ROADSTER DO STARMAN. LIGUE OU DESLIGUE OS QUE QUISER E DEFINA QUANTO CADA UM DURA.", fr: "CHAQUE ESCALE SUR LE CHEMIN DU RETOUR VERS LA TERRE EST UN INTERRUPTEUR DANS ⚙ RÉGLAGES : POLARIS, VOYAGER, LE SOLEIL, WEBB, LA LUNE, HUBBLE, L'ISS, STARLINK ET LE ROADSTER DE STARMAN. ACTIVEZ-LES OU NON, ET CHOISISSEZ LEUR DURÉE.", ru: "КАЖДАЯ ОСТАНОВКА НА ПУТИ К ЗЕМЛЕ — ЭТО ПЕРЕКЛЮЧАТЕЛЬ В ⚙ НАСТРОЙКАХ: ПОЛЯРНАЯ, ВОЯДЖЕР, СОЛНЦЕ, УЭББ, ЛУНА, ХАББЛ, МКС, STARLINK И РОАДСТЕР СТАРМЭНА. ВКЛЮЧАЙТЕ ЛЮБЫЕ И ЗАДАВАЙТЕ ДЛИТЕЛЬНОСТЬ.", de: "JEDER HALT AUF DEM WEG ZURÜCK ZUR ERDE IST EIN SCHALTER IN ⚙ EINSTELLUNGEN: POLARIS, VOYAGER, DIE SONNE, WEBB, DER MOND, HUBBLE, DIE ISS, STARLINK UND STARMANS ROADSTER. SCHALTE SIE EIN ODER AUS UND BESTIMME, WIE LANGE JEDER DAUERT.", ja: "地球への帰路の寄り道はすべて ⚙ 設定のスイッチです。北極星、ボイジャー、太陽、ウェッブ、月、ハッブル、ISS、スターリンク、そしてスターマンのロードスター。好きなものを入で切りし、滞在時間も決められます。" },
@@ -7644,6 +7674,7 @@ function applyLang() {
   const sm = document.querySelector("#tapBegin small"); if (sm) sm.textContent = tr("beginSub");
   const w = document.querySelector("#tapBegin .warn");
   if (w) { w.childNodes[0].textContent = tr("warnHead"); const em = w.querySelector("em"); if (em) em.textContent = tr("warnBody"); }
+  { const rm = $("bBeginMore"); if (rm) rm.textContent = tr("readMore"); }
   const why = (id, hk, bk) => {                                   // the three notes under the warning
     const e = document.getElementById(id); if (!e) return;
     e.childNodes[0].textContent = tr(hk);
@@ -7807,12 +7838,28 @@ if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "c
     if (!had || bMoved) return;
     beginTapped = true; audioUnlock(); ambStart(); tbEl.classList.add("hide");
   });
+  const more = $("bBeginMore");                                  // READ MORE opens the notes without raising the curtain
+  if (more) {
+    more.addEventListener("pointerdown", (e) => { e.stopPropagation(); });
+    more.addEventListener("click", (e) => { e.stopPropagation(); });
+    more.addEventListener("pointerup", (e) => { e.stopPropagation(); bDown = null; $("beginMore").classList.remove("hide"); more.classList.add("hide"); });
+  }
+  let bgFlip = 0;
+  const bgSet = () => {                                           // the species portraits drift behind the splash, one at a time, at ten percent
+    const bg = $("beginBg"); if (!bg || tbEl.classList.contains("hide")) return;
+    const ims = bg.querySelectorAll("i"), cur = ims[bgFlip % 2], nxt = ims[(bgFlip + 1) % 2];
+    const key = BEGIN_FACES[Math.floor(Math.random() * BEGIN_FACES.length)];
+    const im = new Image();
+    im.onload = () => { if (tbEl.classList.contains("hide")) return; nxt.style.backgroundImage = "url(species/" + key + ".jpg)"; nxt.classList.add("on"); cur.classList.remove("on"); bgFlip++; };
+    im.src = "species/" + key + ".jpg";
+  };
+  setInterval(bgSet, 6500); setTimeout(bgSet, 300);
   const gate = setInterval(() => {
     if (!intro) { $("tapBegin").classList.add("hide"); return clearInterval(gate); }
     const waited = performance.now() / 1000 - intro.w0;
     const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3)) || waited > 9;   // the maps, the Moon, the fonts; or it has been long enough
     if (ready && !intro.t0) {
-      if (!beginTapped) { $("tapBegin").classList.remove("hide"); try { $("tapBegin").focus(); } catch (e) {} return; }   // the show holds for the hand
+      if (!beginTapped) { $("tapBegin").classList.remove("hide"); bgSet(); try { $("tapBegin").focus(); } catch (e) {} return; }   // the show holds for the hand
       intro.t0 = performance.now() / 1000; clearInterval(gate);
     }
   }, 100);
@@ -7911,7 +7958,7 @@ function applyS() {                                             // push S into e
   chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
-  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
+  set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); chk("ckBuzz", !!S.buzz); chk("ckBuzzMorse", S.buzzMorse !== false); chk("ckBuzzNuke", S.buzzNuke !== false); chk("ckBuzzLand", S.buzzLand !== false); chk("ckBuzzBridge", S.buzzBridge !== false); buzzStat(); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
   set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
@@ -8191,6 +8238,20 @@ $("ckGl").onchange = (e) => { S.gl = e.target.checked; glSaid = false; earthRef.
 $("ckPoint").onchange = (e) => { S.point = e.target.checked; pointStart(); log(S.point ? "POINT AT THEM ON \u00b7 THE RING TOP LEFT SHOWS WHERE THEY ARE IN YOUR SKY" : "POINT AT THEM OFF", "cy"); };
 $("ckTrueSky").onchange = (e) => { S.trueSky = e.target.checked; applySky(); chartTgt = null; log(S.trueSky ? "TRUE SKY: EACH SYSTEM SITS AT ITS REAL RIGHT ASCENSION \u2014 THEY BUNCH UP THE WAY THE REAL SKY DOES" : "SPREAD SKY: THE SYSTEMS SPACED OUT ROUND THE TURNTABLE", "cy"); };
 $("ckSfx").onchange = (e) => (S.sfx = e.target.checked);
+$("ckBuzz").onchange = (e) => {                                  // the master: a sample the moment it goes on, so he knows the phone can do it
+  S.buzz = e.target.checked; buzzStat();
+  if (!S.buzz) { buzzOff(); log("THE BUZZ IS OFF", "cy"); return; }
+  if (!buzzCan()) { log("THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT", "alert"); return; }
+  buzzRaw([60, 60, 60, 60, 220]); log("THE BUZZ IS ON · YOU SHOULD HAVE FELT THAT", "cy");
+};
+$("ckBuzzMorse").onchange = (e) => (S.buzzMorse = e.target.checked);
+$("ckBuzzNuke").onchange = (e) => (S.buzzNuke = e.target.checked);
+$("ckBuzzLand").onchange = (e) => (S.buzzLand = e.target.checked);
+$("ckBuzzBridge").onchange = (e) => (S.buzzBridge = e.target.checked);
+$("bBuzzTest").onclick = () => {                                 // works with the master off: it is a test
+  if (!buzzCan()) return log("THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT", "alert");
+  buzzRaw([60, 60, 60, 60, 220, 120, 420]); log("BUZZ TEST · TICK, TICK, THUMP, THEN THE LONG ONE", "cy");
+};
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
 $("rVoiceVol").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
@@ -8251,7 +8312,9 @@ $("rPhoto").oninput = (e) => { S.pHold = 5.5 - +e.target.value; $("vPhoto").text
 
 /* boot log */
 const restored = loadSettings();
-if (S.glDef !== 2) { S.gl = true; S.glDef = 2; }                // 09-04: the WebGL Earth is the default now (his tablet verdict); saves from the test week come along once, then the switch is theirs
+if (S.glDef !== 2) { S.gl = true; S.glDef = 2; }
+if (S.rndDef !== 1) { S.shipRnd = true; S.rndDef = 1; }
+if (S.routeDef !== 1) { S.polaris = false; S.moon = false; S.jwst = false; S.hubble = false; S.voyager = false; S.iss = false; S.starlink = false; S.starman = false; S.sun = true; S.routeDef = 1; }   // 09-04: the journey goes through Sol alone by default (his ask); once for saved setups   // 09-04: RANDOM ship speeds are the default (his ask); saved setups come along once                // 09-04: the WebGL Earth is the default now (his tablet verdict); saves from the test week come along once, then the switch is theirs
 const sysParam = (location.search.match(/[?&]s=([a-z0-9]+)/) || [])[1];   // a shared card opens on its own system (09-04)
 if (sysParam) { const so = SYSTEMS.find((x) => x.id === sysParam); if (so) { try { pickDeparture(so, true); } catch (e) {} } }
 const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a whole tuning, handed over in a link
@@ -8307,6 +8370,12 @@ updateShareLink();
     if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
     el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } });
   });
+$("setCard").addEventListener("input", (e) => {                 // a slider on the move whistles like the sky being dragged (his ask, 09-04)
+  const r = e.target; if (!r || !r.matches || !r.matches('input[type="range"]')) return;
+  const span = (+r.max || 100) - (+r.min || 0), last = r.__last === undefined ? +r.value : r.__last;
+  r.__last = +r.value;
+  dragFx("sky", Math.min(28, Math.abs(+r.value - last) / (span || 1) * 400));   // a step is a breath, a sweep is the whistle
+});
   document.querySelectorAll("#setCard input, #setCard select, #sysCard input, #boardCard input").forEach((c) => {
     if (c.hasAttribute("aria-label") || c.hasAttribute("aria-labelledby") || c.closest("label")) return;
     const row = c.closest(".setRow") || c.parentElement, lbl = row && row.querySelector(".setLbl");

@@ -969,3 +969,13 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 .setTocRow .setBtn { font-size: 9.5px; padding: 5px 9px; }
 .setTop { justify-content: flex-end; margin: 4px 0 8px; }
 .setTop .setBtn { font-size: 9px; padding: 4px 9px; opacity: 0.85; }
+
+/* v61: the splash shows the warning alone, the notes wait behind READ MORE; the species portraits
+   drift behind at ten percent; a dark panel sits under the words so they read over the pictures */
+#beginBg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
+#beginBg i { position: absolute; inset: 0; background: center 22% / cover no-repeat; opacity: 0; transition: opacity 3s ease; }
+#beginBg i.on { opacity: 0.1; }
+#tapBegin > div { position: relative; width: 100%; max-width: 430px; box-sizing: border-box; padding: 20px 14px;
+  background: rgba(0,0,0,0.6); border: 1px solid rgba(169,255,198,0.12); border-radius: 10px; }
+#bBeginMore { display: inline-block; margin-top: 16px; cursor: pointer; letter-spacing: 0.2em; }
+#beginMore.hide, #bBeginMore.hide { display: none; }
