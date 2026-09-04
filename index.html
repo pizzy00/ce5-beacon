@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=37" />
+<link rel="stylesheet" href="styles.css?v=38" />
 </head>
 <body class="intro introHud">
 
@@ -577,11 +577,11 @@
 <button id="gvX" class="hide" aria-label="Close the world view">✕</button>
 <div id="fsHint" class="hide display">CLICK HERE FOR FULL SCREEN ▸</div>
 <div id="muteHint" class="hide display">MUTE EVERY SOUND ▸</div>
-<div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
 <div id="langHint" class="hide display">CHOOSE YOUR LANGUAGE ▸</div>
 <div id="redHint" class="hide display">RED NIGHT MODE · SAVE YOUR NIGHT EYES ▸</div>
 <div id="shareHint" class="hide display">SHARE A CARD WITH THE LINK ▸</div>
 <div id="roomHint" class="hide display">GROUP SESSION · ONE PHONE LEADS ▸</div>
+<div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
 <div id="langPick" class="hide">
   <div id="langCard">
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
@@ -803,11 +803,11 @@
 <button id="bLang" aria-label="Language" title="Language"><span id="langGlyph">A</span></button>
 <button id="bRed" aria-label="Red night mode" title="Red night mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/></svg></button>
 <button id="bShare" aria-label="Share a picture of tonight" title="Share a picture of tonight, with the link on it"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></button>
+<button id="bRoom" aria-label="Group session" title="Group session: one phone leads, the others follow"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 22 19"/></svg></button>
 <button id="bIdea" aria-label="Send an idea" title="Send an idea">
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M4.5 8V3.6a1 1 0 0 1 2 0V7M6.5 7V2.6a1 1 0 0 1 2 0V7M8.5 7V3.2a1 1 0 0 1 2 0V7.6M10.5 7.6V4.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5H7.4A3.4 3.4 0 0 1 4.5 13L2.6 9.9a1 1 0 0 1 1.7-1L4.5 9.6"/></svg>
 </button>
-<button id="bRoom" aria-label="Group session" title="Group session: one phone leads, the others follow"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 22 19"/></svg></button>
 <div id="fade"></div>
 <div id="crt"></div>
 <div id="vig"></div>
@@ -3281,7 +3281,7 @@ function lblFlush() {
   const q = LBL; LBL = null;
   q.sort((a, b) => b.pri - a.pri);
   const kept = [];
-  for (const id of ["bFull", "bMute", "bIdea", "bLang"]) {         // the buttons up the right side are not free ground
+  for (const id of ["bFull", "bMute", "bLang", "bRed", "bShare", "bRoom", "bIdea"]) {         // the buttons up the right side are not free ground
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (r.width < 1) continue;
     kept.push({ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4, must: true, text: "" });
@@ -4133,7 +4133,7 @@ function fpsTick(t) {
   fpsRaf = requestAnimationFrame(fpsTick);
 }
 let fsShown = false, calloutQueue = [];
-const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["ideaHint", "bIdea"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"]];
+const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"], ["ideaHint", "bIdea"]];   // top to bottom, the hand last
 function fsCallout() {                                           // the corner keys introduce themselves one at a time
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;

@@ -512,7 +512,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
     display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
   #bMute { top: calc(44px + env(safe-area-inset-top, 0px)); right: 10px; }
-  #bIdea { top: calc(82px + env(safe-area-inset-top, 0px)); right: 10px; }
+  #bIdea { top: calc(272px + env(safe-area-inset-top, 0px)); right: 10px; }   /* the foot of the column */
   #bMute:active, #bIdea:active { background: rgba(255,196,107,0.25); }
   #bMute.callout, #bIdea.callout { animation: fsPulse 1.6s ease-out infinite; }
   #bMute svg, #bIdea svg { width: 16px; height: 16px; display: block; }
@@ -525,7 +525,7 @@
     background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
     box-shadow: 0 0 12px rgba(0,0,0,0.7); }
   #muteHint { top: calc(47px + env(safe-area-inset-top, 0px)); }
-  #ideaHint { top: calc(85px + env(safe-area-inset-top, 0px)); }
+  #ideaHint { top: calc(275px + env(safe-area-inset-top, 0px)); }
   #muteHint.hide, #ideaHint.hide { display: none; }
   #ideaPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
     display: flex; align-items: center; justify-content: center; }
@@ -703,7 +703,7 @@
 #privCard .setLbl { margin-top: 12px; }
 
 /* the language key and its picker */
-#bLang { position: fixed; right: 10px; top: calc(120px + env(safe-area-inset-top, 0px)); z-index: 9;
+#bLang { position: fixed; right: 10px; top: calc(82px + env(safe-area-inset-top, 0px)); z-index: 9;
   width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
   background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
   box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
@@ -715,7 +715,7 @@ body.run #bLang, body.active #bLang { opacity: 0.3; }
 #bShare svg { width: 15px; height: 15px; display: block; }
 #bShare:active { background: rgba(255,196,107,0.25); }
 body.run #bShare, body.active #bShare { opacity: 0.3; }
-#bRed, #bShare { position: fixed; right: 10px; top: calc(158px + env(safe-area-inset-top, 0px)); z-index: 9;
+#bRed, #bShare { position: fixed; right: 10px; top: calc(120px + env(safe-area-inset-top, 0px)); z-index: 9;
   width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
   background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
   box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
@@ -724,8 +724,8 @@ body.run #bShare, body.active #bShare { opacity: 0.3; }
 #bRed:active { background: rgba(255,196,107,0.25); }
 #bRed.on { color: #ff5a3c; border-color: rgba(255,90,60,0.7); background: linear-gradient(180deg, rgba(60,14,8,0.95), rgba(30,4,2,0.95)); }
 body.run #bRed, body.active #bRed { opacity: 0.3; }
-#bShare { top: calc(196px + env(safe-area-inset-top, 0px)); }   /* after the shared block so it wins */
-#bRoom { position: fixed; right: 10px; top: calc(234px + env(safe-area-inset-top, 0px)); z-index: 9;
+#bShare { top: calc(158px + env(safe-area-inset-top, 0px)); }   /* after the shared block so it wins */
+#bRoom { position: fixed; right: 10px; top: calc(196px + env(safe-area-inset-top, 0px)); z-index: 9;
   width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
   background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
   box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
@@ -756,7 +756,7 @@ body.intro #bLang, body.intro #bRed, body.intro #bShare { opacity: 0 !important;
 #redB { background: #ff3a1a; mix-blend-mode: multiply; z-index: 41; }
 body.red #redA, body.red #redB { opacity: 1; }
 body.intro #bLang { opacity: 0 !important; pointer-events: none !important; }
-#langHint { position: fixed; right: 48px; top: calc(123px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
+#langHint { position: fixed; right: 48px; top: calc(85px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
   color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
   background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
   box-shadow: 0 0 12px rgba(0,0,0,0.7); }
@@ -765,9 +765,9 @@ body.intro #bLang { opacity: 0 !important; pointer-events: none !important; }
   color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
   background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
   box-shadow: 0 0 12px rgba(0,0,0,0.7); }
-#redHint { top: calc(161px + env(safe-area-inset-top, 0px)); }
-#shareHint { top: calc(199px + env(safe-area-inset-top, 0px)); }
-#roomHint { top: calc(237px + env(safe-area-inset-top, 0px)); }
+#redHint { top: calc(123px + env(safe-area-inset-top, 0px)); }
+#shareHint { top: calc(161px + env(safe-area-inset-top, 0px)); }
+#roomHint { top: calc(199px + env(safe-area-inset-top, 0px)); }
 #redHint.hide, #shareHint.hide, #roomHint.hide { display: none; }
 #bRed.callout, #bShare.callout, #bRoom.callout { animation: fsPulse 1.6s ease-out infinite; }
 #langPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65);
