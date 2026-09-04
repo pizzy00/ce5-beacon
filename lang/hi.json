@@ -794,5 +794,11 @@
  "THAT IS TODAY'S SIX · MORE TOMORROW": "आज के छह हो गए · कल और",
  "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES": "भेज दिया · कुछ मिनटों में सार्वजनिक बोर्ड पर आ जाएगा",
  "LEFT TODAY": "आज बाकी",
- "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "सिर्फ़ सादे शब्द · लिंक, कोड और मार्कअप रास्ते में हटा दिए जाते हैं · हर डिवाइस से दिन में छह"
+ "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "सिर्फ़ सादे शब्द · लिंक, कोड और मार्कअप रास्ते में हटा दिए जाते हैं · हर डिवाइस से दिन में छह",
+ "IN-APP BROWSER · OPEN THIS PAGE IN CHROME FOR THE BUZZ": "इन-ऐप ब्राउज़र · बज़ के लिए यह पेज CHROME में खोलें",
+ "BUZZ": "बज़",
+ "ACCEPTED": "स्वीकार",
+ "REFUSED": "अस्वीकार",
+ "TOUCH ACTIVE": "टच सक्रिय",
+ "NO TOUCH ACTIVATION": "टच सक्रियण नहीं"
 }

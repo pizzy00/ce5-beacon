@@ -794,5 +794,11 @@
  "THAT IS TODAY'S SIX · MORE TOMORROW": "今日の6件は終わりです · また明日",
  "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES": "送信しました · 数分でみんなの掲示板に載ります",
  "LEFT TODAY": "今日の残り",
- "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "ふつうの言葉だけ · リンク、コード、マークアップは途中で取り除かれます · 1台につき1日6件"
+ "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "ふつうの言葉だけ · リンク、コード、マークアップは途中で取り除かれます · 1台につき1日6件",
+ "IN-APP BROWSER · OPEN THIS PAGE IN CHROME FOR THE BUZZ": "アプリ内ブラウザ · 振動を使うにはこのページを CHROME で開いてください",
+ "BUZZ": "振動",
+ "ACCEPTED": "受け付けました",
+ "REFUSED": "拒否されました",
+ "TOUCH ACTIVE": "タッチ有効",
+ "NO TOUCH ACTIVATION": "タッチによる有効化なし"
 }

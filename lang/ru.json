@@ -794,5 +794,11 @@
  "THAT IS TODAY'S SIX · MORE TOMORROW": "ЭТО ШЕСТЬ НА СЕГОДНЯ · ЗАВТРА ЕЩЁ",
  "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES": "ОТПРАВЛЕНО · ПОЯВИТСЯ НА ОБЩЕЙ ДОСКЕ ЧЕРЕЗ НЕСКОЛЬКО МИНУТ",
  "LEFT TODAY": "ОСТАЛОСЬ СЕГОДНЯ",
- "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "ТОЛЬКО ПРОСТЫЕ СЛОВА · ССЫЛКИ, КОД И РАЗМЕТКА ОТБРАСЫВАЮТСЯ ПО ПУТИ · ШЕСТЬ В ДЕНЬ С УСТРОЙСТВА"
+ "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "ТОЛЬКО ПРОСТЫЕ СЛОВА · ССЫЛКИ, КОД И РАЗМЕТКА ОТБРАСЫВАЮТСЯ ПО ПУТИ · ШЕСТЬ В ДЕНЬ С УСТРОЙСТВА",
+ "IN-APP BROWSER · OPEN THIS PAGE IN CHROME FOR THE BUZZ": "ВСТРОЕННЫЙ БРАУЗЕР · ОТКРОЙТЕ ЭТУ СТРАНИЦУ В CHROME ДЛЯ ВИБРАЦИИ",
+ "BUZZ": "ВИБРАЦИЯ",
+ "ACCEPTED": "ПРИНЯТА",
+ "REFUSED": "ОТКЛОНЕНА",
+ "TOUCH ACTIVE": "КАСАНИЕ АКТИВНО",
+ "NO TOUCH ACTIVATION": "НЕТ АКТИВАЦИИ КАСАНИЕМ"
 }

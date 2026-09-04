@@ -794,5 +794,11 @@
  "THAT IS TODAY'S SIX · MORE TOMORROW": "هذه ست اليوم · المزيد غدًا",
  "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES": "أُرسلت · تصل إلى اللوحة العامة خلال دقائق",
  "LEFT TODAY": "المتبقي اليوم",
- "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "كلمات بسيطة فقط · الروابط والشيفرة والوسوم تُحذف في الطريق · ست في اليوم لكل جهاز"
+ "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "كلمات بسيطة فقط · الروابط والشيفرة والوسوم تُحذف في الطريق · ست في اليوم لكل جهاز",
+ "IN-APP BROWSER · OPEN THIS PAGE IN CHROME FOR THE BUZZ": "متصفح داخل التطبيق · افتح هذه الصفحة في CHROME من أجل الاهتزاز",
+ "BUZZ": "الاهتزاز",
+ "ACCEPTED": "مقبول",
+ "REFUSED": "مرفوض",
+ "TOUCH ACTIVE": "اللمس نشط",
+ "NO TOUCH ACTIVATION": "لا تفعيل باللمس"
 }

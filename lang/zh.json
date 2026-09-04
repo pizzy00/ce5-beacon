@@ -794,5 +794,11 @@
  "THAT IS TODAY'S SIX · MORE TOMORROW": "今天的六条已用完 · 明天再来",
  "SENT · IT LANDS ON THE PUBLIC BOARD WITHIN A FEW MINUTES": "已发送 · 几分钟内会出现在公共留言板上",
  "LEFT TODAY": "今日剩余",
- "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "只写普通文字 · 链接、代码和标记会在途中被丢弃 · 每台设备每天六条"
+ "PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE": "只写普通文字 · 链接、代码和标记会在途中被丢弃 · 每台设备每天六条",
+ "IN-APP BROWSER · OPEN THIS PAGE IN CHROME FOR THE BUZZ": "应用内浏览器 · 请在 Chrome 中打开本页以使用振动",
+ "BUZZ": "振动",
+ "ACCEPTED": "已接受",
+ "REFUSED": "被拒绝",
+ "TOUCH ACTIVE": "触摸已激活",
+ "NO TOUCH ACTIVATION": "无触摸激活"
 }
