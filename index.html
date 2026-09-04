@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=43" />
+<link rel="stylesheet" href="styles.css?v=44" />
 </head>
 <body class="intro introHud">
 
@@ -781,11 +781,13 @@
     <div class="bdBtns" style="margin-top:8px"><span class="setBtn" id="bIdeaSend">SEND IT UP</span></div>
     <div class="setStat" id="ideaStat"></div>
     <div class="setStat">PLAIN WORDS ONLY · LINKS, CODE AND MARKUP ARE DROPPED ON THE WAY · SIX A DAY PER DEVICE</div>
+    <div id="ideaMsgBlock" class="hide">                        <!-- the greeting lives at the foot of the settings page, only there (his call, 09-04) -->
     <div class="setLbl" style="margin-top:14px">SENDING A GREETING TO THEM INSTEAD?</div>
     <div class="setStat">THAT IS NOT AN IDEA FOR ME — IT IS THE MESSAGE YOUR BEACON TRANSMITS IN MORSE. SET IT HERE AND IT GOES OUT ON YOUR NEXT TRIP.</div>
     <input id="ideaMsg" dir="auto" maxlength="80" autocomplete="off" spellcheck="false" placeholder="ONE HUMAN. ZERO FEAR. NO ORBS." />
     <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bIdeaMsg">MAKE IT MY MESSAGE</span></div>
     <div class="setStat" id="ideaMsgStat"></div>
+    </div>
     <div class="setLbl" style="margin-top:12px">WHAT OTHERS ASKED FOR — READ BEFORE SENDING A TWIN</div>
     <div id="ideaList"><div class="setStat">READING THE BOARD…</div></div>
   </div>
@@ -4264,7 +4266,7 @@ function guideShow(i) {
   const st = GUIDE[i]; if (!st) return guideEnd();
   guideAt = i;
   if (st.el === "bEngage") { clearTimeout(coverTimer); if (!coverOpen) { coverOpen = true; $("bEngage").classList.add("open"); sfx("cover"); } }   // the cover comes up while the voice explains it, and stays up for the step
-  else if (coverOpen) { clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 9000); }                                                     // past that step: it closes on its own, as it always does
+  else if (coverOpen) { clearTimeout(coverTimer); coverClose(); sfx("cover"); }                                                                 // past that step: the cover goes back down, nothing is left armed
   const r = guideRect(st), sp = $("guideSpot"), card = $("guideCard");
   sp.style.left = r.x + "px"; sp.style.top = r.y + "px"; sp.style.width = r.w + "px"; sp.style.height = r.h + "px";
   sp.style.borderRadius = st.earth ? "50%" : "12px";
@@ -4298,7 +4300,7 @@ function guideStart(force) {
 }
 function guideEnd() {
   if (!$("guide").classList.contains("hide")) sfx("cover");
-  if (coverOpen) { clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 9000); }   // the tour lifted it: it closes on its own from here
+  if (coverOpen) { clearTimeout(coverTimer); coverClose(); }   // the tour lifted it: the tour puts it back
   $("guide").classList.add("hide"); guideAt = -1; clearTimeout(guideAutoT); voiceStop();
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
   setTimeout(fsCallout, 500);                                   // then the corner keys introduce themselves, one at a time
@@ -6378,7 +6380,12 @@ function morseString(text) { return morseWords(text).map((w) => w.join(" ")).joi
 /* the buzz: the phone vibrates with the show (his ask, 09-04). Off by default. Android only: Apple never allowed navigator.vibrate */
 const BUZZ_KEY = { morse: "buzzMorse", nuke: "buzzNuke", land: "buzzLand", bridge: "buzzBridge" };
 function buzzCan() { return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"; }
-function buzzRaw(pat) { if (!buzzCan()) return false; try { return !!navigator.vibrate(pat); } catch (e) { return false; } }
+function buzzRaw(pat) {
+  if (!buzzCan()) return false;
+  try { if (navigator.vibrate(pat)) return true; } catch (e) {}
+  try { return !!navigator.vibrate(Array.isArray(pat) ? Math.max(80, pat[0] | 0) : (pat | 0)); } catch (e) { return false; }   // refused as a pattern: once more as a plain number
+}
+let buzzLast = "";                                              // the last test's read-back, shown under the key
 function buzz(kind, pat) { if (!S.buzz || S[BUZZ_KEY[kind]] === false) return; buzzRaw(pat); }
 function buzzOff() { if (S.buzz) buzzRaw(0); }
 function browserTag() {                                          // which browser this is, for the read-back: an in-app browser (WebView) cannot buzz
@@ -6395,7 +6402,7 @@ const browserLine = () => { const b = browserTag(); return b === "IN-APP" ? tx("
 function buzzStat() {
   const el = $("buzzStat"); if (!el) return;
   el.textContent = tx(!buzzCan() ? "THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT"
-    : S.buzz ? "ON · THE PHONE BUZZES WITH THE MORSE, THE NUKE, THE LANDING AND THE BRIDGE" : "OFF · TURN IT ON, THEN TRY IT") + " · " + browserLine();
+    : S.buzz ? "ON · THE PHONE BUZZES WITH THE MORSE, THE NUKE, THE LANDING AND THE BRIDGE" : "OFF · TURN IT ON, THEN TRY IT") + " · " + browserLine() + (buzzLast ? "\n" + buzzLast : "");
 }
 function bridgeBuzz() {                                          // a throb that quickens through the throat, as long as his slider says
   const total = Math.max(2000, (S.bridgeSec || 8) * 1000), pat = []; let t = 0, gap = 460;
@@ -8352,7 +8359,8 @@ $("bBuzzTest").onclick = () => {                                 // works with t
   const okv = buzzRaw([400, 150, 700]);                          // long, gap, longer: nothing subtle
   log(okv ? "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR"
           : "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK SILENT MODE AND SYSTEM VIBRATION", okv ? "cy" : "alert");
-  log(tx("BUZZ") + " " + (okv ? tx("ACCEPTED") : tx("REFUSED")) + " · " + browserLine() + " · " + (navigator.userActivation && navigator.userActivation.isActive ? tx("TOUCH ACTIVE") : tx("NO TOUCH ACTIVATION")), okv ? "cy" : "alert");   // the one line to read back
+  buzzLast = tx("BUZZ") + " " + (okv ? tx("ACCEPTED") : tx("REFUSED")) + " · " + browserLine() + " · " + (navigator.userActivation && navigator.userActivation.isActive ? tx("TOUCH ACTIVE") : tx("NO TOUCH ACTIVATION")) + " · " + new Date().toTimeString().slice(0, 8);
+  log(buzzLast, okv ? "cy" : "alert"); buzzStat();               // the one line to read back: on the CRT and under the key
 };
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
