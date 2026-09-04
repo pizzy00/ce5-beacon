@@ -179,8 +179,8 @@
         <option value="eso">THE WHOLE MILKY WAY &#8212; A 360&#176; PANORAMA OF OUR OWN GALAXY FROM THE INSIDE</option>
         <option value="off">NONE &#8212; THE DRAWN SKY ONLY</option>
       </select>
-      <div class="setLbl">HOW BRIGHT THE PHOTOGRAPH SITS &#8212; <span id="vSky">35</span>%</div>
-      <input type="range" id="rSky" min="10" max="100" step="5" value="35" />
+      <div class="setLbl">HOW BRIGHT THE PHOTOGRAPH SITS &#8212; <span id="vSky">20</span>%</div>
+      <input type="range" id="rSky" min="10" max="100" step="5" value="20" />
       <div class="setLbl">PHOTOGRAPHS: NASA, ESA, H. TEPLITZ AND M. RAFELSKI (IPAC/CALTECH), A. KOEKEMOER (STSCI), R. WINDHORST (ASU), Z. LEVAY (STSCI) &#183; NASA, ESA, G. ILLINGWORTH, D. MAGEE, P. OESCH (UCSC), R. BOUWENS (LEIDEN) AND THE HUDF09 TEAM &#183; ESO / S. BRUNIER &#183; CC BY 4.0</div>
     </div>
     </div>
@@ -847,7 +847,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
-  deep: false, deepA: 0.15, sky: "hudf", skyA: 0.35, spin: 0.05, trails: true, planets: true, traffic: true,
+  deep: false, deepA: 0.15, sky: "hudf", skyA: 0.2, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
@@ -7607,7 +7607,7 @@ function loadSettings() {
   if (S.voice === false) S.voiceSex = "off";                    // the old tick box, unticked = NONE
   S.voice = S.voiceSex !== "off";
   if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;
-  if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1)) S.skyA = 0.35;   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
+  if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1) || (S.skyA === 0.35 && !S.skyASet)) S.skyA = 0.2;   // 20% keeps the systems readable on a bright phone; an untouched 35% steps down   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
   if (S.guideAuto === undefined) S.guideAuto = true;
   if (S.pyr === undefined) S.pyr = true;
   if (S.terran === undefined) S.terran = true;                  // saves from before the switch                        // saves from before the pyramids stood
@@ -7773,7 +7773,7 @@ $("ckGuideAuto").onchange = (e) => { S.guideAuto = e.target.checked; if (!S.guid
 $("ckNoGuide").onchange = (e) => { S.noGuide = e.target.checked; try { if (S.noGuide) localStorage.setItem(GUIDE_KEY, "1"); else localStorage.removeItem(GUIDE_KEY); } catch (er) {} };   // unticked: it shows once more on the next open
 $("ckDeep").onchange = (e) => { S.deep = e.target.checked; if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
 $("selSky").onchange = (e) => { S.sky = e.target.value; skyLoad(); };
-$("rSky").oninput = (e) => { S.skyA = +e.target.value / 100; $("vSky").textContent = e.target.value; };
+$("rSky").oninput = (e) => { S.skyA = +e.target.value / 100; S.skyASet = true; $("vSky").textContent = e.target.value; };
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
 $("rSys").oninput = (e) => { S.sysHold = 23 - +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
