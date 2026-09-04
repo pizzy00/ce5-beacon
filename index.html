@@ -172,6 +172,16 @@
       <label class="setChk"><input type="checkbox" id="ckDeep" />REAL GALAXIES IN THE BACKGROUND — M31 IS ON THE CHART, THESE ARE THE REST</label>
       <div class="setLbl">HOW BRIGHT THE GALAXIES SIT — <span id="vDeep">15</span>%</div>
       <input type="range" id="rDeep" min="0" max="40" step="1" value="15" />
+      <div class="setLbl">A REAL PHOTOGRAPH OF THE UNIVERSE BEHIND THE SKY &#8212; IT COMES IN LAST, AFTER THE OPENING, AND DRIFTS WITH THE TURN</div>
+      <select id="selSky">
+        <option value="hudf">HUBBLE ULTRA DEEP FIELD &#8212; 10,000 GALAXIES IN ONE SPECK OF SKY, 13 BILLION YEARS DEEP</option>
+        <option value="xdf">HUBBLE EXTREME DEEP FIELD &#8212; THE DEEPEST LOOK EVER TAKEN, 5,500 GALAXIES</option>
+        <option value="eso">THE WHOLE MILKY WAY &#8212; A 360&#176; PANORAMA OF OUR OWN GALAXY FROM THE INSIDE</option>
+        <option value="off">NONE &#8212; THE DRAWN SKY ONLY</option>
+      </select>
+      <div class="setLbl">HOW BRIGHT THE PHOTOGRAPH SITS &#8212; <span id="vSky">35</span>%</div>
+      <input type="range" id="rSky" min="10" max="100" step="5" value="35" />
+      <div class="setLbl">PHOTOGRAPHS: NASA, ESA, H. TEPLITZ AND M. RAFELSKI (IPAC/CALTECH), A. KOEKEMOER (STSCI), R. WINDHORST (ASU), Z. LEVAY (STSCI) &#183; NASA, ESA, G. ILLINGWORTH, D. MAGEE, P. OESCH (UCSC), R. BOUWENS (LEIDEN) AND THE HUDF09 TEAM &#183; ESO / S. BRUNIER &#183; CC BY 4.0</div>
     </div>
     </div>
 
@@ -837,7 +847,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   crt: false, vig: false, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: true, jwst: true, hubble: false, terran: true, voyager: true, iss: true, starlink: false, starman: false,
   nukeAll: true, cache: "normal", vol: 0.7,
-  deep: false, deepA: 0.15, spin: 0.05, trails: true, planets: true, traffic: true,
+  deep: false, deepA: 0.15, sky: "hudf", skyA: 0.35, spin: 0.05, trails: true, planets: true, traffic: true,
   earthSrc: "photo", cloudA: 0.15, cloudSpd: 0.6, uTime: 600, exo: false, attract: true, sysHold: 7.5,
   shipSpd: 1, shipRnd: false, roadster: false, sites: true, pyr: true, nukes: false, timeline: false, opening: true, faces: true, face: "both", sfx: true, voice: true, voiceSex: "m", voiceRate: 1.3, guideAuto: true, flySnd: true, amb: true, fps: false, noGuide: false, lore: true, tapLook: true, pursue: false, uso: false, trueSky: true, bBar: true, iso: true, fleetN: 3, fleetTag: true, poles: true, ages: false,
   sysOn: { zeta: true, plei: true, siri: true, arct: true, vega: true, orio: true, andr: true, proc: true, drac: false, erid: true, acen: true },
@@ -1038,7 +1048,8 @@ function crumbNext(p) {                                          // what the jou
     case "bridge": return "SLOW DESCENT";
     case "warp": case "polaris": case "voyager": case "sun": case "starman": case "jwst": case "moon": case "hubble": case "iss": {
       const n = typeof stageAfter === "function" ? stageAfter(p) : null;
-      return (n && STAGE_LABEL[n]) || "TERRAN APPROACH";
+      if (n === "earth" && S.terran === false) return "SLOW DESCENT";                          // the grid world is switched off: the map is next
+      return (n && STAGE_LABEL[n]) || (S.terran === false ? "SLOW DESCENT" : "TERRAN APPROACH");
     }
     case "earth": return "SLOW DESCENT";
     case "dive": return flashOn ? "TOUCHDOWN \u00b7 THEN THE FLASH" : "TOUCHDOWN";
@@ -1187,6 +1198,51 @@ function paintDeepSky(shift, mul) {                             // drawn twice s
   ctx.drawImage(deepCvs, x, 0, W, H);
   ctx.globalAlpha = 1;
 }
+/* the photograph behind the sky: a Hubble deep field or the ESO Milky Way, baked once to screen size with a mirrored copy beside it, so the drift never shows a seam */
+const SKY_SRC = { hudf: "sky/hudf.jpg", xdf: "sky/xdf.jpg", eso: "sky/eso.jpg" }, SKY_WRAP = { eso: true };   // the panorama is a true 360: it wraps as it is
+let skyImg = null, skyCvs = null, skyKey = "", skyAt = 0, skyP = 0;
+function skyLoad() {                                            // (re)load the chosen photograph; nothing fetched when it is off
+  const key = S.sky && SKY_SRC[S.sky] ? S.sky : "";
+  if (key === skyKey) return;
+  skyKey = key; skyCvs = null; skyImg = null;
+  if (!key) return;
+  const im = new Image(); im.decoding = "async";
+  im.onload = () => { if (skyImg !== im) return; skyAt = performance.now(); buildSkyPhoto(); };
+  im.onerror = () => { if (skyImg === im) skyImg = null; };
+  im.src = SKY_SRC[key]; skyImg = im;
+}
+function buildSkyPhoto() {                                      // cover-fit, then the tail crossfaded into the head over a wide overlap: the strip tiles with no seam
+  if (!skyImg || !skyImg.naturalWidth || !W || !H) { skyCvs = null; return; }
+  const iw = skyImg.naturalWidth, ih = skyImg.naturalHeight, k = Math.max(W / iw, H / ih), dw = iw * k, dh = ih * k, dy = (H - dh) / 2;
+  const ov = SKY_WRAP[skyKey] ? 0 : Math.round(Math.max(dw * 0.14, Math.min(dw * 0.36, dw - W)));   // as wide an overlap as the screen allows
+  const P = Math.max(1, Math.round(dw - ov));
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(1, Math.round(P * DPR)); cv.height = Math.max(1, Math.round(H * DPR));
+  const c = cv.getContext("2d");
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  c.imageSmoothingEnabled = true; try { c.imageSmoothingQuality = "high"; } catch (e) {}
+  c.drawImage(skyImg, 0, dy, dw, dh);                            // the head of the photograph fills the strip
+  if (ov > 0) {                                                  // the tail, fading out left to right, laid over the head
+    const tc = document.createElement("canvas");
+    tc.width = Math.max(1, Math.round(ov * DPR)); tc.height = cv.height;
+    const t = tc.getContext("2d"); t.setTransform(DPR, 0, 0, DPR, 0, 0);
+    t.imageSmoothingEnabled = true; try { t.imageSmoothingQuality = "high"; } catch (e) {}
+    t.drawImage(skyImg, -(dw - ov), dy, dw, dh);
+    const g = t.createLinearGradient(0, 0, ov, 0); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    t.globalCompositeOperation = "destination-in"; t.fillStyle = g; t.fillRect(0, 0, ov, H);
+    c.drawImage(tc, 0, 0, ov, H);
+  }
+  skyCvs = cv; skyP = P;
+}
+function paintSkyPhoto(shift, mul) {                            // under everything; arrives softly once loaded, never pops
+  if (!skyCvs || !S.sky || S.sky === "off") return;
+  const a = (S.skyA || 0) * (mul === undefined ? 1 : mul) * Math.min(1, (performance.now() - skyAt) / 2400);
+  if (a <= 0.003) return;
+  const P = skyP || W, x = (((shift % P) + P) % P);
+  ctx.globalAlpha = Math.min(1, a);
+  for (let tx = x - P; tx < W; tx += P) ctx.drawImage(skyCvs, tx, 0, P, H);   // as many tiles as the screen needs
+  ctx.globalAlpha = 1;
+}
 let W = 0, H = 0, DPR = 1, bgStars = [], warpStars = [];
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
@@ -1200,6 +1256,7 @@ function resize() {
     x: rnd() * W, y: rnd() * H, r: rnd() * 1.1 + 0.2, tw: rnd() * 6.28
   }));
   if (S.deep && S.deepA > 0) buildDeepSky(); else deepCvs = null;   // off by default: do not bake a full screen nobody draws
+  buildSkyPhoto();                                              // the photograph re-bakes for the new size
   measureCtl();
 }
 addEventListener("resize", resize); resize();
@@ -3812,7 +3869,7 @@ function drawTimeline(t) {
 function drawChart(t) {
   if (S.chart3d) return drawChart3D(t);
   ctx.clearRect(0, 0, W, H);
-  paintDeepSky(0);
+  paintSkyPhoto(0); paintDeepSky(0);
   for (const s of bgStars) {
     ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + s.tw);
     ctx.fillStyle = "#cfd6ff";
@@ -4039,6 +4096,7 @@ function guideShow(i) {
   $("guideHd").textContent = G ? G.guide[i][0] : st.hd; $("guideTx").textContent = G ? G.guide[i][1] : st.tx;
   $("guideNext").textContent = i === GUIDE.length - 1 ? B.done : B.next; $("guideSkip").textContent = B.skip;
   $("guideLang").textContent = (LANGS.find((l) => l[0] === uiLang) || LANGS[0])[1] + " \u25be";
+  $("guideCard").dir = uiLang === "ar" ? "rtl" : "ltr";                                       // Arabic reads from the right
   clearTimeout(guideAutoT);
   voiceSay("guide-" + (i + 1), () => {                        // the voice reads the step; two seconds after it ends the guide moves on (if asked to)
     if (S.guideAuto === false || guideAt !== i) return;
@@ -4089,7 +4147,7 @@ function drawChart3D(t) {
   }
   ctx.clearRect(0, 0, W, H);
   const IKD = introK().sky;                                      // the opening: the galaxies and the far stars come dead last
-  if (IKD > 0) paintDeepSky(chartRot * 40, IKD);
+  if (IKD > 0) { paintSkyPhoto(chartRot * 40, IKD); paintDeepSky(chartRot * 40, IKD); }
   for (const s of bgStars) {
     ctx.globalAlpha = 0.42 * IKD;                               // steady stars: the blinking read as noise
     ctx.fillStyle = "#cfd6ff";
@@ -5161,7 +5219,7 @@ function loop(ts) {
   const t = ts / 1000;
   const seg = (ms) => Math.min(1, Math.max(0, (ts - t0) / (reduced ? Math.min(ms, 900) : ms * S.spaceMul)));
   const segF = () => Math.min(1, Math.max(0, (ts - t0) / (reduced ? 900 : S.flyby * 1000)));   // his flyby slider, in seconds
-  if (DEEP_PHASES[phase]) paintDeepSky(t * 6, 1.25);           // the real deep sky, faint, drifting behind the flybys
+  if (DEEP_PHASES[phase]) { paintSkyPhoto(t * 6, 0.85); paintDeepSky(t * 6, 1.25); }           // the real deep sky, faint, drifting behind the flybys
   if (phase === "chart") drawChart(t);
   else if (phase === "origin") {
     const mode = modeOf(), p = seg((mode === "bermuda" ? 17000 : 12000) * S.originMul);
@@ -6614,7 +6672,7 @@ function voiceSay(name, onEnd) {                                 // muted means 
   voiceEl = a; voiceName = name;
   a.onerror = () => {                                           // a language clip not there yet: the English one steps in
     if (voiceEl !== a) return;
-    if (VOICE_LANGS.has(uiLang) && a.src.indexOf("/voice/" + uiLang + "/") >= 0) { const en = new Audio(a.src.replace("/voice/" + uiLang + "/", "/voice/")); en.volume = a.volume; en.playbackRate = a.playbackRate; en.onended = a.onended; en.onerror = () => { if (voiceEl === en) { voiceEl = null; voiceName = ""; } }; voiceEl = en; const p2 = en.play(); if (p2 && p2.catch) p2.catch(() => {}); return; }
+    if (VOICE_LANGS.has(uiLang) && a.src.indexOf("/voice/" + uiLang + "/") >= 0) { const en = new Audio(a.src.replace("/voice/" + uiLang + "/", "/voice/")); en.volume = a.volume; en.playbackRate = a.playbackRate; en.onended = () => { if (voiceEl === en) { voiceEl = null; voiceName = ""; } if (onEnd) onEnd(); }; en.onerror = () => { if (voiceEl === en) { voiceEl = null; voiceName = ""; } }; voiceEl = en; const p2 = en.play(); if (p2 && p2.catch) p2.catch(() => {}); return; }
     voiceEl = null; voiceName = "";
   };
   a.onended = () => { if (voiceEl === a) { voiceEl = null; voiceName = ""; } if (onEnd) onEnd(); };
@@ -7548,7 +7606,8 @@ function loadSettings() {
   if (S.voiceSex !== "f" && S.voiceSex !== "off") S.voiceSex = "m";
   if (S.voice === false) S.voiceSex = "off";                    // the old tick box, unticked = NONE
   S.voice = S.voiceSex !== "off";
-  if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;   // 1.3 is the pace he settled on; an untouched 1.1 follows
+  if (!(S.voiceRate >= 0.8 && S.voiceRate <= 1.6) || (S.voiceRate === 1.1 && !S.voiceRateSet)) S.voiceRate = 1.3;
+  if (!/^(hudf|xdf|eso|off)$/.test(S.sky)) S.sky = "hudf"; if (!(S.skyA >= 0.1 && S.skyA <= 1)) S.skyA = 0.35;   // the photograph behind the sky: on unless he says otherwise   // 1.3 is the pace he settled on; an untouched 1.1 follows
   if (S.guideAuto === undefined) S.guideAuto = true;
   if (S.pyr === undefined) S.pyr = true;
   if (S.terran === undefined) S.terran = true;                  // saves from before the switch                        // saves from before the pyramids stood
@@ -7576,7 +7635,8 @@ function applyS() {                                             // push S into e
   chk("ckIss", S.iss); chk("ckTerran", S.terran !== false); chk("ckStar", S.starlink); chk("ckNukeAll", S.nukeAll);
   set("selCache", S.cache); set("selMotion", S.motion);
   reduced = S.motion === "auto" && reducedPref;                 // FULL still ignores the phone: picking FOLLOW now means it
-  if (S.deep && S.deepA > 0 && !deepCvs && typeof buildDeepSky === "function") buildDeepSky();   // a saved REAL GALAXIES layer bakes on load, not only on a resize
+  if (S.deep && S.deepA > 0 && !deepCvs && typeof buildDeepSky === "function") buildDeepSky();
+  skyLoad();                                                    // the photograph starts loading now; it fades in when it lands (after the opening on a first visit)   // a saved REAL GALAXIES layer bakes on load, not only on a resize
   if (typeof useEarthSource === "function") useEarthSource();   // RESET and a shared code swap the Earth's skin too
   set("selTrig", S.bTrig); set("rSites", S.bSites); txt("vSites", S.bSites); chk("ckNow", S.bNow);
   set("rOrbit", 34 - S.bOrbit); txt("vOrbit", S.bOrbit);
@@ -7594,6 +7654,7 @@ function applyS() {                                             // push S into e
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckSfx", S.sfx); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
   chk("ckDeep", S.deep); set("rDeep", Math.round(S.deepA * 100)); txt("vDeep", Math.round(S.deepA * 100));
+  set("selSky", S.sky); set("rSky", Math.round(S.skyA * 100)); txt("vSky", Math.round(S.skyA * 100));
   chk("ckTrails", S.trails); set("rSpin", Math.round(S.spin * 100)); txt("vSpin", spinText(S.spin)); chk("ckAttract", S.attract);
   set("rSys", 23 - S.sysHold); txt("vSys", (+S.sysHold).toFixed(1));
   chk("ckPlanets", S.planets); chk("ckTraffic", S.traffic); chk("ckRoadster", S.roadster); chk("ckIso", S.iso);
@@ -7711,6 +7772,8 @@ $("ckFps").onchange = (e) => { S.fps = e.target.checked; fpsRun(); };
 $("ckGuideAuto").onchange = (e) => { S.guideAuto = e.target.checked; if (!S.guideAuto) clearTimeout(guideAutoT); };
 $("ckNoGuide").onchange = (e) => { S.noGuide = e.target.checked; try { if (S.noGuide) localStorage.setItem(GUIDE_KEY, "1"); else localStorage.removeItem(GUIDE_KEY); } catch (er) {} };   // unticked: it shows once more on the next open
 $("ckDeep").onchange = (e) => { S.deep = e.target.checked; if (S.deep && S.deepA > 0 && !deepCvs) buildDeepSky(); };
+$("selSky").onchange = (e) => { S.sky = e.target.value; skyLoad(); };
+$("rSky").oninput = (e) => { S.skyA = +e.target.value / 100; $("vSky").textContent = e.target.value; };
 $("ckTrails").onchange = (e) => (S.trails = e.target.checked);
 $("ckAttract").onchange = (e) => { S.attract = e.target.checked; lastUserPick = 0; };
 $("rSys").oninput = (e) => { S.sysHold = 23 - +e.target.value; $("vSys").textContent = S.sysHold.toFixed(1); };
