@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v64";
+const VER = "ce5-v66";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -27,6 +27,7 @@ const PRECACHE = [
   "./earth/day.jpg",
   "./earth/night.jpg",
   "./earth/clouds.jpg",
+  "./earth/moon.jpg",
   "./sky/hudf.jpg",
   "./species/greys-f.jpg", "./species/greys-m.jpg", "./species/nordics-f.jpg", "./species/nordics-m.jpg", "./species/sirians-f.jpg", "./species/sirians-m.jpg", "./species/arcturians-f.jpg", "./species/arcturians-m.jpg", "./species/lyrans-f.jpg", "./species/lyrans-m.jpg", "./species/orion-f.jpg", "./species/orion-m.jpg", "./species/andromedans-f.jpg", "./species/andromedans-m.jpg", "./species/reptilians-f.jpg", "./species/reptilians-m.jpg", "./species/eben-f.jpg", "./species/eben-m.jpg", "./species/archquloid-f.jpg", "./species/archquloid-m.jpg", "./species/quadloid-f.jpg", "./species/quadloid-m.jpg", "./species/trantaloid-f.jpg", "./species/trantaloid-m.jpg", "./species/trantmask-f.jpg", "./species/trantmask-m.jpg", "./species/plejaren-f.jpg", "./species/plejaren-m.jpg", "./species/oriongrey-f.jpg", "./species/oriongrey-m.jpg",
   "./voice/guide-1.mp3", "./voice/guide-2.mp3", "./voice/guide-3.mp3", "./voice/guide-4.mp3", "./voice/guide-5.mp3", "./voice/guide-6.mp3", "./voice/guide-7.mp3", "./voice/guide-8.mp3", "./voice/guide-9.mp3", "./voice/sys-zeta.mp3", "./voice/sys-plei.mp3", "./voice/sys-siri.mp3", "./voice/sys-arct.mp3", "./voice/sys-vega.mp3", "./voice/sys-orio.mp3", "./voice/sys-andr.mp3", "./voice/sys-proc.mp3", "./voice/sys-drac.mp3", "./voice/sys-erid.mp3", "./voice/sys-acen.mp3",
