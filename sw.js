@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v68";
+const VER = "ce5-v69";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 

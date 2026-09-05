@@ -6833,7 +6833,7 @@ const earthLook = () => (globeView && !globeView.out) || earthZoom > 1.05;   // 
 function chartTap(cx, cy) {
   const cand = [];                                               // everything under the finger; the nearest (by its own reach) wins
   for (const m of modeHit) {                                     // the spots on the globe, and the Moon
-    if (m.id === "luna" && earthLook()) continue;                 // leaned in: the Moon is not on offer
+    if (m.id === "luna" ? earthLook() : !earthLook()) continue;    // leaned in: the Moon is not on offer; at rest: the pins on the Earth are not (his call, 09-04)
     const d = Math.hypot(cx - m.x, cy - m.y); if (d > 22) continue;
     const o = MODES.find((q) => q.id === m.id); if (!o) continue;
     cand.push({ k: d / 22, act: () => { pickDeparture(o);
@@ -6841,10 +6841,10 @@ function chartTap(cx, cy) {
       if (o.id === "berm" && loreOn("anon")) log("THE UNIT, AS A 2023 /X/ ANON TOLD IT: A BUILDER THAT ALMOST NEVER LEAVES THE TRIANGLE, RUNS DARK, MAKES EVERY CRAFT TO ORDER AND MELTS THEM BACK DOWN \u00b7 HERE SINCE 4000 BC, SOME SAID \u00b7 A CLAIM", "cy");
     } });
   }
-  for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
-  for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 9) cand.push({ k: d / 9, act: () => { blip(980, 980, 0.07, 0.04); usoRead(h.r); } }); }   // a teal dot: a water sighting
-  for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); siteOpen(h.q); } }); }   // an old place: its card, and the voice
-  for (const h of nukeHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(620, 620, 0.09, 0.05); log(h.q.n + " \u2014 " + h.q.s, "rd"); } }); }   // a test site: its line   // an old place: its story
+  if (earthLook()) for (const h of pursueHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 11) cand.push({ k: d / 11, act: () => { blip(980, 980, 0.07, 0.04); pursueRead(h.q); } }); }   // a cyan square: a released file
+  if (earthLook()) for (const h of usoHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 9) cand.push({ k: d / 9, act: () => { blip(980, 980, 0.07, 0.04); usoRead(h.r); } }); }   // a teal dot: a water sighting
+  if (earthLook()) for (const h of siteHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(980, 980, 0.07, 0.04); log(h.q.n + " \u2014 " + h.q.s, "cy"); siteOpen(h.q); } }); }   // an old place: its card, and the voice
+  if (earthLook()) for (const h of nukeHit) { const d = Math.hypot(cx - h.x, cy - h.y); if (d < 12) cand.push({ k: d / 12, act: () => { blip(620, 620, 0.09, 0.05); log(h.q.n + " \u2014 " + h.q.s, "rd"); } }); }   // a test site: its line   // an old place: its story
   if (cand.length) { cand.sort((a, b) => a.k - b.k)[0].act(); return true; }
   if (earthLook()) return false;                                 // looking at the world: the sky is behind glass
   const G = earthGeom();
