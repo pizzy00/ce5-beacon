@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v69";
+const VER = "ce5-v70";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -11,7 +11,7 @@ const LIVE = VER + "-live";
 const PRECACHE = [
   "./",
   "./index.html",
-  "./styles.css?v=44",
+  "./styles.css?v=45",
   "./manifest.json",
   "./vendor/leaflet/leaflet.js?v=1",
   "./vendor/leaflet/leaflet.min.css?v=1",
@@ -44,10 +44,13 @@ const PRECACHE = [
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(SHELL).then((c) =>
-      /* one bad file must not sink the whole install */
-      Promise.all(PRECACHE.map((u) => c.add(u).catch(() => null)))
-    ).then(() => self.skipWaiting())
+    caches.open(SHELL).then((c) => {
+      /* four at a time, so the page's own requests (the splash portrait, the maps) are never queued behind a hundred of
+         ours on a first visit; one bad file must not sink the whole install */
+      const q = PRECACHE.slice();
+      const worker = () => (q.length ? c.add(q.shift()).catch(() => null).then(worker) : Promise.resolve());
+      return Promise.all([worker(), worker(), worker(), worker()]);
+    }).then(() => self.skipWaiting())
   );
 });
 

@@ -447,7 +447,7 @@
   @media (prefers-reduced-motion: reduce) and (min-width: 99999px) { #hintDT { animation: none; opacity: 0.9; } }
   #tapBegin { position: fixed; inset: 0; z-index: 30; background: #000; display: flex; align-items: flex-start; justify-content: center;
     padding: 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
-  #tapBegin > div { margin: auto 0; }   /* auto margins centre it AND let it scroll when the phone is short */
+  #tapBegin > div { margin: auto 0 0; }   /* the card sits at the foot so the portrait's face stays clear; auto on top still lets it scroll when the notes are open */
   #tapBegin.hide { display: none; }
   #tapBegin > div { text-align: center; color: #a9ffc6; font-size: 15px; letter-spacing: 0.28em; text-shadow: 0 0 12px rgba(125,251,168,0.55); }
   /* only the headline breathes - the warning and the note below have to stay readable */
@@ -556,6 +556,7 @@
     #keys .btn { min-width: 40px; }
     #keys .key { padding: 0 6px; }
     #keys #bLocL, #keys #bLocR { min-width: 34px; padding: 0 5px; }
+    body.run #keys, body.active #keys { flex-wrap: wrap; height: auto; min-height: 38px; row-gap: 9px; align-content: flex-end; overflow: visible; }   /* nine keys during a run: two rows, every key on screen (09-25) */
     #bEngage { --cs: 82px; width: 108px; }
     .chip small { font-size: 8px; }
     .long { display: none; }
@@ -974,8 +975,10 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 /* v61: the splash shows the warning alone, the notes wait behind READ MORE; the species portraits
    drift behind at ten percent; a dark panel sits under the words so they read over the pictures */
 #beginBg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-#beginBg i { position: absolute; inset: 0; background: center 22% / cover no-repeat; opacity: 0; transition: opacity 3s ease; }
-#beginBg i.on { opacity: 0.1; }
+#beginBg i { position: absolute; inset: 0; background: center 18% / cover no-repeat; opacity: 0; transform: scale(1); transition: opacity 1.4s ease, transform 8s linear; }
+#beginBg i.on { opacity: 0.6; transform: scale(1.05); }   /* sixty percent: the face reads on a phone in daylight; the scrim below keeps the card legible */
+#beginBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.92) 100%); }
+#tapBegin .who { display: block; margin-bottom: 12px; font-size: 8.5px; letter-spacing: 0.24em; color: rgba(169,255,198,0.62); animation: none; }
 #tapBegin > div { position: relative; width: 100%; max-width: 430px; box-sizing: border-box; padding: 20px 14px;
   background: rgba(0,0,0,0.6); border: 1px solid rgba(169,255,198,0.12); border-radius: 10px; }
 #bBeginMore { display: inline-block; margin-top: 16px; cursor: pointer; letter-spacing: 0.2em; }

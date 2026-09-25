@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=44" />
+<link rel="stylesheet" href="styles.css?v=45" />
 </head>
 <body class="intro introHud">
 
@@ -792,7 +792,7 @@
     <div id="ideaList"><div class="setStat">READING THE BOARD…</div></div>
   </div>
 </div>
-<div id="tapBegin" class="hide"><span id="beginBg"><i></i><i></i></span><div><span class="lead">TAP TO BEGIN</span><small>SOUND ON · BEST WITH THE VOLUME UP</small>
+<div id="tapBegin" class="hide"><span id="beginBg"><i></i><i></i></span><div><span class="who" id="beginWho"><span id="beginWhoLbl">WHO YOU ARE CALLING</span><span id="beginWhoName" data-nol10n></span></span><span class="lead">TAP TO BEGIN</span><small>SOUND ON · BEST WITH THE VOLUME UP</small>
 <span class="warn">⚠ PHOTOSENSITIVITY WARNING<em>THIS EXPERIENCE CONTAINS FLASHES OF LIGHT: A SIMULATED NUCLEAR FLASH AND A PULSING MORSE-CODE BEACON. BOTH CAN BE TURNED OFF OR TUNED DOWN IN ⚙ SETTINGS AT ANY TIME.</em></span><span class="setBtn" id="bBeginMore">READ MORE</span><span id="beginMore" class="hide"><span class="why" id="whyFlash">WHY A NUCLEAR FLASH, AND WHY MORSE<em>THE SIGHTINGS THAT KEEP COMING BACK ARE THE ONES OVER OUR MISSILE FIELDS AND TEST SITES. SO THE FLASH HERE IS BAIT, ON PURPOSE: A FALSE ALARM, A HONEYPOT. IF THEY CAN SEE WHAT WE SEE, IT IS THE ONE SIGNAL WE KNOW HAS DRAWN THEM OUT BEFORE. NOTHING REAL DETONATES · AND MORSE BECAUSE IT IS THE OLDEST CODE WE STILL SEND: IF ANYONE HAS BEEN LISTENING TO THIS PLANET FOR A HUNDRED YEARS, IT IS THE ONE THEY HAVE HEARD THE MOST.</em></span><span class="why" id="whyRoute">THE ROUTE HOME IS YOURS TO SET<em>EVERY STOP ON THE WAY BACK TO EARTH IS A SWITCH IN ⚙ SETTINGS: POLARIS, VOYAGER, THE SUN, WEBB, LUNA, HUBBLE, THE ISS, STARLINK AND STARMAN'S ROADSTER. TURN ANY OF THEM ON OR OFF AND SET HOW LONG EACH ONE HOLDS. THE TRIP IS NEVER THE SAME TWICE UNLESS YOU WANT IT TO BE.</em></span><span class="why" id="whyUnit">AND ONE THING NOT TO BE SURE ABOUT<em>WHAT RISES IN THE TRIANGLE IS NOT PRESENTED AS ALIEN, BUT NOBODY IS SAYING IT IS OURS EITHER. THE UNIT IS SAID TO STAY HERE AND ALMOST NEVER LEAVE · WHERE IT CAME FROM IS UNKNOWN. IT MAY HAVE BEEN BUILT HERE, OR PUT HERE LONG BEFORE ANY OF US. ANYONE WHO TELLS YOU WHICH IS GUESSING · THIS CONSOLE RUNS ON LORE AND SAYS SO, BUT BEING UNPROVEN IS NOT THE SAME AS BEING UNTRUE. IT ONLY MEANS NOBODY HAS SHOWN IT YET.</em></span><span class="why" id="whyDev">STILL BEING BUILT · AND THAT IS THE POINT<em>THIS IS FOR FUN AND IT IS NOT FINISHED. I READ EVERY IDEA THAT COMES IN AND I SHIP WHAT MAKES SENSE · TWO STAR SYSTEMS WENT ON THE CHART THIS WEEK BECAUSE ONE TRAVELLER ASKED FOR THEM BY NAME. UNLESS IT IS INAPPROPRIATE I HAVE NO PROBLEM ADDING IT. OPEN, TRANSPARENT, AND A WHAT-IF · WHY NOT.</em></span><span class="why" id="whyGps">YOUR LOCATION NEVER LEAVES YOUR PHONE<em>USE THE GPS KEY OR PIN A SPOT AND THOSE COORDINATES STAY IN YOUR OWN BROWSER, ON YOUR OWN DEVICE · THERE IS NO SERVER OF MINE TO SEND THEM TO · THE BOARD ONLY EVER SEES A MADE-UP CALL-SIGN AND WHICH STAR YOU FLEW TO · CLEAR YOUR BROWSER DATA AND IT IS GONE · THE SATELLITE PICTURE COMES FROM A PUBLIC MAP SERVICE, LIKE ANY MAP APP · MORE UNDER PRIVACY.</em></span></span></div></div>
 <div id="rotate"><div><div class="ph"></div>TURN IT UPRIGHT<small>THE CONSOLE IS BUILT FOR PORTRAIT</small></div></div>
 <div id="nukeWarn" class="hide">
@@ -1577,6 +1577,7 @@ function measureCtl() {
   const h = el.offsetHeight || el.getBoundingClientRect().height; ctlTop = (window.innerHeight || H) - h;   // offsetHeight ignores the opening's transform
   document.documentElement.style.setProperty("--ctlH", Math.round(h) + "px");   // #phase and the cue sit on the console
 }
+if (window.ResizeObserver && $("ctl")) new ResizeObserver(() => measureCtl()).observe($("ctl"));   // the console changes height on its own (the run keys wrap on a phone): measure it live, not only on a window resize
 let globeView = null, lastEarthTap = 0, gvPan = { x: 0, y: 0 }, pinchMid = null, tapDefer = 0;   // the pop-up world: pan with two fingers, roll with one
 let fleetTrips = null, fleetIdx = 0, fleetPulse = null;          // earlier travellers, read from the board, told one at a time
 let boardIdeas = [], visitsTold = false;                         // everyone's ideas, and the head-count told once
@@ -7121,7 +7122,8 @@ function buildCard() {
   const onChart = phase === "chart";                          // on the chart the card carries the sky itself (09-04)
   c.fillText((onChart ? "THE SKY TONIGHT" : "A NIGHT OUT") + " \u00b7 " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear(), Wc / 2, 178);
   // the picture: the chart while we are on it, the render when we have it, else the star itself
-  const kind = (s.tag || "").split(" ")[0], pic = (!onChart && S.face !== "sketch" && SPECIES[kind]) ? faceFor(kind, s, performance.now() / 1000) : null;
+  const kind = (s.tag || "").split(" ")[0]; let pic = (!onChart && S.face !== "sketch" && SPECIES[kind]) ? faceFor(kind, s, performance.now() / 1000) : null;
+  if (pic && !(pic.img && pic.img.complete && pic.img.naturalWidth > 0)) pic = null;   // a render that has not arrived: the star itself, never a blank box
   const bx = 260, by = 230, bw = 560, bh = 690;
   if (onChart && cvs.width > 0 && ctlTop > 40) {
     const srcW = cvs.width, srcH = Math.min(cvs.height, Math.round(ctlTop * DPR)), want = bw / bh;   // the sky band above the console, cover-fit
@@ -7723,6 +7725,7 @@ function walkTranslate() {
     const hit = langDict && langDict[nrm(d.dataset.en)];
     d.textContent = "\u25b8 " + (hit || d.dataset.en);
   }
+  const wl = $("beginWhoLbl"); if (wl) wl.textContent = tx("WHO YOU ARE CALLING");   // the splash caption: the label in the visitor's language, the species name as it is
   fixCounts();
   prettySetLabels();
 }
@@ -7938,22 +7941,43 @@ if (S.opening && !reduced && !/[?&]noopen/.test(location.search) && phase === "c
     more.addEventListener("click", (e) => { e.stopPropagation(); });
     more.addEventListener("pointerup", (e) => { e.stopPropagation(); bDown = null; $("beginMore").classList.remove("hide"); more.classList.add("hide"); });
   }
-  let bgFlip = 0;
-  const bgSet = () => {                                           // the species portraits drift behind the splash, one at a time, at ten percent
-    const bg = $("beginBg"); if (!bg || tbEl.classList.contains("hide")) return;
-    const ims = bg.querySelectorAll("i"), cur = ims[bgFlip % 2], nxt = ims[(bgFlip + 1) % 2];
-    const key = BEGIN_FACES[Math.floor(Math.random() * BEGIN_FACES.length)];
-    const im = new Image();
-    im.onload = () => { if (tbEl.classList.contains("hide")) return; nxt.style.backgroundImage = "url(species/" + key + ".jpg)"; nxt.classList.add("on"); cur.classList.remove("on"); bgFlip++; };
+  /* the species portraits behind the splash (09-25): the first one starts down right now, before the curtain is even up, and
+     sits on its layer ready; then one every 6.5 s while the curtain shows, in a shuffled order with no repeats, one load in
+     flight at a time, a bad file skipped for the next, and it all stops with the curtain */
+  const bgLayers = $("beginBg").querySelectorAll("i");
+  const bgOrder = BEGIN_FACES.slice();
+  for (let i = bgOrder.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [bgOrder[i], bgOrder[j]] = [bgOrder[j], bgOrder[i]]; }
+  let bgAt = 0, bgOn = -1, bgBusy = false, bgTimer = 0;
+  const bgDone = () => beginTapped || !intro || !!intro.t0;      // the curtain is up for good: nothing more to fetch
+  const bgName = (key) => {                                       // the caption: the species as the cards name it
+    const K = key.replace(/-[fm]$/, "").toUpperCase(); if (SPECIES[K]) return K;
+    for (const id in FACE_EXTRA) { const d = FACE_EXTRA[id].find((q) => q.k === K); if (d) return d.n; }
+    return K;
+  };
+  const bgShow = (key) => {
+    const nxt = bgLayers[(bgOn + 1) % 2], cur = bgOn < 0 ? null : bgLayers[bgOn % 2];
+    nxt.style.backgroundImage = "url(species/" + key + ".jpg)"; nxt.classList.add("on"); if (cur) cur.classList.remove("on"); bgOn++;
+    $("beginWhoName").textContent = " \u00b7 " + bgName(key);   // the label beside it goes through the dictionary when it arrives (walkTranslate)
+    window.__bgKey = key;                                         // for the probes
+  };
+  const bgNext = (tries) => {
+    if (bgBusy || bgDone()) return;
+    bgBusy = true; window.__bgLoads = (window.__bgLoads | 0) + 1;
+    const key = bgOrder[bgAt % bgOrder.length]; bgAt++;
+    const im = new Image(); try { im.fetchPriority = "high"; } catch (e) {}
+    const done = (okv) => { bgBusy = false; if (bgDone()) return; if (okv) bgShow(key); else if ((tries | 0) < 4) setTimeout(() => bgNext((tries | 0) + 1), 350); };
+    im.onload = () => { (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => done(true)); };
+    im.onerror = () => done(false);
     im.src = "species/" + key + ".jpg";
   };
-  setInterval(bgSet, 6500); setTimeout(bgSet, 300);
+  bgNext();
+  bgTimer = setInterval(() => { if (bgDone()) return clearInterval(bgTimer); if (!tbEl.classList.contains("hide")) bgNext(); }, 6500);
   const gate = setInterval(() => {
     if (!intro) { $("tapBegin").classList.add("hide"); return clearInterval(gate); }
     const waited = performance.now() / 1000 - intro.w0;
-    const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3)) || waited > 9;   // the maps, the Moon, the fonts; or it has been long enough
+    const ready = (photoState >= 2 && moonTex && (fontsOk || waited > 3) && (bgOn >= 0 || waited > 4)) || waited > 9;   // the maps, the Moon, the fonts, the first portrait; or it has been long enough
     if (ready && !intro.t0) {
-      if (!beginTapped) { $("tapBegin").classList.remove("hide"); bgSet(); try { $("tapBegin").focus(); } catch (e) {} return; }   // the show holds for the hand
+      if (!beginTapped) { $("tapBegin").classList.remove("hide"); if (bgOn < 0) bgNext(); try { $("tapBegin").focus(); } catch (e) {} return; }   // the show holds for the hand; a portrait that is not up yet is asked for again
       intro.t0 = performance.now() / 1000; clearInterval(gate);
     }
   }, 100);
