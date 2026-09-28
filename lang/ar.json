@@ -801,5 +801,8 @@
  "REFUSED": "مرفوض",
  "TOUCH ACTIVE": "اللمس نشط",
  "NO TOUCH ACTIVATION": "لا تفعيل باللمس",
- "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ينكمش وأنت تستنشق وينفتح على اتساعه وأنت تزفر، دائمًا بالإيقاع المضبوط أعلاه · تنفّس معه بدل أن تقرأه"
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "ينكمش وأنت تستنشق وينفتح على اتساعه وأنت تزفر، دائمًا بالإيقاع المضبوط أعلاه · تنفّس معه بدل أن تقرأه",
+ "KEEP THE SCREEN AWAKE DURING A SESSION · BACK TO NORMAL ON THE CHART": "إبقاء الشاشة مضاءة أثناء الجلسة · تعود إلى وضعها العادي على الخريطة",
+ "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TURN OFF DO NOT DISTURB, TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR": "اختبار الاهتزاز · اهتزاز طويل، توقف، ثم أطول · لم تشعر بشيء؟ أوقف وضع عدم الإزعاج، وأخرج الهاتف من الوضع الصامت وفعّل اهتزاز النظام · الأجهزة اللوحية غالبًا بلا محرك",
+ "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK DO NOT DISTURB, SILENT MODE AND SYSTEM VIBRATION": "رفض الهاتف الاهتزاز · اضغط المفتاح مرة أخرى ثم تحقق من وضع عدم الإزعاج والوضع الصامت واهتزاز النظام"
 }

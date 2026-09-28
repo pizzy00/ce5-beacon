@@ -102,6 +102,7 @@
       <label class="setChk"><input type="checkbox" id="ckVig" checked />DARKENED EDGES (VIGNETTE)</label>
       <label class="setChk"><input type="checkbox" id="ckRed" />RED NIGHT MODE &#8212; THE WHOLE SCREEN GOES DEEP RED SO YOUR NIGHT EYES SURVIVE &#183; THE MOON KEY TOP RIGHT FLIPS IT TOO</label>
       <label class="setChk"><input type="checkbox" id="ckFades" checked />SOFT FADES BETWEEN STAGES</label>
+      <label class="setChk"><input type="checkbox" id="ckWake" checked />KEEP THE SCREEN AWAKE DURING A SESSION &#183; BACK TO NORMAL ON THE CHART</label>
       <label class="setChk"><input type="checkbox" id="ckSfx" checked />ALL SOUND EFFECTS &#8212; KEYS, ZOOMS, FLIGHTS, TOUCHES, THE BLAST</label>
       <div class="bdBtns" style="margin-top:6px"><span class="setBtn" id="bSndTest">TRY THE SOUND</span></div>
       <div class="setStat" id="sndStat" data-nol10n></div>
@@ -932,7 +933,7 @@ const S = { breath: 4, spaceMul: 0.5, diveMul: 0.5, originMul: 0.5, flyby: 5, de
   arrHold: 5, bTrig: "full", bSites: 4, bHold: 10, bFly: 7, nShot: "random", nInt: 1, nStretch: 1, nRepeat: 1, nWarn: 3, salvo: false, motion: "full",
   bNow: true, bPhotos: true, pHold: 0.5, bOrbit: 12,
   msg: "ONE HUMAN. ZERO FEAR. NO ORBS.", mOn: true, mTone: true, mWpm: 60, mInt: 0.6,
-  crt: false, vig: false, red: false, gl: true, glDef: 0, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
+  crt: false, vig: false, red: false, wake: true, gl: true, glDef: 0, ret: "flight", chart3d: true, fades: true, bcnHold: 0.25, bcnStay: false, finalZ: 20,
   polaris: false, bridge: false, bridgeSec: 8, bridgeSnd: "hum", bridgeVol: 30, bridgeLook: "cyan", bridgeStyle: "throat", idleBack: 60, sun: true, moon: false, jwst: false, hubble: false, terran: true, voyager: false, iss: false, starlink: false, starman: false, routeDef: 0,
   nukeAll: true, cache: "normal", vol: 0.7,
   deep: false, deepA: 0.15, sky: "hudf", skyA: 0.1, skyASet: false, spin: 0.05, trails: true, planets: true, traffic: true,
@@ -5547,6 +5548,7 @@ function engage() {
   $("chips").classList.add("hide"); retShow(false);
   $("bStop").classList.remove("hide"); $("bGps").classList.add("hide");
   document.body.classList.add("run"); document.body.classList.remove("active");
+  wakeOn();                                                   // the screen stays awake for the session (09-27)
   if (mode === "bermuda") bermudaCall();
 }
 
@@ -6054,7 +6056,7 @@ function cardWatch() {
 { const mo = new MutationObserver(cardWatch); CARD_IDS.forEach((id) => { if ($(id)) mo.observe($(id), { attributes: true, attributeFilter: ["class"] }); }); }
 function replay() {
   if (roomHost() && phase !== "chart") ROOM.send({ t: "replay" });
-  idleClear(); voiceStop();
+  idleClear(); voiceStop(); wakeOff();                     // back on the chart the screen may sleep again
   if (pendingResel) { pendingResel = false; applySystems(); }   // the chart is back: repair the departure now
   flyStop(); bridgeStop(); setTimeout(ambStart, 1200);                        // back on the chart the drift returns
   clearTimeout(coverTimer); coverTimer = setTimeout(coverClose, 1200);   // back on the chart the cover drops again
@@ -6520,9 +6522,25 @@ function audioGuard() {                                          // Android naps
   try { if (ac && !muted && ac.state !== "running") ac.resume(); } catch (e) {}
 }
 setInterval(audioGuard, 3000);
+/* the screen stays awake for the whole session (09-27): a phone that locks mid-run cuts the Morse, the tones and the buzz.
+   Taken when a run starts, let go on the chart; the browser drops it when the page hides, so it is taken again on return. */
+let wakeLk = null, wakeWant = false, wakeAsk = false;
+function wakeCan() { return typeof navigator !== "undefined" && !!navigator.wakeLock && typeof navigator.wakeLock.request === "function"; }
+function wakeOn() {
+  wakeWant = true;
+  if (S.wake === false || wakeLk || wakeAsk || document.hidden || !wakeCan()) return;
+  wakeAsk = true;
+  navigator.wakeLock.request("screen").then((l) => {
+    wakeAsk = false;
+    if (!wakeWant || S.wake === false) { l.release().catch(() => {}); return; }   // the run ended while we asked
+    wakeLk = l; l.addEventListener("release", () => { if (wakeLk === l) wakeLk = null; });
+  }).catch(() => { wakeAsk = false; });
+}
+function wakeDrop() { const l = wakeLk; wakeLk = null; if (l) l.release().catch(() => {}); }
+function wakeOff() { wakeWant = false; wakeDrop(); }
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) { voiceStop(); iosGuardStop(); try { if (ac) ac.suspend(); } catch (e) {} }   // look away and the sound sleeps, the voice too
-  else { audioGuard(); iosGuardStart(); }                        // look back and it wakes
+  else { audioGuard(); iosGuardStart(); if (wakeWant) wakeOn(); }   // look back and it wakes, and the screen lock is taken again
 });
 document.addEventListener("pointerdown", () => {                 // every touch: the guard back up and the chip running (iOS only resumes inside a gesture)
   if (muted) return; iosGuardStart();
@@ -7741,7 +7759,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=6")
+  fetch("lang/" + uiLang + ".json?v=7")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
@@ -8073,7 +8091,7 @@ function applyS() {                                             // push S into e
   locSync();
   set("msgIn", S.msg); txt("msgMorse", morseString(S.msg)); chk("ckMorse", S.mOn); chk("ckMorseTone", S.mTone);
   set("rWpm", S.mWpm); txt("vWpm", S.mWpm); set("rMInt", Math.round(S.mInt * 100)); txt("vMInt", Math.round(S.mInt * 100));
-  chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); set("selRet", S.ret); applyScreen();
+  chk("ckCrt", S.crt); chk("ckVig", S.vig); chk("ckRed", !!S.red); chk("ckWake", S.wake !== false); set("selRet", S.ret); applyScreen();
   chk("ckLoreLazar", S.loreBy.lazar !== false); chk("ckLoreLear", S.loreBy.lear !== false); chk("ckLoreMeier", S.loreBy.meier !== false);
   chk("ckLoreContact", S.loreBy.contact !== false); chk("ckLoreAnon", S.loreBy.anon !== false); chk("ckLoreDoty", S.loreBy.doty !== false);
   set("selChart", S.chart3d ? "3d" : "flat"); chk("ckFades", S.fades); chk("ckNoGuide", !!S.noGuide); chk("ckGuideAuto", S.guideAuto !== false); chk("ckOpening", S.opening); chk("ckFaces", S.faces); set("selFace", S.face); { const st = $("sysStat"); if (st) st.textContent = SYSTEMS.length + " OF " + SYSTEMS_ALL.length + " ON \u00b7 " + SYSTEMS.map((s) => s.name.split(" ")[0]).join(", "); } chk("ckTapLook", S.tapLook !== false); chk("ckLore", S.lore !== false); chk("ckPursue", S.pursue !== false); chk("ckUso", S.uso !== false); chk("ckTrueSky", !!S.trueSky); chk("ckPoint", !!S.point); chk("ckGl", !!S.gl); chk("ckSfx", S.sfx); chk("ckBuzz", !!S.buzz); chk("ckBuzzMorse", S.buzzMorse !== false); chk("ckBuzzNuke", S.buzzNuke !== false); chk("ckBuzzLand", S.buzzLand !== false); chk("ckBuzzBridge", S.buzzBridge !== false); buzzStat(); sndStat(); set("selVoice", S.voiceSex === "f" || S.voiceSex === "off" ? S.voiceSex : "m"); set("rVoice", S.voiceRate); txt("vVoice", S.voiceRate); set("rVoiceVol", Math.round(voiceVol() * 100)); txt("vVoiceVol", Math.round(voiceVol() * 100)); chk("ckFly", S.flySnd !== false); chk("ckAmb", S.amb !== false); chk("ckFps", !!S.fps); fpsRun();
@@ -8170,6 +8188,7 @@ $("bShare").onclick = () => { sfx("key"); shareCard(); };                  // th
 $("msgMorse").textContent = morseString(S.msg);
 $("ckCrt").onchange = (e) => { S.crt = e.target.checked; applyScreen(); };
 $("ckVig").onchange = (e) => { S.vig = e.target.checked; applyScreen(); };
+$("ckWake").onchange = (e) => { S.wake = e.target.checked; if (!S.wake) wakeDrop(); else if (wakeWant) wakeOn(); };   // mid-session: let go at once, or take it back
 $("ckRed").onchange = (e) => { S.red = e.target.checked; applyRed(); log(S.red ? "RED NIGHT MODE ON \u00b7 YOUR EYES STAY DARK-ADAPTED" : "RED NIGHT MODE OFF", "cy"); };
 $("bRed").onclick = () => { S.red = !S.red; $("ckRed").checked = S.red; applyRed(); log(S.red ? "RED NIGHT MODE ON \u00b7 YOUR EYES STAY DARK-ADAPTED" : "RED NIGHT MODE OFF", "cy"); };
 $("selRet").onchange = (e) => { S.ret = e.target.value; retShow(retWant); };
@@ -8382,8 +8401,8 @@ $("bSndTest").onclick = () => {                                  // inside the t
 $("bBuzzTest").onclick = () => {                                 // works with the master off: it is a test
   if (!buzzCan()) return log("THIS DEVICE CANNOT BUZZ · IPHONES AND IPADS DO NOT ALLOW IT", "alert");
   const okv = buzzRaw([400, 150, 700]);                          // long, gap, longer: nothing subtle
-  log(okv ? "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR"
-          : "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK SILENT MODE AND SYSTEM VIBRATION", okv ? "cy" : "alert");
+  log(okv ? "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TURN OFF DO NOT DISTURB, TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR"
+          : "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK DO NOT DISTURB, SILENT MODE AND SYSTEM VIBRATION", okv ? "cy" : "alert");
   buzzLast = tx("BUZZ") + " " + (okv ? tx("ACCEPTED") : tx("REFUSED")) + " · " + browserLine() + " · " + (navigator.userActivation && navigator.userActivation.isActive ? tx("TOUCH ACTIVE") : tx("NO TOUCH ACTIVATION")) + " · " + new Date().toTimeString().slice(0, 8);
   log(buzzLast, okv ? "cy" : "alert"); buzzStat();               // the one line to read back: on the CRT and under the key
 };

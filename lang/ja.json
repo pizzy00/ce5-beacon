@@ -801,5 +801,8 @@
  "REFUSED": "拒否されました",
  "TOUCH ACTIVE": "タッチ有効",
  "NO TOUCH ACTIVATION": "タッチによる有効化なし",
- "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "息を吸うと縮み、吐くと大きく広がります。ペースは上で設定したとおり · 読むのではなく、いっしょに呼吸してください"
+ "IT DRAWS IN WHILE YOU BREATHE IN AND SPREADS WIDE WHILE YOU LET GO, ALWAYS AT THE PACE SET ABOVE · BREATHE WITH IT INSTEAD OF READING IT": "息を吸うと縮み、吐くと大きく広がります。ペースは上で設定したとおり · 読むのではなく、いっしょに呼吸してください",
+ "KEEP THE SCREEN AWAKE DURING A SESSION · BACK TO NORMAL ON THE CHART": "セッション中は画面を消さない · 星図に戻ると通常どおり",
+ "BUZZ TEST · A LONG BUZZ, A GAP, A LONGER ONE · FELT NOTHING? TURN OFF DO NOT DISTURB, TAKE THE PHONE OFF SILENT, TURN SYSTEM VIBRATION ON · TABLETS OFTEN HAVE NO MOTOR": "振動テスト · 長い振動、間、さらに長い振動 · 何も感じない？ おやすみモード（通知の停止）をオフにし、マナーモードを解除して、システムの振動をオンにしてください · タブレットにはモーターがないことが多いです",
+ "THE PHONE REFUSED THE BUZZ · TAP THE KEY AGAIN, THEN CHECK DO NOT DISTURB, SILENT MODE AND SYSTEM VIBRATION": "端末が振動を拒否しました · もう一度キーを押して、おやすみモード（通知の停止）、マナーモード、システムの振動を確認してください"
 }
