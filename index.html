@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=48" />
+<link rel="stylesheet" href="styles.css?v=49" />
 </head>
 <body class="intro introHud">
 
@@ -759,6 +759,34 @@
     <div class="bdBtns schedBtns"><span class="setBtn" id="bSchedArm">I'M READY</span><span class="setBtn" id="bSchedCal">ADD TO CALENDAR</span><span class="setBtn dim" id="bSchedOff">NOT NOW</span></div>
   </div>
 </div>
+<div id="repPick" class="hide">
+  <div id="repCard" role="dialog" aria-label="Sighting report">
+    <div class="setHead display">SIGHTING REPORT <span id="bRepClose">&#10005;</span></div>
+    <div class="setStat" id="repTrip" data-nol10n></div>
+    <div class="setLbl">WHAT DID YOU SEE</div>
+    <div class="repChips" id="repSaw"><span class="setBtn repChip" data-v="light" role="button" aria-pressed="false">A LIGHT</span><span class="setBtn repChip" data-v="orb" role="button" aria-pressed="false">AN ORB</span><span class="setBtn repChip" data-v="craft" role="button" aria-pressed="false">A CRAFT</span><span class="setBtn repChip" data-v="other" role="button" aria-pressed="false">SOMETHING ELSE</span><span class="setBtn repChip" data-v="nothing" role="button" aria-pressed="false">NOTHING THIS TIME</span></div>
+    <div id="repShapeRow" class="hide"><div class="setLbl">THE SHAPE</div>
+    <div class="repChips" id="repShape"><span class="setBtn repChip" data-v="sphere" role="button" aria-pressed="false">SPHERE OR ORB</span><span class="setBtn repChip" data-v="disc" role="button" aria-pressed="false">DISC</span><span class="setBtn repChip" data-v="tictac" role="button" aria-pressed="false">TIC-TAC</span><span class="setBtn repChip" data-v="irregular" role="button" aria-pressed="false">IRREGULAR</span><span class="setBtn repChip" data-v="boomerang" role="button" aria-pressed="false">BOOMERANG</span><span class="setBtn repChip" data-v="triangle" role="button" aria-pressed="false">TRIANGLE</span></div>
+    <div class="setStat">THE SIX SHAPES FROM THE SHAPES CARD · TAP AGAIN TO CLEAR</div></div>
+    <div id="repDirRow" class="hide"><div class="setLbl">WHICH WAY</div>
+    <div class="bdBtns"><span class="setBtn" id="bRepCmp">USE MY COMPASS</span><span class="setStat" id="repDirV" data-nol10n></span></div>
+    <div data-nol10n><div class="repChips repDirs" id="repDir"><span class="setBtn repChip" data-v="N" role="button" aria-pressed="false">N</span><span class="setBtn repChip" data-v="NE" role="button" aria-pressed="false">NE</span><span class="setBtn repChip" data-v="E" role="button" aria-pressed="false">E</span><span class="setBtn repChip" data-v="SE" role="button" aria-pressed="false">SE</span><span class="setBtn repChip" data-v="S" role="button" aria-pressed="false">S</span><span class="setBtn repChip" data-v="SW" role="button" aria-pressed="false">SW</span><span class="setBtn repChip" data-v="W" role="button" aria-pressed="false">W</span><span class="setBtn repChip" data-v="NW" role="button" aria-pressed="false">NW</span></div></div></div>
+    <div id="repAltRow" class="hide"><div class="setLbl">HOW HIGH</div>
+    <div class="repChips" id="repAlt"><span class="setBtn repChip" data-v="low" role="button" aria-pressed="false">LOW, NEAR THE HORIZON</span><span class="setBtn repChip" data-v="mid" role="button" aria-pressed="false">HALFWAY UP</span><span class="setBtn repChip" data-v="high" role="button" aria-pressed="false">HIGH OVERHEAD</span></div></div>
+    <div id="repDurRow" class="hide"><div class="setLbl">HOW LONG YOU SAW IT</div>
+    <div class="bdBtns"><input type="range" id="repDur" min="0" max="16" step="1" value="0" aria-label="How long you saw it" /><span class="setStat" id="repDurV" data-nol10n></span></div></div>
+    <div class="setLbl">WHAT HAPPENED</div>
+    <textarea id="repTxt" class="bdNoteIn" maxlength="280" rows="3" dir="auto"></textarea>
+    <div id="repPhRow" class="hide"><div class="setLbl">A PHOTO</div>
+    <div class="bdBtns"><label class="setBtn" id="bRepPh" for="repFile">ADD A PHOTO</label><span class="setBtn dim hide" id="bRepPhOff">TAKE IT OFF</span></div>
+    <input type="file" id="repFile" accept="image/*" hidden />
+    <img id="repThumb" class="hide" alt="Your sighting photo" /></div>
+    <div class="bdBtns repBtns"><span class="setBtn" id="bRepSave">SAVE REPORT</span><span class="setBtn hide" id="bRepNuforc">EXPORT FOR NUFORC</span><span class="setBtn dim hide" id="bRepDel">DELETE THIS REPORT</span></div>
+    <div class="setStat" id="repStat" data-nol10n aria-live="polite"></div>
+    <div class="setStat">NUFORC.ORG IS THE NATIONAL UFO REPORTING CENTER · EXPORT LAYS YOUR ANSWERS OUT IN THE ORDER OF ITS REPORT FORM, FOR YOU TO PASTE THERE YOURSELF · NOTHING IS SENT FROM HERE</div>
+    <div class="setStat">SIGHTING REPORTS AND THEIR PHOTOS NEVER LEAVE THIS DEVICE UNLESS YOU SHARE THEM</div>
+  </div>
+</div>
 <div id="checkPick" class="hide">
   <div id="checkCard">
     <div class="setHead display">PHONE CHECK &#183; BEFORE YOU GO OUTSIDE <span id="bCheckClose">&#10005;</span></div>
@@ -821,6 +849,8 @@
     <div class="setStat">A ROOM SENDS ONLY TIMING, THE CHOSEN SYSTEM AND THE HOST'S SETUP CODE BETWEEN THE PHONES, THROUGH THE FREE PEERJS RELAY · NEVER A LOCATION, NEVER A NAME · NOTHING IS STORED ANYWHERE</div>
     <div class="setLbl">TONIGHT'S SKY</div>
     <div class="setStat">ONLY WHEN YOU OPEN TONIGHT'S SKY, IT ASKS OPEN-METEO, A FREE WEATHER SERVICE WITH NO ACCOUNT, FOR THE CLOUD FORECAST AT YOUR SPOT ROUNDED TO ABOUT 10 KM &#183; LIKE ANY WEB SERVER IT SEES YOUR INTERNET ADDRESS &#183; THE SUN AND MOON TIMES ARE WORKED OUT ON THIS PHONE AND GO NOWHERE</div>
+    <div class="setLbl">SIGHTING REPORTS</div>
+    <div class="setStat">A SIGHTING REPORT AND ITS PHOTO STAY IN THIS BROWSER ON THIS DEVICE AND ARE NEVER SENT ANYWHERE &#183; THE PHOTO IS SAVED SMALLER, WHICH ALSO STRIPS ITS HIDDEN LOCATION TAG &#183; ONLY YOU CAN PASS ONE ON, BY EXPORTING IT YOURSELF &#183; CLEARING YOUR LOG ERASES THEM TOO</div>
     <div class="setLbl">THE PLUMBING</div>
     <div class="setStat">THE SITE AND THE BOARD ARE HOSTED ON GITHUB, AND YOUR BROWSER TALKS TO GITHUB TO LOAD THEM · LIKE ANY WEB HOST, GITHUB KEEPS ORDINARY SERVER LOGS UNDER ITS OWN PRIVACY POLICY · THIS APP ADDS NOTHING ON TOP · THE WHOLE SOURCE IS PUBLIC AT GITHUB.COM/PIZZY00/CE5-BEACON, SO NONE OF THIS IS A PROMISE YOU HAVE TO TAKE ON FAITH</div>
   </div>
@@ -6096,7 +6126,7 @@ function idleArm(secs) {
 function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
-  if (["settings", "info", "board", "checkPick", "nightPick", "schedPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (["settings", "info", "board", "checkPick", "nightPick", "schedPick", "repPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
   if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
@@ -6105,7 +6135,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick", "repPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -6145,6 +6175,7 @@ function replay() {
   $("chips").classList.remove("hide");
   $("space").classList.remove("gone");
   setPhase("chart", "ALIEN SYSTEM CHART");
+  repNudge();
   raf = requestAnimationFrame(loop);
 }
 
@@ -7083,7 +7114,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7268,6 +7299,7 @@ function logTrip() {                                            // a run reached
   const ns = nightStats(L); if (ns.streak >= 2) log("NIGHT " + ns.streak + " IN A ROW" + (ns.streak >= ns.best ? " \u00b7 YOUR BEST" : ""), "cy");
   const P = readPending(); P.push(trip); while (P.length > 50) P.shift();
   writePending(P);
+  repDue = trip.id;                                              // back on the chart, one line points at the sighting report
   flushPending();
 }
 let memPend = [];                                                // the queue when site data is blocked: this session only
@@ -7355,7 +7387,7 @@ function bdRows(list, mine) {
   if (!list.length) return '<div class="setStat">NOTHING YET \u00b7 PRESS START AND FLY ONE</div>';
   return list.map((r) => '<div class="bdRow' + (mine || r.n === callsign ? " me" : "") + '"' + (mine ? ' data-id="' + esc(r.id || "") + '"' : "") + '><span><b>' + esc(r.n) + '</b> \u2192 ' + esc(r.d) +
     '</span><span>' + (r.ly ? fmtLy(r.ly) : "\u2014") + (mine ? tripMeta(r) : "") + ' <i>' + bdWhen(r.t) + '</i></span></div>' +
-    (mine ? bdNote(r) : "")).join("");
+    (mine ? bdNote(r) + bdRep(r) : "")).join("");
 }
 function bdNote(r) {                                             // the journal line under a trip of yours (09-04)
   const id = esc(r.id || "");
@@ -7379,6 +7411,236 @@ function bdNoteOpen(id) {                                        // one editor a
   ta.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); save(); } };
 }
 $("bdMine").addEventListener("click", (e) => { const ed = e.target.closest(".bdNoteEd"); if (!ed) return; const h = ed.closest(".bdNote"); if (h) bdNoteOpen(h.dataset.id); });
+/* ---------------- a sighting report (09-27): what you saw, where, how high, how long, a photo ----------------
+   Kept on the trip in this device's log (never on the board queue, which only ever posts the call-sign and the destination).
+   The photo goes into this browser's own IndexedDB, shrunk to 1600 px on a canvas first, which also drops its hidden GPS tag.
+   Nothing here is sent anywhere: EXPORT FOR NUFORC lays it out for the person to paste into nuforc.org themselves. */
+const REP_SAW = { light: "A LIGHT", orb: "AN ORB", craft: "A CRAFT", other: "SOMETHING ELSE", nothing: "NOTHING THIS TIME" };
+const REP_SHAPE = { sphere: "SPHERE OR ORB", disc: "DISC", tictac: "TIC-TAC", irregular: "IRREGULAR", boomerang: "BOOMERANG", triangle: "TRIANGLE" };
+const REP_ALT = { low: "LOW, NEAR THE HORIZON", mid: "HALFWAY UP", high: "HIGH OVERHEAD" };
+const REP_DUR = [0, 2, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300, 600, 900, 1800, 3600];
+const REP_NUFORC = { sphere: "Sphere", disc: "Disk", tictac: "Oval (tic-tac)", irregular: "Irregular", boomerang: "Chevron / boomerang", triangle: "Triangle" };
+var repDue = "";                                                 // a var: replay() may read it before this line has run
+let rp = null, repCmp = 0, repCmpT = 0, repDelArm = 0;
+let idbP = null;                                                 // the photo drawer: one database, one store, keyed by the trip
+function idbDb() {
+  if (idbP) return idbP;
+  idbP = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open("ce5", 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains("photos")) r.result.createObjectStore("photos"); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error("blocked"));
+    } catch (e) { rej(e); }
+  });
+  idbP.catch(() => { idbP = null; });
+  return idbP;
+}
+function idbDo(mode, fn) {
+  return idbDb().then((db) => new Promise((res, rej) => {
+    const t = db.transaction("photos", mode), q = fn(t.objectStore("photos"));
+    t.oncomplete = () => res(q ? q.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+  }));
+}
+const idbPut = (k, v) => idbDo("readwrite", (s) => s.put(v, k));
+const idbGet = (k) => idbDo("readonly", (s) => s.get(k));
+const idbDel = (k) => idbDo("readwrite", (s) => s.delete(k));
+const idbKeys = () => idbDo("readonly", (s) => s.getAllKeys());
+const idbClear = () => idbDo("readwrite", (s) => s.clear());
+function repShrink(file) {                                       // 1600 px on the long side, a JPEG at 0.82: small, and no metadata survives the canvas
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      try {
+        const k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(im.naturalWidth * k)); cv.height = Math.max(1, Math.round(im.naturalHeight * k));
+        cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
+        cv.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/jpeg", 0.82);
+      } catch (e) { URL.revokeObjectURL(u); rej(e); }
+    };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("decode")); };
+    im.src = u;
+  });
+}
+function repDurTxt(s) { return !s ? "" : s < 60 ? txf("{n} SECONDS", { n: s }) : s < 3600 ? (s < 120 ? tx("1 MINUTE") : txf("{n} MINUTES", { n: Math.round(s / 60) })) : tx("AN HOUR OR MORE"); }
+function repSummary(p) {
+  return [tx(REP_SAW[p.saw] || ""), p.shape ? tx(REP_SHAPE[p.shape]) : "", p.dir ? p.dir + (typeof p.az === "number" ? " " + p.az + "°" : "") : "",
+    p.alt ? tx(REP_ALT[p.alt]) : "", repDurTxt(p.dur), p.ph ? tx("PHOTO") : ""].filter(Boolean).join(" · ");
+}
+function bdRep(r) {                                              // the line under a trip of yours, beside the note
+  const id = esc(r.id || "");
+  if (r.rep) return '<div class="bdRep" data-id="' + id + '"><span class="bdRepTxt">'+ esc(tx("SIGHTING") + " · " + repSummary(r.rep)) + '</span> <span class="bdRepEd">' + tx("EDIT") + '</span></div>';
+  return '<div class="bdRep dim" data-id="'+ id + '"><span class="bdRepEd">+ ' + tx("SIGHTING REPORT") + '</span></div>';
+}
+function repWhen(t) { return schedFmt(t); }                    // the same day-and-time wording as a scheduled session, in the language on screen
+function repStat(s) { $("repStat").textContent = s || ""; }
+function repRender() {
+  if (!rp) return;
+  const none = rp.saw === "nothing";
+  for (const [box, key] of [["repSaw", "saw"], ["repShape", "shape"], ["repDir", "dir"], ["repAlt", "alt"]])
+    $(box).querySelectorAll(".repChip").forEach((c) => { const on = c.dataset.v === rp[key]; c.classList.toggle("on", on); c.setAttribute("aria-pressed", on ? "true" : "false"); });
+  $("repShapeRow").classList.toggle("hide", !(rp.saw === "orb" || rp.saw === "craft" || rp.saw === "other"));
+  ["repDirRow", "repAltRow", "repDurRow", "repPhRow"].forEach((id) => $(id).classList.toggle("hide", none || !rp.saw));
+  $("repDurV").textContent = repDurTxt(REP_DUR[rp.durI]) || tx("NOT NOTED");
+  $("repDirV").textContent = rp.dir ? rp.dir + (rp.az !== null ? " · " + rp.az + "° · " + tx("FROM THE COMPASS") : "") : "";
+  const ph = rp.ph;
+  $("repThumb").classList.toggle("hide", !ph); if (ph) $("repThumb").src = ph.url;
+  $("bRepPhOff").classList.toggle("hide", !ph);
+  $("bRepPh").textContent = tx(ph ? "ANOTHER PHOTO" : "ADD A PHOTO");
+  $("bRepDel").classList.toggle("hide", !rp.had);
+  $("bRepNuforc").classList.toggle("hide", !rp.saw || none);
+}
+function repOpen(id, auto) {
+  const r = readLog().find((x) => x.id === id); if (!r) return;
+  const p = r.rep || {};
+  if (rp && rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
+  rp = { id, saw: p.saw || "", shape: p.shape || "", dir: p.dir || "", az: typeof p.az === "number" ? p.az : null, alt: p.alt || "",
+    durI: Math.max(0, REP_DUR.indexOf(p.dur || 0)), ph: null, phDirty: false, had: !!r.rep, dirty: false };
+  $("repTrip").textContent = r.d + " · " + repWhen(r.t);
+  $("repTxt").value = p.txt || ""; $("repTxt").placeholder = tx("WHAT HAPPENED, IN YOUR OWN WORDS · 280 LETTERS");
+  $("repDur").max = REP_DUR.length - 1; $("repDur").value = rp.durI;
+  repStat(auto ? tx("JUST LANDED · DID YOU SEE ANYTHING? · NOTHING IS A FINE ANSWER") : "");
+  clearTimeout(repDelArm); repDelArm = 0; $("bRepDel").textContent = tx("DELETE THIS REPORT");
+  if (p.ph) idbGet(id).then((b) => { if (rp && rp.id === id && b && !rp.ph) { rp.ph = { blob: b, url: URL.createObjectURL(b) }; repRender(); } })
+    .catch(() => repStat(tx("THE PHOTO COULD NOT BE READ BACK IN THIS BROWSER")));
+  sfx("cover"); $("repPick").classList.remove("hide"); repRender();
+  $("repCard").scrollTop = 0;
+}
+function repRow(id) {                                            // the board line redrawn in place after a save or a delete
+  const host = $("bdMine").querySelector('.bdRep[data-id="' + id + '"]'), t = readLog().find((x) => x.id === id);
+  if (host && t) host.outerHTML = bdRep(t);
+}
+function repSave(quiet) {
+  if (!rp) return false;
+  if (!rp.saw) { repStat(tx("PICK WHAT YOU SAW FIRST · NOTHING IS A FINE ANSWER")); return false; }
+  const L = readLog(), t = L.find((x) => x.id === rp.id); if (!t) return false;
+  const none = rp.saw === "nothing", rep = { saw: rp.saw, at: Date.now() };
+  if (!none) {
+    if (rp.shape && rp.saw !== "light") rep.shape = rp.shape;
+    if (rp.dir) rep.dir = rp.dir; if (rp.dir && rp.az !== null) rep.az = rp.az;
+    if (rp.alt) rep.alt = rp.alt; if (REP_DUR[rp.durI]) rep.dur = REP_DUR[rp.durI];
+  }
+  const txt = $("repTxt").value.replace(/\s+/g, " ").trim().slice(0, 280); if (txt) rep.txt = txt;
+  const keep = !none && !!rp.ph; if (keep) rep.ph = 1;
+  t.rep = rep; delete t.repAsk;
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+  if (keep && rp.phDirty) idbPut(rp.id, rp.ph.blob).catch(() => log("THE PHOTO COULD NOT BE KEPT IN THIS BROWSER · THE REST OF THE REPORT IS SAVED", "alert"));
+  if (!keep && (rp.phDirty || none)) idbDel(rp.id).catch(() => {});
+  rp.phDirty = false; rp.dirty = false; rp.had = true;
+  const ids = new Set(L.map((x) => x.id));                       // a photo whose trip fell off the end of the log goes too
+  idbKeys().then((ks) => ks.forEach((k) => { if (!ids.has(k)) idbDel(k).catch(() => {}); })).catch(() => {});
+  repRow(rp.id); repRender();
+  if (!quiet) { log("SIGHTING SAVED · ON THIS DEVICE ONLY", "cy"); repStat(tx("SAVED ON THIS DEVICE ONLY")); }
+  return true;
+}
+function repCmpStop() {
+  clearInterval(repCmp); repCmp = 0;
+  if (!pointOn) { window.removeEventListener("deviceorientationabsolute", onOrient); window.removeEventListener("deviceorientation", onOrient); heading = null; }
+  $("bRepCmp").textContent = tx("USE MY COMPASS"); $("bRepCmp").classList.remove("live");
+}
+function repCmpTick() {
+  if (!rp) return repCmpStop();
+  if (heading === null) {
+    if (Date.now() - repCmpT > 2500) { repCmpStop(); repStat(tx("NO COMPASS ON THIS DEVICE · PICK A DIRECTION BELOW")); }
+    return;
+  }
+  const az = Math.round(heading) % 360;
+  $("bRepCmp").textContent = tx("SET") + " · " + compass8(az) + " " + az + "°"; $("bRepCmp").classList.add("live");
+}
+function repClose() {
+  if (!rp) { $("repPick").classList.add("hide"); return; }
+  repCmpStop();
+  if (rp.dirty && rp.saw) repSave();                              // a report you started is kept
+  if (rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
+  rp = null; sfx("cover"); $("repPick").classList.add("hide");
+}
+function repNuforc(r) {                                          // laid out in the order of the NUFORC web form, in plain sentence case for its readers
+  const p = r.rep, d = new Date(r.t), two = (v) => String(v).padStart(2, "0");
+  const z = -d.getTimezoneOffset(), zs = "UTC" + (z >= 0 ? "+" : "-") + two(Math.floor(Math.abs(z) / 60)) + ":" + two(Math.abs(z) % 60);
+  const dur = !p.dur ? "Not noted" : p.dur < 60 ? p.dur + " seconds" : p.dur < 3600 ? (p.dur < 120 ? "About 1 minute" : "About " + Math.round(p.dur / 60) + " minutes") : "An hour or more";
+  const shape = p.shape ? REP_NUFORC[p.shape] : p.saw === "light" ? "Light" : p.saw === "orb" ? "Orb" : "Other";
+  const alt = { low: "low, near the horizon", mid: "about halfway up the sky", high: "high overhead" }[p.alt] || "";
+  const dir = p.dir ? "Toward " + p.dir + (typeof p.az === "number" ? " (" + p.az + " degrees, read from the phone compass)" : "") + (alt ? ", " + alt : "") : alt ? alt.charAt(0).toUpperCase() + alt.slice(1) : "Not noted";
+  const saw = { light: "a light", orb: "an orb", craft: "a craft", other: "something I could not name" }[p.saw] || "something";
+  return ["NUFORC report draft, made on my phone by CE-5 Beacon. Paste each part into the matching box at https://nuforc.org/", "",
+    "Date of event: " + d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate()),
+    "Time of event: " + two(d.getHours()) + ":" + two(d.getMinutes()) + " (" + zs + ", when the session I was running landed)",
+    "Duration: " + dur, "Shape: " + shape, "Direction: " + dir,
+    "Location: city ____ , state or province ____ , country ____", "",
+    "Description:", (p.txt || "I saw " + saw + "."), "",
+    "Context: seen during a CE-5 contact session, using the CE-5 Beacon web app (" + publicLink() + "), session destination " + r.d + ".",
+    p.ph ? "Photo: attached separately." : ""].join("\n").replace(/\n+$/, "");
+}
+function repExport() {
+  if (!rp || !repSave(true)) return;
+  const r = readLog().find((x) => x.id === rp.id); if (!r || !r.rep) return;
+  const txt = repNuforc(r), files = [new File([txt], "nuforc-report.txt", { type: "text/plain" })];
+  if (rp.ph) files.push(new File([rp.ph.blob], "sighting-photo.jpg", { type: "image/jpeg" }));
+  try { if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {}); } catch (e) {}
+  if (navigator.canShare && navigator.canShare({ files })) {
+    navigator.share({ files, title: "NUFORC report draft" }).then(() => log("REPORT HANDED OVER · PASTE IT INTO THE FORM AT NUFORC.ORG", "cy")).catch(() => {});
+    return;
+  }
+  for (const f of files) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(f); a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  repStat(tx("SAVED AND COPIED · OPEN NUFORC.ORG AND PASTE IT INTO THEIR REPORT FORM YOURSELF"));
+  log("NUFORC DRAFT SAVED · NOTHING WAS SENT", "cy");
+}
+$("repSaw").addEventListener("click", (e) => { const c = e.target.closest(".repChip"); if (!c || !rp) return; rp.saw = c.dataset.v; rp.dirty = true; repStat(""); repRender(); });
+$("repShape").addEventListener("click", (e) => { const c = e.target.closest(".repChip"); if (!c || !rp) return; rp.shape = rp.shape === c.dataset.v ? "" : c.dataset.v; rp.dirty = true; repRender(); });
+$("repDir").addEventListener("click", (e) => { const c = e.target.closest(".repChip"); if (!c || !rp) return; repCmpStop(); rp.dir = rp.dir === c.dataset.v && rp.az === null ? "" : c.dataset.v; rp.az = null; rp.dirty = true; repRender(); });
+$("repAlt").addEventListener("click", (e) => { const c = e.target.closest(".repChip"); if (!c || !rp) return; rp.alt = rp.alt === c.dataset.v ? "" : c.dataset.v; rp.dirty = true; repRender(); });
+$("repDur").oninput = () => { if (!rp) return; rp.durI = +$("repDur").value; rp.dirty = true; repRender(); };
+$("repTxt").oninput = () => { if (rp) rp.dirty = true; };
+$("bRepCmp").onclick = () => {
+  if (!rp) return;
+  if (repCmp && heading !== null) {                               // the reading is live: this tap sets it
+    rp.az = Math.round(heading) % 360; rp.dir = compass8(rp.az); rp.dirty = true; repCmpStop(); repStat(""); repRender(); return;
+  }
+  const go = () => {
+    window.addEventListener("deviceorientationabsolute", onOrient); window.addEventListener("deviceorientation", onOrient);
+    repCmpT = Date.now(); clearInterval(repCmp); repCmp = setInterval(repCmpTick, 200);
+    repStat(tx("HOLD THE PHONE FLAT, POINT ITS TOP WHERE YOU SAW IT, THEN TAP SET"));
+  };
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function")
+    DeviceOrientationEvent.requestPermission().then((r) => (r === "granted" ? go() : repStat(tx("NO COMPASS PERMISSION · PICK A DIRECTION BELOW")))).catch(() => repStat(tx("NO COMPASS PERMISSION · PICK A DIRECTION BELOW")));
+  else if (window.DeviceOrientationEvent) go();
+  else repStat(tx("NO COMPASS ON THIS DEVICE · PICK A DIRECTION BELOW"));
+};
+$("repFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if (!f || !rp) return;
+  const id = rp.id; repStat(tx("READING THE PHOTO"));
+  repShrink(f).then((b) => {
+    if (!rp || rp.id !== id) return;
+    if (rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
+    rp.ph = { blob: b, url: URL.createObjectURL(b) }; rp.phDirty = true; rp.dirty = true;
+    repStat(txf("PHOTO READY · {k} KB · ITS HIDDEN LOCATION TAG IS GONE · TAP SAVE TO KEEP IT", { k: Math.max(1, Math.round(b.size / 1024)) })); repRender();
+  }, () => repStat(tx("THIS PHOTO COULD NOT BE READ HERE · TRY A JPEG OR PNG")));
+};
+$("bRepPhOff").onclick = () => { if (!rp || !rp.ph) return; URL.revokeObjectURL(rp.ph.url); rp.ph = null; rp.phDirty = true; rp.dirty = true; repStat(tx("PHOTO TAKEN OFF · TAP SAVE")); repRender(); };
+$("bRepSave").onclick = () => { if (repSave()) sfx("key"); };
+$("bRepNuforc").onclick = () => repExport();
+$("bRepDel").onclick = () => {                                   // two taps, four seconds apart at most
+  if (!rp) return;
+  if (!repDelArm) { repDelArm = setTimeout(() => { repDelArm = 0; $("bRepDel").textContent = tx("DELETE THIS REPORT"); }, 4000); $("bRepDel").textContent = tx("SURE? TAP AGAIN TO DELETE IT"); return; }
+  clearTimeout(repDelArm); repDelArm = 0;
+  const L = readLog(), t = L.find((x) => x.id === rp.id);
+  if (t) { delete t.rep; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {} }
+  idbDel(rp.id).catch(() => {});
+  const id = rp.id; rp.dirty = false; repClose(); repRow(id);
+  log("SIGHTING REPORT DELETED FROM THIS DEVICE", "cy");
+};
+$("bRepClose").onclick = () => repClose();
+$("repPick").addEventListener("click", (e) => { if (e.target === $("repPick")) repClose(); });
+$("bdMine").addEventListener("click", (e) => { const ed = e.target.closest(".bdRepEd"); if (!ed) return; const h = ed.closest(".bdRep"); if (h) repOpen(h.dataset.id); });
+function repNudge() {                                            // back on the chart after a landing: one line, no pop-up over anything
+  if (!repDue) return;
+  const id = repDue; repDue = "";
+  const t = readLog().find((x) => x.id === id);
+  if (t && !t.rep) log(tx("SAW SOMETHING? THE LOG KEY HOLDS A SIGHTING REPORT"), "cy");
+}
 function journalText() {
   const L = readLog().slice().reverse();
   const lines = ["CE-5 BEACON \u00b7 " + tx("JOURNAL OF") + " " + callsign, tx("EXPORTED") + " " + new Date().toLocaleString(), ""];
@@ -7386,6 +7648,7 @@ function journalText() {
     const d = new Date(r.t);
     lines.push(d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " \u00b7 " + r.d + (r.ly ? " \u00b7 " + fmtLy(r.ly) : "") + tripMeta(r));
     if (r.note) lines.push("  " + r.note);
+    if (r.rep) { lines.push("  " + tx("SIGHTING") + " \u00b7 " + repSummary(r.rep)); if (r.rep.txt) lines.push("  " + r.rep.txt); }   // the report travels only in an export he makes
     lines.push("");
   }
   lines.push(L.length + " " + tx("TRIPS") + " \u00b7 " + publicLink());
@@ -7425,6 +7688,7 @@ $("bdWipe").onclick = () => {                                    // two taps, fo
   if (!wipeArmed) { wipeArmed = setTimeout(() => { wipeArmed = 0; $("bdWipe").textContent = "CLEAR MY LOG ON THIS DEVICE"; }, 4000); $("bdWipe").textContent = "SURE? TAP AGAIN TO CLEAR IT"; return; }
   clearTimeout(wipeArmed); wipeArmed = 0; $("bdWipe").textContent = "CLEAR MY LOG ON THIS DEVICE";
   try { localStorage.removeItem(LOG_KEY); } catch (e) {}
+  idbClear().catch(() => {});                                    // the sighting photos go with the log
   log("YOUR LOG ON THIS DEVICE IS CLEARED \u00b7 THE PUBLIC BOARD KEEPS WHAT WAS FILED", "cy");
   openBoard();
 };
@@ -7448,7 +7712,11 @@ function openBoard() {
   const tot = L.reduce((a, r) => a + (r.ly || 0), 0), far = L.reduce((a, r) => Math.max(a, r.ly || 0), 0);
   $("bdMine").innerHTML = '<div class="setStat">' + L.length + " TRIP" + (L.length === 1 ? "" : "S") + " \u00b7 " + (tot ? fmtLy(tot) : "0 LY") +
     " ALL TOLD \u00b7 FARTHEST " + (far ? fmtLy(far) : "\u2014") + "</div>" + nightsHtml(L) + bdRows(L.slice(0, 12), true);
-  if (L.length && L[0].id && !L[0].note && Date.now() - L[0].t < 600000) bdNoteOpen(L[0].id);   // just landed: the pen is already out
+  if (L.length && L[0].id && Date.now() - L[0].t < 600000 && !L[0].rep && !L[0].repAsk) {   // just landed: the sighting report first, once (v75)
+    const id = L[0].id, LL = readLog(), tt = LL.find((x) => x.id === id);
+    if (tt) { tt.repAsk = 1; try { localStorage.setItem(LOG_KEY, JSON.stringify(LL)); } catch (e) {} }
+    setTimeout(() => { if (!$("board").classList.contains("hide")) repOpen(id, true); }, 300);
+  } else if (L.length && L[0].id && !L[0].note && Date.now() - L[0].t < 600000) bdNoteOpen(L[0].id);   // just landed: the pen is already out
   const pend = readPending().filter((x) => !x.v).length;
   const note = !BOARD_TOKEN
     ? '<div class="setStat">FILING WAITS FOR THE BOARD KEY \u00b7 ' + (pend ? pend + ' OF YOUR TRIPS ARE KEPT HERE AND GO UP WHEN IT LANDS' : 'YOUR TRIPS ARE KEPT UNTIL THEN') + '</div>'
@@ -7764,7 +8032,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard", "nightCard", "nightHint", "schedCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard", "nightCard", "nightHint", "schedCard", "repCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -7823,7 +8091,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=10")
+  fetch("lang/" + uiLang + ".json?v=11")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
@@ -9091,7 +9359,7 @@ $("setCard").addEventListener("input", (e) => {                 // a slider on t
     const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
     if (t) c.setAttribute("aria-label", t);
   });
-  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard", "nightCard", "schedCard"].forEach((id) => {
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard", "nightCard", "schedCard", "repCard"].forEach((id) => {
     const el = $(id); if (!el) return;
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
     const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));

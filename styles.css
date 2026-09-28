@@ -829,6 +829,32 @@ body.intro #bNight { opacity: 0 !important; pointer-events: none !important; }
   padding: 5px 8px; border-radius: 3px; color-scheme: dark; max-width: 100%; }
 #schedRow .setStat { margin: 0; align-self: center; }
 #schedRow.hide { display: none; }
+/* ---- a sighting report (v75): its card and its line on the LOG card ---- */
+#repPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#repCard { max-width: 520px; width: calc(100% - 24px); max-height: 86vh; max-height: 86dvh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#repCard .setHead { position: relative; }
+#repCard #bRepClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#repCard .setLbl { margin-top: 12px; }
+#repCard .repChips { display: flex; flex-wrap: wrap; gap: 6px; }
+#repCard .repChip { cursor: pointer; user-select: none; }
+#repCard .repChip.on { background: rgba(155,231,255,0.22); color: #eafcff; border-color: #cff4ff; box-shadow: 0 0 8px rgba(155,231,255,0.35); }
+#repCard .repDirs .repChip { min-width: 24px; text-align: center; padding: 4px 7px; }
+#repCard .bdBtns { flex-wrap: wrap; }
+#repCard #repDirV, #repCard #repDurV { margin: 0; align-self: center; }
+#repCard input[type="range"] { flex: 1; min-width: 150px; height: 30px; accent-color: var(--cyan); touch-action: pan-y; }
+#repCard #bRepCmp.live { border-color: var(--phos); color: var(--phos); }
+#repCard label.setBtn { cursor: pointer; }
+#repCard #repThumb { display: block; max-width: 100%; max-height: 200px; margin-top: 6px; border-radius: 4px; border: 1px solid rgba(155,231,255,0.35); }
+#repCard #repThumb.hide { display: none; }
+#repCard .repBtns { margin-top: 14px; }
+#repCard #repStat { min-height: 1em; color: var(--phos); }
+.bdRep { font-size: 10.5px; line-height: 1.5; color: var(--ink); margin: -2px 0 6px 12px; padding-left: 8px; border-left: 1px solid rgba(125,251,168,0.4); }
+.bdRep.dim { border-left-color: transparent; }
+.bdRepEd { color: var(--cyan); letter-spacing: 0.08em; font-size: 9.5px; cursor: pointer; }
+.bdRep.dim .bdRepEd { color: var(--amber-dim); }
 #roomCard #bRoomClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
 #roomCode { width: 9.5ch; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 700 18px ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }
