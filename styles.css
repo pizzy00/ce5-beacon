@@ -807,6 +807,28 @@ body.intro #bNight { opacity: 0 !important; pointer-events: none !important; }
   #bNight { top: calc(196px + env(safe-area-inset-top, 0px)); right: 48px; }
   #nightHint { top: calc(199px + env(safe-area-inset-top, 0px)); right: 86px; }
 }
+/* ---- a scheduled session (v74): the countdown card, the picker in the group card ---- */
+#schedPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#schedPick.hide { display: none; }
+#schedCard { max-width: 480px; width: calc(100% - 24px); max-height: 86vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#schedCard .setHead { position: relative; }
+#schedCard #bSchedClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#schedCard .scWhen { margin-top: 10px; font-size: 12px; letter-spacing: 0.08em; color: var(--amber); line-height: 1.5; }
+#schedCard .scCount { margin: 8px 0 2px; font: 700 40px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em;
+  color: var(--phos); font-variant-numeric: tabular-nums; text-shadow: 0 0 14px rgba(125,251,168,0.45); line-height: 1.1; }
+#schedCard .scCount.small { font-size: 18px; letter-spacing: 0.1em; }
+#schedCard .scMsg { margin: 10px 0 4px; line-height: 1.6; color: rgba(240,236,221,0.8); }
+#schedCard .bdBtns, #roomCard .schedBtns { flex-wrap: wrap; }
+#schedCard .setBtn.hide { display: none; }
+#schedCard #bSchedArm { font-size: 13px; padding: 7px 16px; border-color: var(--phos); color: var(--phos); }
+#schedCard #bSchedArm.dim { border-color: var(--amber-dim); color: var(--amber-dim); }
+#schedIn { background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 14px ui-monospace, Menlo, Consolas, monospace;
+  padding: 5px 8px; border-radius: 3px; color-scheme: dark; max-width: 100%; }
+#schedRow .setStat { margin: 0; align-self: center; }
+#schedRow.hide { display: none; }
 #roomCard #bRoomClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
 #roomCode { width: 9.5ch; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 700 18px ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }

@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=47" />
+<link rel="stylesheet" href="styles.css?v=48" />
 </head>
 <body class="intro introHud">
 
@@ -741,6 +741,22 @@
     <div class="setLbl">JOIN A ROOM</div>
     <div class="bdBtns"><input id="roomCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" /><span class="setBtn" id="bRoomJoin">JOIN</span></div>
     <div class="setStat">THE HOST READS THE FOUR LETTERS OUT · EVERYONE ELSE TYPES THEM HERE · A ROOM NEEDS THE INTERNET ON EVERY PHONE, EVEN WHEN YOU ARE ALL STANDING TOGETHER · FOLLOWERS SEE THE HOST'S SYSTEM AND SETTINGS; THEIR OWN GPS SPOT STAYS THEIRS</div>
+    <div class="setLbl">SCHEDULE A SESSION</div>
+    <div class="bdBtns hide" id="schedRow"><span class="setStat" id="schedRowTxt" data-nol10n></span><span class="setBtn" id="bSchedOpen">OPEN</span></div>
+    <div class="setStat">PICK A TIME AND SEND THE LINK · EVERY PHONE THAT OPENS IT COUNTS DOWN IN ITS OWN TIME ZONE AND STARTS ON THE SAME SECOND · NO ROOM NEEDED, NO ACCOUNT · THE LINK CARRIES THE SYSTEM AND YOUR SETUP, NEVER A PLACE</div>
+    <div class="bdBtns"><input type="datetime-local" id="schedIn" aria-label="Day and time of the session" /></div>
+    <div class="bdBtns schedBtns"><span class="setBtn" id="bSchedCopy">COPY LINK</span><span class="setBtn" id="bSchedShare">SHARE</span><span class="setBtn" id="bSchedCal2">ADD TO CALENDAR</span><span class="setBtn" id="bSchedMine">COUNT DOWN ON THIS PHONE</span></div>
+    <div class="setStat" id="schedStat" data-nol10n></div>
+  </div>
+</div>
+<div id="schedPick" class="hide">
+  <div id="schedCard" role="dialog" aria-label="A group session">
+    <div class="setHead display">A GROUP SESSION <span id="bSchedClose">&#10005;</span></div>
+    <div class="scWhen" id="scWhen" data-nol10n></div>
+    <div class="scCount" id="scCount" data-nol10n></div>
+    <div class="setStat" id="scSys" data-nol10n></div>
+    <div class="scMsg" id="scMsg" data-nol10n aria-live="polite"></div>
+    <div class="bdBtns schedBtns"><span class="setBtn" id="bSchedArm">I'M READY</span><span class="setBtn" id="bSchedCal">ADD TO CALENDAR</span><span class="setBtn dim" id="bSchedOff">NOT NOW</span></div>
   </div>
 </div>
 <div id="checkPick" class="hide">
@@ -4339,6 +4355,7 @@ function guideDue() { let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY
 function guideStart(force) {
   if (!force && (phase !== "chart" || intro)) return;         // the opening still running: it will ask again
   let seen = ""; try { seen = localStorage.getItem(GUIDE_KEY) || ""; } catch (e) {}
+  if (schedAt && !force) { fsCallout(); return; }               // a scheduled session link: the tour waits for another visit
   if ((seen || S.noGuide) && !force) { fsCallout(); return; }
   fsCalloutOff(); fsShown = false;                            // the corner keys wait: they introduce themselves once the guide closes
   guideHold = false;
@@ -6079,7 +6096,7 @@ function idleArm(secs) {
 function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
-  if (["settings", "info", "board", "checkPick", "nightPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (["settings", "info", "board", "checkPick", "nightPick", "schedPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
   if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
@@ -6088,7 +6105,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -7066,7 +7083,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7747,7 +7764,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard", "nightCard", "nightHint"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard", "nightCard", "nightHint", "schedCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -7806,7 +7823,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=9")
+  fetch("lang/" + uiLang + ".json?v=10")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
@@ -8342,6 +8359,164 @@ function roomStat() {
 }
 $("bRoom").onclick = () => { sfx("cover"); $("settings").classList.add("hide"); $("roomPick").classList.remove("hide"); roomStat(); roomLoad().catch(() => {}); };
 $("bRoomClose").onclick = () => { sfx("cover"); $("roomPick").classList.add("hide"); };
+/* ---------------- a scheduled session (09-27): one link, every phone starts on the same second ----------------
+   The link carries the start instant (?at=<unix seconds>), the system (?s=) and the setup (?c=). No room and no server: each
+   phone counts down on its own clock (phones keep network time) and one tap arms it, which also lets the sound play. A phone
+   that opens the link late starts at once and skips ahead through the stages it missed; the descent and the ground keep their own clock. */
+let schedAt = 0, schedUrl = "", schedFrom = false, schedArmed = false, schedTick = 0, schedLate = 0, schedLateT = 0, schedSeen = "", schedWalk = 0, schedBeep = 0;
+const SCHED_LATE_MAX = 60 * 60000;                               // an hour after the start it is somebody else's night
+function schedFmt(t) {                                          // the day and month in the language on screen, the digits plain
+  const o = { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", numberingSystem: "latn" };
+  try { return new Date(t).toLocaleString(uiLang && uiLang !== "en" ? [uiLang] : [], o); } catch (e) { return new Date(t).toLocaleString([], o); }
+}
+function schedZone(t) { try { const z = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(new Date(t)).find((p) => p.type === "timeZoneName"); return z ? z.value : ""; } catch (e) { return ""; } }
+function schedLeft(ms) {                                         // 1:02:09, or 3 DAYS · 1:02:09
+  const s = Math.max(0, Math.ceil(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  const two = (v) => (v < 10 ? "0" : "") + v;
+  return (d ? (d === 1 ? tx("1 DAY") : txf("{d} DAYS", { d })) + " · " : "") + h + ":" + two(m) + ":" + two(x);
+}
+function schedAgo(ms) { const m = Math.floor(ms / 60000); return m < 1 ? tx("JUST STARTED") : m < 120 ? txf("STARTED {m} MIN AGO", { m }) : txf("STARTED {h} H AGO", { h: Math.floor(m / 60) }); }
+function schedLink(T) {                                          // the public address, never the #ll= spot
+  const code = setupPack();
+  return publicLink() + "?at=" + Math.floor(T / 1000) + (selected && selected.id ? "&s=" + selected.id : "") + (allChannels ? "&all=1" : "") + (code ? "&c=" + code : "");
+}
+function schedIcs(T, link) {                                     // a calendar entry with a ten-minute reminder; made here, saved here
+  const z = (t) => new Date(t).toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const esc = (s) => s.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1");
+  const fold = (l) => { let o = ""; while (l.length > 73) { o += l.slice(0, 73) + "\r\n "; l = l.slice(73); } return o + l; };
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CE-5 Beacon//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+    "UID:" + Math.floor(T / 1000) + "-ce5@pizzy00.github.io", "DTSTAMP:" + z(Date.now()), "DTSTART:" + z(T), "DTEND:" + z(T + 3600000),
+    "SUMMARY:" + esc("CE-5 group session"), "DESCRIPTION:" + esc("Open the link a few minutes early and tap I'M READY: " + link), "URL:" + link,
+    "BEGIN:VALARM", "TRIGGER:-PT10M", "ACTION:DISPLAY", "DESCRIPTION:" + esc("CE-5 group session in 10 minutes"), "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].map(fold).join("\r\n") + "\r\n";
+}
+function schedSave(T, link) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([schedIcs(T, link)], { type: "text/calendar" }));
+  a.download = "ce5-session.ics"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function schedDur(p) {                                           // how long each space stage runs: the same sums the flight uses
+  const sp = (ms) => (reduced ? Math.min(ms, 900) : ms * S.spaceMul);
+  if (p === "origin") return sp((modeOf() === "bermuda" ? 17000 : 12000) * S.originMul);
+  if (p === "galaxy") return sp(15000);
+  if (p === "warp") return sp(26000 * S.originMul);
+  if (p === "bridge") return reduced ? 900 : S.bridgeSec * 1000;
+  return reduced ? 900 : S.flyby * 1000;                         // every flyby, and the Earth
+}
+function schedStep() {                                           // one stage per frame: tell the flight each stage is already over, until the missed minutes are spent
+  const stop = () => { clearInterval(schedWalk); schedWalk = 0; schedLate = 0; };
+  if (phase === "chart") return stop();                          // stopped or aborted while skipping
+  if (SPACE_STAGES.indexOf(phase) < 0) { log(tx("THE OTHERS ARE ALREADY ON THE DESCENT · YOU JOIN IT FROM THE TOP"), "cy"); return stop(); }
+  if (phase === schedSeen) return;                               // the flight has not moved on yet
+  schedSeen = phase;
+  const d = schedDur(phase), want = schedLate + (Date.now() - schedLateT);   // the others kept flying while this phone skipped
+  if (want >= d) { schedLate -= d; t0 = performance.now() - d - 50; return; }
+  t0 = performance.now() - want; stop();
+}
+function schedGo(late) {
+  schedArmed = false; schedClose(true);
+  if (phase !== "chart") { log(tx("THE GROUP SESSION STARTED WHILE THIS PHONE WAS ALREADY FLYING"), "alert"); return; }
+  if (roomFollow()) { log(tx("THE HOST STARTS") + " · " + tx("YOU ARE IN ROOM") + " " + ROOM.code, "cy"); return; }
+  engage();
+  if (phase === "chart") return;
+  if (late > 2000) {
+    schedLate = late; schedLateT = Date.now(); schedSeen = ""; clearInterval(schedWalk); schedWalk = setInterval(schedStep, 40);
+    log(txf("JOINED {m} MIN LATE · SKIPPING AHEAD TO THE OTHERS", { m: Math.max(1, Math.round(late / 60000)) }), "cy");
+  } else log(tx("THE GROUP SESSION IS UNDER WAY · EVERY PHONE ON THE SAME SECOND"), "cy");
+}
+function schedRender() {
+  if (!schedAt || $("schedPick").classList.contains("hide")) return;
+  const left = schedAt - Date.now(), arm = $("bSchedArm"), cal = $("bSchedCal"), cnt = $("scCount");
+  $("scWhen").textContent = schedFmt(schedAt) + " · " + tx("YOUR PHONE'S OWN TIME");
+  $("scSys").textContent = txf("DEPARTS FROM {s}", { s: allChannels ? tx("ALL CHANNELS") : selected ? selected.name : "" }) + (schedFrom && setupCame ? " · " + tx("ON THE SENDER'S SETTINGS") : "");
+  if (left > 0) {
+    cnt.textContent = schedLeft(left); cnt.classList.remove("small");
+    $("scMsg").textContent = tx(schedArmed ? "ARMED · KEEP THIS PAGE OPEN WITH THE SCREEN ON · IT STARTS BY ITSELF" : "TAP I'M READY, THEN LEAVE THIS PAGE OPEN · IT STARTS BY ITSELF, ON THE SAME SECOND AS EVERY OTHER PHONE");
+    arm.textContent = tx(schedArmed ? "READY" : "I'M READY"); arm.classList.toggle("dim", schedArmed); arm.classList.remove("hide"); cal.classList.remove("hide");
+  } else {
+    cnt.textContent = schedAgo(-left); cnt.classList.add("small"); cal.classList.add("hide");
+    const can = -left <= SCHED_LATE_MAX;
+    $("scMsg").textContent = tx(can ? "TAP JOIN NOW TO CATCH UP WITH THE OTHERS · THE JOURNEY SKIPS AHEAD BY THE MINUTES YOU MISSED" : "THIS SESSION IS PROBABLY OVER · THE CHART IS YOURS");
+    arm.textContent = tx("JOIN NOW"); arm.classList.remove("dim"); arm.classList.toggle("hide", !can);
+  }
+}
+function schedLoop() {
+  if (!schedAt) return;
+  const left = schedAt - Date.now();
+  if (schedArmed) {
+    if (left <= 0) return schedGo(-left);                        // a phone that slept through it wakes here and catches up
+    const s = Math.ceil(left / 1000);
+    if (s <= 10 && s !== schedBeep) { schedBeep = s; sfx("key"); }
+    if (S.wake !== false && !wakeLk && !wakeAsk && !document.hidden) wakeOn();   // a flight in between may have let it go
+  }
+  schedRender();
+}
+function schedLoad(T, url, from) {
+  schedAt = T; schedUrl = url; schedFrom = !!from; schedArmed = false; schedBeep = 0;
+  clearInterval(schedTick); schedTick = setInterval(schedLoop, 250);
+  $("schedRow").classList.remove("hide");
+  $("schedRowTxt").textContent = txf("A SESSION IS SET FOR {t}", { t: schedFmt(T) });
+}
+function schedOpen() {
+  if (!schedAt) return;
+  $("roomPick").classList.add("hide");
+  sfx("cover"); $("schedPick").classList.remove("hide"); schedRender();
+}
+function schedClose(quiet) {
+  if ($("schedPick").classList.contains("hide")) return;
+  if (!quiet) sfx("cover");
+  $("schedPick").classList.add("hide");
+}
+function schedDisarm() {
+  if (!schedArmed) return;
+  schedArmed = false; if (phase === "chart") wakeOff();
+  log(tx("THIS PHONE WILL NOT START BY ITSELF NOW"), "cy");
+}
+function schedWhenFree() {                                       // a link came in: show the countdown once the opening and every card are out of the way
+  let k = 0;
+  const t = setInterval(() => {
+    if (++k > 900) return clearInterval(t);
+    if (phase !== "chart" || intro || !$("guide").classList.contains("hide") || cardUp()) return;
+    clearInterval(t); schedOpen();
+  }, 400);
+}
+$("bSchedArm").onclick = () => {
+  const left = schedAt - Date.now();
+  if (left <= 0) { if (-left <= SCHED_LATE_MAX) schedGo(-left); return; }
+  if (schedArmed) return;
+  schedArmed = true; sfx("key"); wakeOn(); schedRender();
+  log(txf("ARMED FOR {t} · LEAVE THIS PAGE OPEN", { t: ntHM(schedAt) }), "cy");
+};
+$("bSchedCal").onclick = () => { sfx("key"); schedSave(schedAt, schedUrl); };
+$("bSchedOff").onclick = () => { schedDisarm(); schedClose(); };
+$("bSchedClose").onclick = () => schedClose();                   // the cross only hides it: an armed phone still starts by itself
+$("schedPick").addEventListener("click", (e) => { if (e.target === $("schedPick")) schedClose(); });
+$("bSchedOpen").onclick = () => schedOpen();
+function schedInDefault() {                                      // an hour from now on the next quarter hour, in this phone's own time
+  const t = new Date(Math.ceil((Date.now() + 3600000) / 900000) * 900000), p = (v) => (v < 10 ? "0" : "") + v;
+  return t.getFullYear() + "-" + p(t.getMonth() + 1) + "-" + p(t.getDate()) + "T" + p(t.getHours()) + ":" + p(t.getMinutes());
+}
+function schedMake(then) {                                       // the picker's local time as one instant for everybody
+  const v = $("schedIn").value, T = v ? new Date(v).getTime() : 0;
+  if (!T || !isFinite(T)) { $("schedStat").textContent = tx("PICK A DAY AND A TIME FIRST"); return; }
+  if (T < Date.now() + 60000) { $("schedStat").textContent = tx("PICK A TIME AT LEAST A MINUTE AHEAD"); return; }
+  sfx("key");
+  $("schedStat").textContent = txf("EVERY PHONE STARTS AT {t} YOUR TIME · EACH SEES IT IN ITS OWN TIME ZONE", { t: schedFmt(T) });
+  then(T, schedLink(T));
+}
+function schedCopy(link) {
+  const say = (ok) => { $("schedStat").textContent += " · " + (ok ? tx("LINK COPIED") : link); };
+  try { navigator.clipboard.writeText(link).then(() => say(true), () => say(false)); } catch (e) { say(false); }
+}
+$("bSchedCopy").onclick = () => schedMake((T, link) => schedCopy(link));
+$("bSchedShare").onclick = () => schedMake((T, link) => {
+  const text = txf("A CE-5 GROUP SESSION AT {t} · OPEN THE LINK A FEW MINUTES EARLY AND TAP I'M READY", { t: schedFmt(T) + (schedZone(T) ? " " + schedZone(T) : "") });
+  if (navigator.share) navigator.share({ title: "CE-5 Beacon", text, url: link }).catch(() => {});
+  else schedCopy(link);
+});
+$("bSchedCal2").onclick = () => schedMake((T, link) => schedSave(T, link));
+$("bSchedMine").onclick = () => schedMake((T, link) => { schedLoad(T, link); schedOpen(); });
+$("schedIn").value = schedInDefault();
 $("bSiteClose").onclick = () => { sfx("cover"); siteClose(); };
 $("sitePick").addEventListener("click", (e) => { if (e.target === $("sitePick")) siteClose(); });
 $("bSiteHear").onclick = () => { if (siteAt) { sfx("key"); voiceSay("site-" + siteAt.id); } };
@@ -8849,6 +9024,11 @@ if (sysParam) { const so = SYSTEMS.find((x) => x.id === sysParam); if (so) { try
 const setupParam = (location.search.match(/[?&]c=([^&#]+)/) || [])[1];   // a whole tuning, handed over in a link
 let setupCame = 0;
 if (setupParam) { const o = setupUnpack(setupParam); if (o) setupCame = setupApply(o, true) ? 1 : 0; }
+const schedParam = (location.search.match(/[?&]at=(\d{9,11})/) || [])[1];   // a scheduled session link (v74): count down, then start on the second
+if (schedParam) {
+  if (/[?&]all=1/.test(location.search) && !allChannels) { try { $("bAll").onclick(); } catch (e) {} }
+  schedLoad(+schedParam * 1000, location.href.split("#")[0], true); schedWhenFree();
+}
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(() => { if (guideDue() && intro) return; fsCallout(); }, 14000);   // with the opening off (or stuck) the callout still comes; on the first night the guide hands over to it   // the files, whichever way the opening went
 applyS();                                                       // first visit too: every control shows what the console actually holds
@@ -8911,7 +9091,7 @@ $("setCard").addEventListener("input", (e) => {                 // a slider on t
     const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
     if (t) c.setAttribute("aria-label", t);
   });
-  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard", "nightCard"].forEach((id) => {
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard", "nightCard", "schedCard"].forEach((id) => {
     const el = $(id); if (!el) return;
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
     const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));
