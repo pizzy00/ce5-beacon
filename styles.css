@@ -759,6 +759,54 @@ body.intro #bRoom { opacity: 0 !important; }
 #checkCard .ckRes.ok::before { content: "\25CF\00a0\00a0"; }
 #checkCard .ckRes.bad { color: var(--amber); }
 #checkCard .ckRes.bad::before { content: "\25CF\00a0\00a0"; }
+/* ---- TONIGHT'S SKY (v73): the key under the hand, its hint, its card ---- */
+#bNight { position: fixed; right: 10px; top: calc(272px + env(safe-area-inset-top, 0px)); z-index: 9;
+  width: 30px; height: 30px; border: 1px solid rgba(125,251,168,0.45); border-radius: 3px; color: var(--phos);
+  background: linear-gradient(180deg, rgba(20,32,24,0.95), rgba(6,14,9,0.95));
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
+#bNight svg { width: 16px; height: 16px; display: block; }
+#bNight:active { background: rgba(255,196,107,0.25); }
+#bNight.callout { animation: fsPulse 1.6s ease-out infinite; }
+body.run #bNight, body.active #bNight { opacity: 0.3; }
+body.intro #bNight { opacity: 0 !important; pointer-events: none !important; }
+#nightHint { position: fixed; right: 48px; top: calc(275px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
+  color: #b8f0c8; font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
+  background: rgba(0,0,0,0.78); border: 1px solid rgba(125,251,168,0.5); border-radius: 4px; padding: 5px 9px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+#nightHint.hide { display: none; }
+#nightPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#nightPick.hide { display: none; }
+#nightCard { max-width: 560px; width: calc(100% - 24px); max-height: 86vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#nightCard .setHead { position: relative; }
+#nightCard #bNightClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#nightCard .ntVerdict { margin: 8px 0 10px; font-size: 12px; line-height: 1.5; letter-spacing: 0.08em; color: var(--phos); }
+#nightCard .ntVerdict.warn { color: var(--amber); }
+#nightCard canvas { display: block; width: 100%; height: 132px; border: 1px solid rgba(255,196,107,0.18); border-radius: 4px; background: #05070b; }
+#nightCard .ntKey { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 2px; font-size: 9px; letter-spacing: 0.12em; color: rgba(240,236,221,0.65); }
+#nightCard .ntKey span { white-space: nowrap; }
+#nightCard .ntKey i { display: inline-block; width: 10px; height: 8px; margin-right: 5px; border-radius: 1px; box-sizing: border-box; }
+#nightCard .ntKey .kDark { background: #05070b; border: 1px solid rgba(240,236,221,0.4); }
+#nightCard .ntKey .kMoon { background: rgba(240,236,221,0.8); }
+#nightCard .ntKey .kCloud { background: rgba(220,224,232,0.55); }
+#nightCard .ntKey .kBest { border: 1.5px solid var(--phos); }
+#nightCard .ntKey .kNow { width: 2px; background: var(--amber); }
+#nightCard .ntGrid { display: grid; grid-template-columns: fit-content(40%) 1fr; gap: 8px 14px; align-items: baseline;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,196,107,0.14); }
+#nightCard .ntGrid .setLbl { margin: 0; }
+#nightCard .ntVal { line-height: 1.5; font-variant-numeric: tabular-nums; }
+#nightCard .ntFoot { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,196,107,0.14); }
+#nightCard .ntFoot .bdBtns { margin-top: 6px; }
+#nightCard .ntFoot .bdBtns.hide { display: none; }
+#nightCard .ntSrc { margin-top: 8px; line-height: 1.6; color: rgba(240,236,221,0.55); }
+#nightCard .ntSrc a { color: var(--phos); }
+@media (max-height: 449px) {                                    /* a phone on its side: the foot of the column would sit on the console, so the key steps left of the people */
+  #bNight { top: calc(196px + env(safe-area-inset-top, 0px)); right: 48px; }
+  #nightHint { top: calc(199px + env(safe-area-inset-top, 0px)); right: 86px; }
+}
 #roomCard #bRoomClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
 #roomCode { width: 9.5ch; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 700 18px ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }

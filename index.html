@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=46" />
+<link rel="stylesheet" href="styles.css?v=47" />
 </head>
 <body class="intro introHud">
 
@@ -475,7 +475,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
-    <div class="bdBtns col" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span></div>
+    <div class="bdBtns col" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span><span class="setBtn" id="bNightInfo">TONIGHT'S SKY &#183; WHEN IT GETS DARK, THE MOON AND THE CLOUDS</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -593,6 +593,7 @@
 <div id="shareHint" class="hide display">SHARE A CARD WITH THE LINK ▸</div>
 <div id="roomHint" class="hide display">GROUP SESSION · ONE PHONE LEADS ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
+<div id="nightHint" class="hide display">TONIGHT'S SKY &#183; DARK, MOON, CLOUDS ▸</div>
 <div id="langPick" class="hide">
   <div id="langCard">
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
@@ -760,6 +761,27 @@
     <div class="bdBtns"><span class="setBtn" id="bCheckDone">ALL SET</span></div>
   </div>
 </div>
+<div id="nightPick" class="hide">
+  <div id="nightCard">
+    <div class="setHead display">TONIGHT'S SKY <span id="bNightClose">&#10005;</span></div>
+    <div class="ntVerdict" id="ntVerdict" data-nol10n></div>
+    <canvas id="ntChart" role="img" aria-label="Tonight from sunset to sunrise: the darkness, the Moon and the clouds"></canvas>
+    <div class="ntKey"><span><i class="kDark"></i>FULL DARK</span><span><i class="kMoon"></i>MOON UP</span><span><i class="kCloud"></i>CLOUD COVER</span><span><i class="kBest"></i>BEST WINDOW</span><span><i class="kNow"></i>NOW</span></div>
+    <div class="ntGrid">
+      <div class="setLbl">SUNSET</div><div class="ntVal" id="ntvSet" data-nol10n></div>
+      <div class="setLbl">FULL DARK</div><div class="ntVal" id="ntvDark" data-nol10n></div>
+      <div class="setLbl">THE MOON</div><div class="ntVal" id="ntvMoon" data-nol10n></div>
+      <div class="setLbl">CLOUDS</div><div class="ntVal" id="ntvCloud" data-nol10n></div>
+      <div class="setLbl">BEST WINDOW</div><div class="ntVal" id="ntvBest" data-nol10n></div>
+      <div class="setLbl">SUNRISE</div><div class="ntVal" id="ntvRise" data-nol10n></div>
+    </div>
+    <div class="ntFoot">
+      <div class="setStat" id="ntSpot" data-nol10n></div>
+      <div class="bdBtns" id="ntGpsRow"><span class="setBtn" id="bNtGps">GPS</span></div>
+      <div class="setStat ntSrc"><span id="ntSrc" data-nol10n></span><br /><span class="ntBy">WEATHER DATA BY <a href="https://open-meteo.com/" target="_blank" rel="noopener">OPEN-METEO.COM</a></span></div>
+    </div>
+  </div>
+</div>
 <div id="sitePick" class="hide" role="dialog" aria-label="A place on the Earth">
   <div id="siteCard">
     <div class="setHead display"><span id="siteName">.</span> <span id="bSiteClose">✕</span></div>
@@ -781,6 +803,8 @@
     <div class="setStat">THE PUBLIC TRAVELLERS BOARD RECEIVES: ONE ANONYMOUS "VISIT" MARK PER DEVICE PER DAY (A RANDOM ID, A DATE, AND THE TWO-LETTER CODE OF THE LANGUAGE THIS CONSOLE IS SET TO — SO WE CAN SEE WHICH TRANSLATIONS ARE ACTUALLY BEING READ, AND NOTHING ELSE) · EACH TRIP YOU COMPLETE (YOUR MADE-UP CALL-SIGN + THE DESTINATION) · ANY IDEA YOU CHOOSE TO SEND (YOUR CALL-SIGN + YOUR WORDS) · ALL OF THAT IS PUBLIC BY DESIGN AND CONTAINS NOTHING ABOUT WHO YOU REALLY ARE</div>
     <div class="setLbl">GROUP SESSIONS</div>
     <div class="setStat">A ROOM SENDS ONLY TIMING, THE CHOSEN SYSTEM AND THE HOST'S SETUP CODE BETWEEN THE PHONES, THROUGH THE FREE PEERJS RELAY · NEVER A LOCATION, NEVER A NAME · NOTHING IS STORED ANYWHERE</div>
+    <div class="setLbl">TONIGHT'S SKY</div>
+    <div class="setStat">ONLY WHEN YOU OPEN TONIGHT'S SKY, IT ASKS OPEN-METEO, A FREE WEATHER SERVICE WITH NO ACCOUNT, FOR THE CLOUD FORECAST AT YOUR SPOT ROUNDED TO ABOUT 10 KM &#183; LIKE ANY WEB SERVER IT SEES YOUR INTERNET ADDRESS &#183; THE SUN AND MOON TIMES ARE WORKED OUT ON THIS PHONE AND GO NOWHERE</div>
     <div class="setLbl">THE PLUMBING</div>
     <div class="setStat">THE SITE AND THE BOARD ARE HOSTED ON GITHUB, AND YOUR BROWSER TALKS TO GITHUB TO LOAD THEM · LIKE ANY WEB HOST, GITHUB KEEPS ORDINARY SERVER LOGS UNDER ITS OWN PRIVACY POLICY · THIS APP ADDS NOTHING ON TOP · THE WHOLE SOURCE IS PUBLIC AT GITHUB.COM/PIZZY00/CE5-BEACON, SO NONE OF THIS IS A PROMISE YOU HAVE TO TAKE ON FAITH</div>
   </div>
@@ -849,6 +873,11 @@
 <button id="bIdea" aria-label="Send an idea" title="Send an idea">
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M4.5 8V3.6a1 1 0 0 1 2 0V7M6.5 7V2.6a1 1 0 0 1 2 0V7M8.5 7V3.2a1 1 0 0 1 2 0V7.6M10.5 7.6V4.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5H7.4A3.4 3.4 0 0 1 4.5 13L2.6 9.9a1 1 0 0 1 1.7-1L4.5 9.6"/></svg>
+</button>
+<button id="bNight" aria-label="Tonight's sky" title="Tonight's sky: when it gets dark, the Moon and the clouds">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M8 2.5l1.3 2.7 2.7 1.3-2.7 1.3L8 10.5 6.7 7.8 4 6.5l2.7-1.3z"/>
+    <path d="M8.5 21h9a3.5 3.5 0 0 0 .5-6.96 5 5 0 0 0-9.6 1.2A2.9 2.9 0 0 0 8.5 21z"/></svg>
 </button>
 <div id="fade"></div>
 <div id="crt"></div>
@@ -4230,7 +4259,7 @@ function fpsTick(t) {
   fpsRaf = requestAnimationFrame(fpsTick);
 }
 let fsShown = false, calloutQueue = [];
-const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"], ["ideaHint", "bIdea"]];   // top to bottom, the hand last
+const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"], ["ideaHint", "bIdea"], ["nightHint", "bNight"]];   // top to bottom, tonight's sky under the hand
 function fsCallout() {                                           // the corner keys introduce themselves one at a time
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;
@@ -5346,17 +5375,16 @@ function drawSun(p, t) {
   $("dRng").textContent = "1.0 AU";
   $("dSig").textContent = "66%";
 }
-function moonInfo() {
-  const syn = 29.530588853;
-  let age = ((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % syn;
-  if (age < 0) age += syn;
-  const illum = Math.round(((1 - Math.cos((2 * Math.PI * age) / syn)) / 2) * 100);
+function moonInfo(when) {                                        // the Moon at a moment (now by default), from the true Sun-Moon angle (v73: was the average month)
+  const syn = 29.530588853, p = ntPhase(when || Date.now());
+  const age = (p.e / 360) * syn;
+  const illum = Math.round(p.lit * 100);
   const names = [[1.85, "NEW MOON"], [5.54, "WAXING CRESCENT"], [9.23, "FIRST QUARTER"],
     [12.92, "WAXING GIBBOUS"], [16.61, "FULL MOON"], [20.3, "WANING GIBBOUS"],
     [23.99, "LAST QUARTER"], [27.68, "WANING CRESCENT"], [99, "NEW MOON"]];
   let name = "NEW MOON";
   for (const [lim, n] of names) if (age <= lim) { name = n; break; }
-  return { ph: age / syn, illum, name };
+  return { ph: p.e / 360, illum, name };
 }
 function drawMoonDisc(x, y, r, ph) {
   ctx.fillStyle = "#08080d";                                    // the dark side is dark
@@ -6051,7 +6079,7 @@ function idleArm(secs) {
 function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
-  if (["settings", "info", "board", "checkPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (["settings", "info", "board", "checkPick", "nightPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
   if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
@@ -6060,7 +6088,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -7038,7 +7066,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7719,7 +7747,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard", "nightCard", "nightHint"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -7778,7 +7806,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=8")
+  fetch("lang/" + uiLang + ".json?v=9")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
@@ -8496,6 +8524,263 @@ $("bCkBuzzOn").onclick = () => {                                 // the same swi
   ckShow("bCkBuzzOn", false); ckSet("ckBuzzRes", "ok", tx("THE BUZZ WORKS AND IS ON"));
 };
 $("bCkGps").onclick = () => { useGps(); let k = 0; const t = setInterval(() => { if (targetIsMine || ++k > 24) { clearInterval(t); checkSky(); } }, 500); };
+/* ---------------- TONIGHT: the Sun and the Moon for the spot, worked out on the phone ----------------
+   Low-precision positions (the Sun to about 0.01 deg, the Moon to about 0.3 deg): rise and set to a minute or two, which is all a night out needs.
+   Only the cloud forecast comes from outside (Open-Meteo), and only when the card is opened. */
+function ntSun(ms) {                                             // the Sun: right ascension (hours), declination and ecliptic longitude (degrees)
+  const n = ms / 86400000 + 2440587.5 - 2451545, r = Math.PI / 180;
+  const L = 280.460 + 0.9856474 * n, g = (357.528 + 0.9856003 * n) * r;
+  const lam = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * r, eps = (23.439 - 0.0000004 * n) * r;
+  const ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam)) / r;
+  return { ra: ((ra % 360) + 360) % 360 / 15, dec: Math.asin(Math.sin(eps) * Math.sin(lam)) / r, lam: ((lam / r) % 360 + 360) % 360 };
+}
+function ntMoon(ms) {                                            // the Moon, the Astronomical Almanac short series: also its parallax for the rise height
+  const T = (ms / 86400000 + 2440587.5 - 2451545) / 36525, r = Math.PI / 180, s = (a) => Math.sin(a * r), c = (a) => Math.cos(a * r);
+  const lam = 218.32 + 481267.881 * T + 6.29 * s(135.0 + 477198.87 * T) - 1.27 * s(259.3 - 413335.36 * T) + 0.66 * s(235.7 + 890534.22 * T)
+    + 0.21 * s(269.9 + 954397.74 * T) - 0.19 * s(357.5 + 35999.05 * T) - 0.11 * s(186.5 + 966404.03 * T);
+  const bet = 5.13 * s(93.3 + 483202.02 * T) + 0.28 * s(228.2 + 960400.89 * T) - 0.28 * s(318.3 + 6003.15 * T) - 0.17 * s(217.6 - 407332.21 * T);
+  const par = 0.9508 + 0.0518 * c(135.0 + 477198.87 * T) + 0.0095 * c(259.3 - 413335.36 * T) + 0.0078 * c(235.7 + 890534.22 * T) + 0.0028 * c(269.9 + 954397.74 * T);
+  const eps = 23.439 - 0.0130 * T;
+  const l = c(bet) * c(lam), m = c(bet) * s(lam) * c(eps) - s(bet) * s(eps), n = c(bet) * s(lam) * s(eps) + s(bet) * c(eps);
+  const ra = Math.atan2(m, l) / r;
+  return { ra: ((ra % 360) + 360) % 360 / 15, dec: Math.asin(n) / r, lam: ((lam % 360) + 360) % 360, bet, par };
+}
+function ntPhase(ms) {                                           // how much of the Moon is lit, from the true Sun-Moon angle
+  const su = ntSun(ms), mo = ntMoon(ms), r = Math.PI / 180;
+  const e = ((mo.lam - su.lam) % 360 + 360) % 360;
+  const psi = Math.acos(Math.cos(mo.bet * r) * Math.cos((mo.lam - su.lam) * r));
+  return { e, lit: (1 - Math.cos(psi)) / 2 };
+}
+function ntAlt(which, ms, lat, lon) {                            // altitude above the horizon, minus the height it rises and sets at
+  if (which === "sun") { const p = ntSun(ms); return skyAltAz(p.ra, p.dec, lat, lon, ms).alt; }
+  const p = ntMoon(ms); return skyAltAz(p.ra, p.dec, lat, lon, ms).alt - (0.7275 * p.par - 0.5667);
+}
+function ntCross(f, a, b, fa) {                                  // the minute a curve crosses zero between two samples
+  for (let k = 0; k < 18; k++) { const m = (a + b) / 2, fm = f(m); if ((fm < 0) === (fa < 0)) { a = m; fa = fm; } else b = m; }
+  return (a + b) / 2;
+}
+const NT_STEP = 300000;                                          // five minutes a sample
+function ntNight(lat, lon, now) {                                // tonight: the dark that holds now, or the next one
+  const t0 = now - 22 * 3600000, N = Math.round(56 * 3600000 / NT_STEP);
+  const sun = [], moon = [];
+  for (let i = 0; i <= N; i++) { const t = t0 + i * NT_STEP; sun.push(ntAlt("sun", t, lat, lon)); moon.push(ntAlt("moon", t, lat, lon)); }
+  const at = (i) => t0 + i * NT_STEP, sunF = (h) => (t) => ntAlt("sun", t, lat, lon) - h;
+  const iNow = Math.round((now - t0) / NT_STEP);
+  const SET = -0.833;
+  const out = { lat, lon, now, polar: "", t0, step: NT_STEP, sun, moon };
+  let a = -1, b = -1;
+  if (sun[iNow] < SET) { a = iNow; while (a > 0 && sun[a - 1] < SET) a--; b = iNow; while (b < N && sun[b + 1] < SET) b++; }
+  else { let i = iNow; while (i < N && sun[i] >= SET) i++; if (i < N) { a = i; b = i; while (b < N && sun[b + 1] < SET) b++; } }
+  if (a < 0) { out.polar = "day"; out.from = now; out.to = now + 12 * 3600000; return ntMoonTimes(out, lat, lon); }       // the Sun stays up
+  if (a === 0 && b === N) {                                      // it never comes up: sixteen hours around now
+    out.polar = "night"; out.from = now - 2 * 3600000; out.to = now + 14 * 3600000;
+    a = Math.round((out.from - t0) / NT_STEP); b = Math.round((out.to - t0) / NT_STEP);
+  } else {
+    out.set = a > 0 ? ntCross(sunF(SET), at(a - 1), at(a), sun[a - 1] - SET) : null;
+    out.rise = b < N ? ntCross(sunF(SET), at(b), at(b + 1), sun[b] - SET) : null;
+    out.from = out.set || at(a); out.to = out.rise || at(b);
+  }
+  out.low = Infinity; out.lowT = out.from;
+  for (let i = a; i <= b; i++) if (sun[i] < out.low) { out.low = sun[i]; out.lowT = at(i); }   // the darkest moment
+  for (const [k, h] of [["civ", -6], ["nau", -12], ["ast", -18]]) {         // each twilight: when it falls, when it lifts
+    let d = null, u = null;
+    for (let i = Math.max(1, a); i <= Math.min(N, b + 1); i++) {
+      const p = sun[i - 1] - h, q = sun[i] - h;
+      if (d === null && p >= 0 && q < 0) d = ntCross(sunF(h), at(i - 1), at(i), p);
+      if (p < 0 && q >= 0) u = ntCross(sunF(h), at(i - 1), at(i), p);
+    }
+    let low = Infinity; for (let i = a; i <= b; i++) low = Math.min(low, sun[i]);
+    if (low < h && d === null && sun[a] < h) d = out.from;
+    if (low < h && u === null && sun[b] < h) u = out.to;
+    out[k] = low < h ? [d, u] : null;
+  }
+  return ntMoonTimes(out, lat, lon);
+}
+function ntMoonTimes(out, lat, lon) {                            // the Moon between the ends of the night: up, down, rise, set
+  const { t0, step, moon } = out, at = (i) => t0 + i * step, mF = (t) => ntAlt("moon", t, lat, lon);
+  const i0 = Math.max(1, Math.floor((out.from - t0) / step)), i1 = Math.min(moon.length - 1, Math.ceil((out.to - t0) / step));
+  out.mRise = null; out.mSet = null;
+  for (let i = i0; i <= i1; i++) {
+    const p = moon[i - 1], q = moon[i];
+    if (p < 0 && q >= 0 && out.mRise === null) out.mRise = ntCross(mF, at(i - 1), at(i), p);
+    if (p >= 0 && q < 0 && out.mSet === null) out.mSet = ntCross(mF, at(i - 1), at(i), p);
+  }
+  out.mUpAtStart = moon[Math.max(0, i0 - 1)] >= 0;
+  const mid = (out.from + out.to) / 2, ph = ntPhase(mid);
+  out.lit = ph.lit; out.elong = ph.e;
+  return out;
+}
+function ntUp(o, which, t) {                                     // from the samples: is it up (moon) / how high (sun)
+  const i = Math.max(0, Math.min(o.sun.length - 1, Math.round((t - o.t0) / o.step)));
+  return which === "sun" ? o.sun[i] : o.moon[i] >= 0;
+}
+function txf(en, v) { return tx(en).replace(/\{([a-z])\}/g, (m, k) => (k in v ? v[k] : m)); }   // a dictionary line with blanks the numbers fill
+function ntHM(t) { return new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+const NT_KEY = "ce5.clouds.v1";
+let ntCl = null, ntState = "", ntTick = 0, ntReq = 0;
+function ntSpotR() { return [Math.round(TARGET.lat * 10) / 10, Math.round(TARGET.lon * 10) / 10]; }
+function ntCloudAt(cl, t) {                                      // the forecast hour nearest t
+  if (!cl) return null;
+  const i = Math.round((t - cl.t0) / 3600000);
+  if (i < 0 || i >= cl.cc.length || cl.cc[i] === null) return null;
+  return { cc: cl.cc[i], pp: cl.pp[i] || 0, t: cl.t0 + i * 3600000 };
+}
+function ntSaved() { try { const c = JSON.parse(localStorage.getItem(NT_KEY) || "null"); return c && Array.isArray(c.cc) && Array.isArray(c.pp) ? c : null; } catch (e) { return null; } }
+function ntFetch() {                                             // the one thing that leaves: the spot to a tenth of a degree, asked of Open-Meteo, only with the card open
+  const [la, lo] = ntSpotR(), saved = ntSaved(), same = saved && saved.la === la && saved.lo === lo;
+  if (same && Date.now() - saved.at < 3600000) { ntCl = saved; ntState = "ok"; return ntRender(); }
+  ntCl = same ? saved : null; ntState = "ask"; ntRender();
+  const my = ++ntReq, ac = typeof AbortController === "function" ? new AbortController() : null;
+  const stop = setTimeout(() => { if (ac) ac.abort(); }, 9000);
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo +
+    "&hourly=cloud_cover,precipitation_probability&timezone=GMT&timeformat=unixtime&past_days=1&forecast_days=3";
+  fetch(url, ac ? { signal: ac.signal, cache: "no-store" } : { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http " + r.status))))
+    .then((j) => {
+      const h = j && j.hourly, tt = h && h.time, cc = h && h.cloud_cover;
+      if (!Array.isArray(tt) || !Array.isArray(cc) || tt.length < 24 || cc.length !== tt.length || tt[1] - tt[0] !== 3600) throw new Error("shape");
+      const pp = Array.isArray(h.precipitation_probability) ? h.precipitation_probability : [];
+      const num = (v) => (typeof v === "number" && isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : null);
+      const c = { la, lo, at: Date.now(), t0: tt[0] * 1000, cc: cc.map(num), pp: tt.map((_, i) => num(pp[i]) || 0) };
+      try { localStorage.setItem(NT_KEY, JSON.stringify(c)); } catch (e) {}
+      if (my === ntReq) { ntCl = c; ntState = "ok"; }
+    })
+    .catch(() => { if (my === ntReq) ntState = ntCl ? "old" : "none"; })
+    .finally(() => { clearTimeout(stop); if (my === ntReq) ntRender(); });
+}
+function ntTonight(lat, lon, now) {                              // the night that holds now, or the next one once its dark hours are spent
+  let o = ntNight(lat, lon, now);
+  const d = o.ast || o.nau || o.civ, end = d ? d[1] : o.to;
+  if (!o.polar && end && now > end) o = ntNight(lat, lon, o.to + 60000);
+  o.now = now;
+  return o;
+}
+function ntJudge(o, cl, now) {                                   // the best stretch: dark, the Moon down or thin, a clear sky
+  const lim = o.ast ? -18 : o.nau ? -12 : o.civ ? -6 : -0.833;
+  const a = Math.max(o.from, now), b = o.to, dk = o.ast || o.nau || o.civ || [o.from, o.to];
+  let best = null, cur = null, dark = 0, moonOk = 0, n = 0, sum = 0, clear = null, rain = 0, was = false;
+  const done = () => { if (cur && (!best || cur[1] - cur[0] > best[1] - best[0])) best = cur; cur = null; };
+  for (let t = Math.ceil(a / NT_STEP) * NT_STEP; t <= b; t += NT_STEP) {
+    if (ntUp(o, "sun", t) >= lim) { done(); was = false; continue; }
+    dark++;
+    const mOk = !ntUp(o, "moon", t) || o.lit < 0.25; if (mOk) moonOk++;
+    const c = ntCloudAt(cl, t);
+    if (c) { n++; sum += c.cc; rain = Math.max(rain, c.pp); if (!clear || c.cc < clear.cc) clear = c; }
+    if (mOk && (!c || (c.cc < 30 && c.pp < 50))) {
+      if (!cur) cur = [was ? t : Math.max(a, dk[0] && dk[0] <= t ? dk[0] : t - NT_STEP), t];   // straight after dusk: from the dusk minute itself
+      cur[1] = Math.min(b, t + NT_STEP, dk[1] || Infinity);                                   // and never past the dawn minute
+    }
+    else done();
+    was = true;
+  }
+  done();
+  if (best && best[1] - best[0] < 20 * 60000) best = null;
+  return { lim, best, dark, moonOk, avg: n ? Math.round(sum / n) : null, clear, rain, known: n > 0 };
+}
+const NT_SKY = [[5, [58, 88, 114]], [0, [44, 58, 88]], [-6, [26, 34, 56]], [-12, [14, 19, 34]], [-18, [5, 7, 12]]];
+function ntSkyCol(alt) {
+  if (alt >= NT_SKY[0][0]) return NT_SKY[0][1];
+  for (let k = 1; k < NT_SKY.length; k++) if (alt >= NT_SKY[k][0]) {
+    const [ha, ca] = NT_SKY[k - 1], [hb, cb] = NT_SKY[k], f = (alt - hb) / (ha - hb);
+    return ca.map((v, i) => Math.round(cb[i] + (v - cb[i]) * f));
+  }
+  return NT_SKY[NT_SKY.length - 1][1];
+}
+function ntDraw(o, j, now) {                                     // sunset to sunrise: the Moon on top, the sky's darkness, the clouds under it
+  const cv = $("ntChart"), w = Math.max(200, cv.clientWidth || 300), h = 132, dpr = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const x0 = o.from - 3600000, x1 = o.to + 3600000, X = (t) => ((t - x0) / (x1 - x0)) * w;
+  const MY = 5, MH = 9, SY = 18, SH = 54, CY = 76, CH = 30, TY = 114;
+  let mA = null;                                                 // the Moon as whole stretches: see-through slices would stripe where they overlap
+  const moonBar = (t) => { g.fillStyle = "rgba(240,236,221," + (0.2 + 0.7 * o.lit).toFixed(2) + ")"; g.fillRect(X(mA), MY, X(t) - X(mA), MH); mA = null; };
+  for (let t = Math.floor(x0 / o.step) * o.step; t < x1; t += o.step) {
+    const xa = X(t), xw = X(t + o.step) - xa + 0.7;
+    g.fillStyle = "rgb(" + ntSkyCol(ntUp(o, "sun", t)).join(",") + ")"; g.fillRect(xa, SY, xw, SH);
+    if (ntUp(o, "moon", t)) { if (mA === null) mA = t; } else if (mA !== null) moonBar(t);
+  }
+  if (mA !== null) moonBar(x1);
+  g.fillStyle = "rgba(255,196,107,0.07)"; g.fillRect(0, CY, w, CH);
+  if (ntCl) for (let i = 0; i < ntCl.cc.length; i++) {
+    const t = ntCl.t0 + i * 3600000, v = ntCl.cc[i];
+    if (v === null || t < x0 - 1800000 || t > x1 + 1800000) continue;
+    const xa = X(t - 1800000) + 1, xb = X(t + 1800000) - 1, bh = Math.max(1, (v / 100) * CH);
+    g.fillStyle = (ntCl.pp[i] || 0) >= 50 ? "rgba(155,200,255,0.6)" : "rgba(220,224,232,0.55)";
+    g.fillRect(xa, CY + CH - bh, Math.max(1, xb - xa), bh);
+  }
+  if (j.best) { g.strokeStyle = "#7dfba8"; g.lineWidth = 1.5; g.strokeRect(X(j.best[0]) + 0.75, SY + 0.75, Math.max(2, X(j.best[1]) - X(j.best[0]) - 1.5), SH - 1.5); }
+  g.font = "9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "top";
+  const hrs = (x1 - x0) / 3600000, every = [1, 2, 3, 4, 6].find((k) => w / (hrs / k) >= 46) || 6;
+  const d0 = new Date(x0); d0.setMinutes(0, 0, 0);
+  for (let t = d0.getTime() + 3600000; t < x1; t += 3600000) {
+    const d = new Date(t); if (d.getHours() % every) continue;
+    const x = X(t); if (x < 14 || x > w - 14) continue;
+    g.fillStyle = "rgba(240,236,221,0.28)"; g.fillRect(x - 0.5, CY + CH, 1, 4);
+    g.fillStyle = "rgba(240,236,221,0.62)"; g.fillText(d.toLocaleTimeString([], { hour: "numeric" }), x, TY);
+  }
+  if (now >= x0 && now <= x1) { const x = X(now); g.fillStyle = "#ffc46b"; g.fillRect(x - 0.75, 0, 1.5, CY + CH + 4); }
+}
+function ntRender(nowIn) {
+  if ($("nightPick").classList.contains("hide")) return;
+  const now = nowIn || Date.now(), o = ntTonight(TARGET.lat, TARGET.lon, now), j = ntJudge(o, ntCl, now);
+  const put = (id, s) => { $(id).textContent = s; };
+  const span = (p) => (p ? txf("{a} TO {b}", { a: p[0] ? ntHM(p[0]) : tx("EARLIER"), b: ntHM(p[1] || o.to) }) : "");
+  put("ntvSet", o.polar === "day" ? tx("THE SUN STAYS UP TONIGHT AT THIS LATITUDE") : o.polar === "night" ? tx("THE SUN DOES NOT RISE TODAY AT THIS LATITUDE") : o.set ? ntHM(o.set) : tx("EARLIER"));
+  put("ntvRise", o.polar ? tx("NONE TONIGHT") : ntHM(o.rise || o.to));
+  put("ntvDark", o.ast ? span(o.ast) : o.polar === "day" ? tx("NONE TONIGHT") : txf("NO FULL DARK TONIGHT AT THIS LATITUDE · DARKEST AT {a}", { a: ntHM(o.lowT) }));
+  const mi = moonInfo((o.from + o.to) / 2);
+  let up;
+  if (o.mRise && o.mSet) up = o.mSet < o.mRise ? txf("SETS AT {a} · RISES AGAIN AT {b}", { a: ntHM(o.mSet), b: ntHM(o.mRise) }) : txf("RISES AT {a} · SETS AT {b}", { a: ntHM(o.mRise), b: ntHM(o.mSet) });
+  else if (o.mSet) up = txf("UP UNTIL {a}", { a: ntHM(o.mSet) });
+  else if (o.mRise) up = txf("RISES AT {a}", { a: ntHM(o.mRise) });
+  else up = tx(o.mUpAtStart ? "UP ALL NIGHT" : "BELOW THE HORIZON ALL NIGHT");
+  put("ntvMoon", txf("{p}% LIT", { p: Math.round(o.lit * 100) }) + " · " + tx(mi.name) + " · " + up);
+  let cl;
+  if (!j.dark) cl = tx("NO DARK HOURS TONIGHT");
+  else if (j.known) cl = txf("{a}% ON AVERAGE IN THE DARK HOURS · CLEAREST {b}% AT {t}", { a: j.avg, b: j.clear.cc, t: ntHM(j.clear.t) }) + (j.rain >= 40 ? " · " + txf("RAIN CHANCE UP TO {p}%", { p: j.rain }) : "");
+  else cl = tx(ntState === "ask" ? "CHECKING THE FORECAST" : "NO FORECAST");
+  put("ntvCloud", cl);
+  put("ntvBest", j.best ? span(j.best) + " · " + tx(j.known ? "DARK, THE MOON DOWN OR THIN, AND CLEAR" : "DARK AND THE MOON DOWN OR THIN · CLOUDS UNKNOWN") : tx("NONE TONIGHT"));
+  let v, good = false;
+  if (o.polar === "day") v = tx("THE SUN STAYS UP TONIGHT AT THIS LATITUDE");
+  else if (j.known && j.avg >= 75) v = txf("CLOUDED OUT TONIGHT · {a}% CLOUD THROUGH THE DARK HOURS", { a: j.avg });
+  else if (j.best) {
+    good = true;
+    v = j.best[0] <= now + NT_STEP ? txf("GOOD RIGHT NOW · UNTIL {a}", { a: ntHM(j.best[1]) })
+      : j.best[1] - j.best[0] >= 90 * 60000 ? txf("A GOOD NIGHT · BEST FROM {a} TO {b}", { a: ntHM(j.best[0]), b: ntHM(j.best[1]) })
+      : txf("A SHORT WINDOW · {a} TO {b}", { a: ntHM(j.best[0]), b: ntHM(j.best[1]) });
+    if (!j.known) v += " · " + tx("CLOUDS UNKNOWN");
+  }
+  else if (j.dark && !j.moonOk) v = tx("A BRIGHT MOON UP THROUGH THE DARK HOURS · FAINT LIGHTS ARE HARDER TO SEE");
+  else if (j.known) v = tx("TOO CLOUDY IN THE DARK HOURS");
+  else v = tx("NO CLEAR DARK WINDOW TONIGHT");
+  put("ntVerdict", v); $("ntVerdict").classList.toggle("warn", !good);
+  const def = Math.abs(TARGET.lat - 39.76849) < 1e-4 && Math.abs(TARGET.lon + 86.15806) < 1e-4;
+  put("ntSpot", (targetIsMine ? tx("FOR YOUR OWN SPOT") : def ? tx("FOR THE DEFAULT SPOT IN INDIANAPOLIS · TAP GPS FOR YOUR OWN SKY") : tx("FOR A SPOT FROM A SHARED LINK · TAP GPS FOR YOUR OWN SKY")) + " · " + tx("TIMES IN THIS PHONE'S CLOCK"));
+  $("ntGpsRow").classList.toggle("hide", targetIsMine);
+  const when = (t) => (new Date(t).toDateString() === new Date(now).toDateString() ? ntHM(t) : new Date(t).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }));
+  put("ntSrc", ntState === "ask" ? tx("ASKING OPEN-METEO FOR THE CLOUDS AT YOUR SPOT, ROUNDED TO ABOUT 10 KM")
+    : ntState === "ok" && ntCl ? txf("CLOUD FORECAST FROM {t} · YOUR SPOT WAS SENT ROUNDED TO ABOUT 10 KM · THE SUN AND MOON ARE WORKED OUT ON THIS PHONE", { t: when(ntCl.at) })
+    : ntState === "old" && ntCl ? txf("NO CONNECTION · CLOUDS FROM THE FORECAST SAVED AT {t}", { t: when(ntCl.at) })
+    : tx("NO CLOUD FORECAST RIGHT NOW · THE SUN AND MOON TIMES WORK OFFLINE"));
+  ntDraw(o, j, now);
+}
+function nightOpen() {
+  sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide");
+  $("nightPick").classList.remove("hide"); ntFetch();
+  clearInterval(ntTick);
+  ntTick = setInterval(() => { if ($("nightPick").classList.contains("hide")) { clearInterval(ntTick); ntTick = 0; } else ntRender(); }, 60000);   // the NOW line walks
+}
+function nightClose() {
+  if ($("nightPick").classList.contains("hide")) return;
+  sfx("cover"); $("nightPick").classList.add("hide"); clearInterval(ntTick); ntTick = 0;
+}
+$("bNight").onclick = nightOpen;
+$("bNightInfo").onclick = nightOpen;
+$("bNightClose").onclick = nightClose;
+$("nightPick").addEventListener("click", (e) => { if (e.target === $("nightPick")) nightClose(); });
+$("bNtGps").onclick = () => { useGps(); let k = 0; const t = setInterval(() => { if (targetIsMine || ++k > 24) { clearInterval(t); if (!$("nightPick").classList.contains("hide")) ntFetch(); } }, 500); };
+window.addEventListener("resize", () => { if (!$("nightPick").classList.contains("hide")) ntRender(); });
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
 $("rVoiceVol").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
@@ -8626,7 +8911,7 @@ $("setCard").addEventListener("input", (e) => {                 // a slider on t
     const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
     if (t) c.setAttribute("aria-label", t);
   });
-  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard"].forEach((id) => {
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard", "nightCard"].forEach((id) => {
     const el = $(id); if (!el) return;
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
     const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));
