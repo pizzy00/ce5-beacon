@@ -744,6 +744,21 @@ body.intro #bRoom { opacity: 0 !important; }
   border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
   font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
 #roomCard .setHead { position: relative; }
+#checkPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#checkPick.hide { display: none; }
+#checkCard { max-width: 520px; width: calc(100% - 24px); max-height: 82vh; overflow-y: auto;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35);
+  border-radius: 8px; padding: 14px 44px 16px 14px; color: #f0ecdd;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#checkCard .setHead { position: relative; }
+#checkCard #bCheckClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#checkCard .ckRow { border-top: 1px solid rgba(255,196,107,0.14); padding: 8px 0 4px; margin-top: 6px; }
+#checkCard .ckRes { margin-top: 5px; line-height: 1.55; color: rgba(240,236,221,0.72); }
+#checkCard .ckRes::before { content: "\25CB\00a0\00a0"; }
+#checkCard .ckRes.ok { color: var(--phos); }
+#checkCard .ckRes.ok::before { content: "\25CF\00a0\00a0"; }
+#checkCard .ckRes.bad { color: var(--amber); }
+#checkCard .ckRes.bad::before { content: "\25CF\00a0\00a0"; }
 #roomCard #bRoomClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
 #roomCode { width: 9.5ch; background: #0d0d20; border: 1px solid var(--cyan); color: var(--ink); font: 700 18px ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.35em; text-transform: uppercase; text-align: center; padding: 6px 4px 6px 10px; border-radius: 3px; }

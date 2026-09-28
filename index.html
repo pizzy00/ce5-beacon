@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=45" />
+<link rel="stylesheet" href="styles.css?v=46" />
 </head>
 <body class="intro introHud">
 
@@ -127,7 +127,7 @@
       <label class="setChk"><input type="checkbox" id="ckFps" />FPS COUNTER IN THE TOP LEFT (FOR THE CURIOUS)</label>
       <label class="setChk"><input type="checkbox" id="ckNoGuide" />NEVER SHOW THE FIRST-NIGHT GUIDE — IT STAYS OFF ON THIS DEVICE · THE BUTTON BELOW STILL BRINGS IT UP WHEN YOU ASK</label>
       <label class="setChk"><input type="checkbox" id="ckGuideAuto" checked />THE GUIDE MOVES ON BY ITSELF &#8212; TWO SECONDS AFTER THE VOICE FINISHES A CARD, THE NEXT ONE COMES UP · NEEDS THE VOICE ON</label>
-      <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span></div>
+      <div class="bdBtns"><span class="setBtn" id="bGuide">SHOW THE FIRST-NIGHT GUIDE AGAIN</span><span class="setBtn" id="bCheck">PHONE CHECK</span></div>
       <label class="setChk"><input type="checkbox" id="ckAmb" checked />SPACE MUSIC ON THE CHART — A QUIET DRIFT UNTIL YOU PRESS START</label>
       <label class="setChk"><input type="checkbox" id="ckFly" checked />FLIGHT SOUND — A LOW WIND WHILE YOU CROSS, RISING AT EACH STAGE</label>
       <label class="setChk"><input type="checkbox" id="ckOpening" checked />THE OPENING — BLACK WHILE IT PRELOADS, THEN THE EARTH RISES, THE CONSOLE, LUNA, SOL, THE PLANETS AND THE SKY (TAP TO SKIP)</label>
@@ -740,6 +740,24 @@
     <div class="setLbl">JOIN A ROOM</div>
     <div class="bdBtns"><input id="roomCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" /><span class="setBtn" id="bRoomJoin">JOIN</span></div>
     <div class="setStat">THE HOST READS THE FOUR LETTERS OUT · EVERYONE ELSE TYPES THEM HERE · A ROOM NEEDS THE INTERNET ON EVERY PHONE, EVEN WHEN YOU ARE ALL STANDING TOGETHER · FOLLOWERS SEE THE HOST'S SYSTEM AND SETTINGS; THEIR OWN GPS SPOT STAYS THEIRS</div>
+  </div>
+</div>
+<div id="checkPick" class="hide">
+  <div id="checkCard">
+    <div class="setHead display">PHONE CHECK &#183; BEFORE YOU GO OUTSIDE <span id="bCheckClose">&#10005;</span></div>
+    <div class="setStat">A FEW TAPS &#183; NOTHING LEAVES THIS PHONE</div>
+    <div class="ckRow"><div class="setLbl">SOUND</div>
+      <div class="bdBtns"><span class="setBtn" id="bCkSnd">PLAY A NOTE</span><span class="setBtn dim hide" id="bCkSndY">I HEARD IT</span><span class="setBtn dim hide" id="bCkSndN">NOTHING</span></div>
+      <div class="setStat ckRes" id="ckSndRes" data-nol10n></div></div>
+    <div class="ckRow"><div class="setLbl">THE BUZZ</div>
+      <div class="bdBtns"><span class="setBtn" id="bCkBuzz">BUZZ ONCE</span><span class="setBtn dim hide" id="bCkBuzzY">I FELT IT</span><span class="setBtn dim hide" id="bCkBuzzN">NOTHING</span><span class="setBtn hide" id="bCkBuzzOn">SWITCH THE BUZZ ON</span></div>
+      <div class="setStat ckRes" id="ckBuzzRes" data-nol10n></div></div>
+    <div class="ckRow"><div class="setLbl">SCREEN</div><div class="setStat ckRes" id="ckWakeRes" data-nol10n></div></div>
+    <div class="ckRow"><div class="setLbl">THIS PHONE</div><div class="setStat ckRes" id="ckPhoneRes" data-nol10n></div></div>
+    <div class="ckRow"><div class="setLbl">YOUR SKY</div>
+      <div class="bdBtns hide" id="ckSkyBtns"><span class="setBtn" id="bCkGps">GPS</span></div>
+      <div class="setStat ckRes" id="ckSkyRes" data-nol10n></div></div>
+    <div class="bdBtns"><span class="setBtn" id="bCheckDone">ALL SET</span></div>
   </div>
 </div>
 <div id="sitePick" class="hide" role="dialog" aria-label="A place on the Earth">
@@ -4305,7 +4323,8 @@ function guideEnd() {
   if (coverOpen) { clearTimeout(coverTimer); coverClose(); }   // the tour lifted it: the tour puts it back
   $("guide").classList.add("hide"); guideAt = -1; clearTimeout(guideAutoT); voiceStop();
   try { localStorage.setItem(GUIDE_KEY, "1"); } catch (e) {}
-  setTimeout(fsCallout, 500);                                   // then the corner keys introduce themselves, one at a time
+  if (checkDue() && phase === "chart") setTimeout(() => checkOpen(fsCallout), 600);   // the first time: the phone check, then the corner keys
+  else setTimeout(fsCallout, 500);                              // then the corner keys introduce themselves, one at a time
 }
 $("guideNext").onclick = () => { sfx("key"); guideHold = false; guideShow(guideAt + 1); };
 $("guideBack").onclick = () => { if (guideAt <= 0) return; sfx("key"); guideHold = true; guideShow(guideAt - 1); };
@@ -6032,7 +6051,7 @@ function idleArm(secs) {
 function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
-  if (["settings", "info", "board"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (["settings", "info", "board", "checkPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
   if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
@@ -6041,7 +6060,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -7019,7 +7038,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7700,7 +7719,7 @@ if (langURL && LANGS.some((x) => x[0] === langURL.toLowerCase().split("-")[0])) 
 uiLangSeen = uiLang;                                            // read at flush time, four seconds from now   // and it sticks for next time
 function tr(key) { const d = L10N[key]; return (d && (d[uiLang] || d.en)) || ""; }
 let langDict = null, langDictFor = "en";                          // the deep dictionary: EN text -> translated text
-const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard"];
+const L10N_ROOTS = ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "roomCard", "siteCard", "checkCard"];
 const nrm = (s) => s.replace(/\s+/g, " ").trim();
 /* the settings labels, made readable: the words before the first dash or colon are the title, the rest is the note.
    The original text stays in a hidden span so the translation walker still finds its keys. */
@@ -7759,7 +7778,7 @@ function loadDict() {
   if (uiLang === "en") { langDict = null; langDictFor = "en"; walkTranslate(); return; }
   if (langDictFor === uiLang && langDict) { walkTranslate(); return; }
   const want = uiLang;                                          // two quick switches: only the last one may land
-  fetch("lang/" + uiLang + ".json?v=7")
+  fetch("lang/" + uiLang + ".json?v=8")
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
     .then((d) => { if (uiLang !== want) return; langDict = d; langDictFor = want; walkTranslate(); })
     .catch(() => { if (uiLang !== want) return; langDict = null; walkTranslate(); });
@@ -8406,6 +8425,77 @@ $("bBuzzTest").onclick = () => {                                 // works with t
   buzzLast = tx("BUZZ") + " " + (okv ? tx("ACCEPTED") : tx("REFUSED")) + " · " + browserLine() + " · " + (navigator.userActivation && navigator.userActivation.isActive ? tx("TOUCH ACTIVE") : tx("NO TOUCH ACTIVATION")) + " · " + new Date().toTimeString().slice(0, 8);
   log(buzzLast, okv ? "cy" : "alert"); buzzStat();               // the one line to read back: on the CRT and under the key
 };
+/* the phone check (09-27): sound, the buzz, the awake screen, this phone, your sky, each with a plain fix. Once by itself right
+   after the first-night guide, anytime from settings. It reads the phone; nothing leaves it. */
+const CHECK_KEY = "ce5.check.v1";
+let checkThen = null;                                            // what runs when it closes (after the guide: the corner keys)
+function ckSet(id, cls, txt) { const el = $(id); if (!el) return; el.className = "setStat ckRes " + cls; el.textContent = txt; }
+function ckShow(id, on) { const el = $(id); if (el) el.classList.toggle("hide", !on); }
+function checkDue() { let seen = ""; try { seen = localStorage.getItem(CHECK_KEY) || ""; } catch (e) {} return !seen; }
+function checkSndInit() {
+  ckShow("bCkSndY", false); ckShow("bCkSndN", false);
+  if (muted) return ckSet("ckSndRes", "bad", tx("THE SPEAKER KEY TOP RIGHT IS ON MUTE \u00b7 TAP IT, THEN PLAY AGAIN"));
+  ckSet("ckSndRes", "na", tx("TAP PLAY A NOTE, THEN SAY WHAT YOU HEARD"));
+}
+function checkBuzzInit() {
+  ["bCkBuzzY", "bCkBuzzN", "bCkBuzzOn"].forEach((i) => ckShow(i, false)); ckShow("bCkBuzz", false);
+  if (IOS) return ckSet("ckBuzzRes", "na", tx("IPHONES AND IPADS DO NOT ALLOW A WEB PAGE TO VIBRATE \u00b7 NOTHING TO FIX, EVERYTHING ELSE WORKS"));
+  if (browserTag() === "IN-APP") return ckSet("ckBuzzRes", "bad", tx("IN-APP BROWSER \u00b7 OPEN THIS PAGE IN CHROME FOR THE BUZZ"));
+  if (!buzzCan()) return ckSet("ckBuzzRes", "na", tx("THIS BROWSER CANNOT VIBRATE \u00b7 ON AN ANDROID PHONE USE CHROME OR SAMSUNG INTERNET"));
+  ckShow("bCkBuzz", true); ckSet("ckBuzzRes", "na", tx("TAP BUZZ ONCE, THEN SAY WHAT YOU FELT"));
+}
+function checkWake() {
+  const good = () => ckSet("ckWakeRes", "ok", tx("THE SCREEN STAYS ON DURING A SESSION"));
+  if (S.wake === false) return ckSet("ckWakeRes", "bad", tx("THE AWAKE SCREEN IS SWITCHED OFF IN SETTINGS \u00b7 THE PHONE MAY LOCK MID-SESSION"));
+  if (!wakeCan()) return ckSet("ckWakeRes", "bad", tx("THIS BROWSER CANNOT HOLD THE SCREEN ON \u00b7 SET THE SCREEN TIMEOUT TO 10 MINUTES OR MORE BEFORE A SESSION"));
+  if (wakeLk) return good();                                   // mid-session and already held
+  navigator.wakeLock.request("screen").then((l) => { l.release().catch(() => {}); good(); if (wakeWant) wakeOn(); })   // take it and let it go: a real test
+    .catch(() => ckSet("ckWakeRes", "bad", tx("THE PHONE REFUSED TO HOLD THE SCREEN ON \u00b7 BATTERY SAVER OFTEN BLOCKS IT \u00b7 SET THE SCREEN TIMEOUT TO 10 MINUTES OR MORE")));
+}
+function checkPhone() {
+  const b = browserTag(), inApp = b === "IN-APP", off = !!(navigator.serviceWorker && navigator.serviceWorker.controller), parts = [];
+  parts.push(inApp ? tx("IN-APP BROWSER \u00b7 SOME THINGS ARE BLOCKED HERE \u00b7 OPEN THIS PAGE IN CHROME OR SAFARI") : tx("BROWSER") + " " + b);
+  parts.push(storeOK ? tx("SETTINGS AND YOUR LOG SAVE ON THIS PHONE") : tx("THIS BROWSER BLOCKS SAVING \u00b7 SETTINGS RESET EVERY VISIT \u00b7 PRIVATE MODE DOES THIS"));
+  parts.push(off ? tx("WORKS OFFLINE") : tx("NOT STORED FOR OFFLINE YET \u00b7 OPEN IT ONCE MORE WITH A SIGNAL"));   // normal on a first visit: not a fault
+  ckSet("ckPhoneRes", inApp || !storeOK ? "bad" : "ok", parts.join(" \u00b7 "));
+}
+function checkSky() {
+  const def = Math.abs(TARGET.lat - 39.76849) < 1e-4 && Math.abs(TARGET.lon + 86.15806) < 1e-4;
+  ckShow("ckSkyBtns", !targetIsMine);
+  if (targetIsMine) return ckSet("ckSkyRes", "ok", tx("YOUR OWN SPOT"));
+  ckSet("ckSkyRes", "na", def ? tx("THE DEFAULT SPOT IN INDIANAPOLIS \u00b7 TAP GPS FOR YOUR OWN SKY") : tx("A SPOT FROM A SHARED LINK \u00b7 TAP GPS FOR YOUR OWN SKY"));
+}
+function checkOpen(then) {
+  checkThen = then || null;
+  try { localStorage.setItem(CHECK_KEY, "1"); } catch (e) {}   // seen once is enough: it never comes up by itself again
+  checkSndInit(); checkBuzzInit(); checkWake(); checkPhone(); checkSky();
+  $("settings").classList.add("hide"); sfx("cover"); $("checkPick").classList.remove("hide");
+}
+function checkClose() {
+  if ($("checkPick").classList.contains("hide")) return;
+  sfx("cover"); $("checkPick").classList.add("hide");
+  const f = checkThen; checkThen = null; if (f) setTimeout(f, 400);
+}
+$("bCheck").onclick = () => { sfx("key"); checkOpen(); };
+$("bCheckClose").onclick = checkClose; $("bCheckDone").onclick = checkClose;
+$("checkPick").addEventListener("click", (e) => { if (e.target === $("checkPick")) checkClose(); });
+$("bCkSnd").onclick = () => { if (muted) return checkSndInit(); $("bSndTest").onclick(); ckShow("bCkSndY", true); ckShow("bCkSndN", true); ckSet("ckSndRes", "na", tx("TAP PLAY A NOTE, THEN SAY WHAT YOU HEARD")); };
+$("bCkSndY").onclick = () => { sfx("key"); ckShow("bCkSndY", false); ckShow("bCkSndN", false); ckSet("ckSndRes", "ok", tx("SOUND WORKS")); };
+$("bCkSndN").onclick = () => { ckShow("bCkSndY", false); ckShow("bCkSndN", false);
+  ckSet("ckSndRes", "bad", tx("NO SOUND \u00b7 TURN THE VOLUME UP WITH THE SIDE KEYS \u00b7 THE SPEAKER KEY TOP RIGHT MUST NOT BE MUTED \u00b7 A BLUETOOTH HEADSET TAKES THE SOUND ELSEWHERE")); };
+$("bCkBuzz").onclick = () => {                                   // inside the tap, like TRY THE BUZZ
+  if (!buzzRaw([400, 150, 700])) return ckSet("ckBuzzRes", "bad", tx("THE PHONE REFUSED THE BUZZ \u00b7 TAP THE KEY AGAIN, THEN CHECK DO NOT DISTURB, SILENT MODE AND SYSTEM VIBRATION"));
+  ckShow("bCkBuzzY", true); ckShow("bCkBuzzN", true); ckSet("ckBuzzRes", "na", tx("A LONG BUZZ, A GAP, A LONGER ONE \u00b7 DID YOU FEEL IT?"));
+};
+$("bCkBuzzY").onclick = () => { sfx("key"); ckShow("bCkBuzzY", false); ckShow("bCkBuzzN", false);
+  ckSet("ckBuzzRes", "ok", tx(S.buzz ? "THE BUZZ WORKS AND IS ON" : "THE BUZZ WORKS")); ckShow("bCkBuzzOn", !S.buzz); };
+$("bCkBuzzN").onclick = () => { ckShow("bCkBuzzY", false); ckShow("bCkBuzzN", false);
+  ckSet("ckBuzzRes", "bad", tx("FELT NOTHING \u00b7 TURN OFF DO NOT DISTURB \u00b7 SET THE SOUND MODE TO SOUND OR VIBRATE \u00b7 VIBRATION INTENSITY ABOVE ZERO \u00b7 TABLETS OFTEN HAVE NO MOTOR")); };
+$("bCkBuzzOn").onclick = () => {                                 // the same switch as in settings: its own handler runs and it saves itself
+  const c = $("ckBuzz"); c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true }));
+  ckShow("bCkBuzzOn", false); ckSet("ckBuzzRes", "ok", tx("THE BUZZ WORKS AND IS ON"));
+};
+$("bCkGps").onclick = () => { useGps(); let k = 0; const t = setInterval(() => { if (targetIsMine || ++k > 24) { clearInterval(t); checkSky(); } }, 500); };
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
 $("rVoiceVol").onchange = () => { if (voiceName) return; const s = selected && !selected.mode ? selected : SYSTEMS[0]; if (s && VOICE_SYS.has(s.id)) voiceSay("sys-" + s.id); };   // let go: hear it
@@ -8536,7 +8626,7 @@ $("setCard").addEventListener("input", (e) => {                 // a slider on t
     const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
     if (t) c.setAttribute("aria-label", t);
   });
-  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard"].forEach((id) => {
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "checkCard"].forEach((id) => {
     const el = $(id); if (!el) return;
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
     const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));
