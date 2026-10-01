@@ -6424,13 +6424,14 @@ function retShow(on) {                                        // on = the camera
 }
 function applyScreen() { $("crt").classList.toggle("hide", !S.crt); $("vig").classList.toggle("hide", !S.vig); applyRed(); }
 function applyRed() { document.body.classList.toggle("red", !!S.red); $("bRed").classList.toggle("on", !!S.red); }   // two blend layers: hue to red, then the green and blue channels multiplied away (09-04)
+let gpsState = "";                                              // ask, ok, denied or fail: the cards that asked read it
 function useGps() {
-  if (!navigator.geolocation) { $("addrStatus").textContent = "GPS UNAVAILABLE IN THIS BROWSER"; return log("GPS UNAVAILABLE", "alert"); }
-  log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING...";
+  if (!navigator.geolocation) { gpsState = "fail"; $("addrStatus").textContent = "GPS UNAVAILABLE IN THIS BROWSER"; return log("GPS UNAVAILABLE", "alert"); }
+  log("GPS: ACQUIRING...", "cy"); $("addrStatus").textContent = "GPS: ACQUIRING..."; gpsState = "ask";
   navigator.geolocation.getCurrentPosition(
-    (p) => setTargetTo(p.coords.latitude, p.coords.longitude, "GPS LOCK ±" + Math.round(p.coords.accuracy) + " M"),
+    (p) => { gpsState = "ok"; setTargetTo(p.coords.latitude, p.coords.longitude, "GPS LOCK ±" + Math.round(p.coords.accuracy) + " M"); },
     (err) => {
-      const code = err && err.code;
+      const code = err && err.code; gpsState = code === 1 ? "denied" : "fail";
       if (code === 1) { log("GPS DENIED — TARGET UNCHANGED", "alert"); $("addrStatus").textContent = "GPS DENIED — ALLOW LOCATION, OR TYPE AN ADDRESS"; return; }
       log((code === 3 ? "GPS TIMED OUT" : "GPS: NO FIX") + " \u2014 TARGET UNCHANGED", "alert");
       $("addrStatus").textContent = (code === 3 ? "GPS TIMED OUT" : "GPS: NO FIX YET") + " \u2014 TRY AGAIN NEAR A WINDOW, OR TYPE AN ADDRESS"; },
@@ -7419,7 +7420,7 @@ const REP_SAW = { light: "A LIGHT", orb: "AN ORB", craft: "A CRAFT", other: "SOM
 const REP_SHAPE = { sphere: "SPHERE OR ORB", disc: "DISC", tictac: "TIC-TAC", irregular: "IRREGULAR", boomerang: "BOOMERANG", triangle: "TRIANGLE" };
 const REP_ALT = { low: "LOW, NEAR THE HORIZON", mid: "HALFWAY UP", high: "HIGH OVERHEAD" };
 const REP_DUR = [0, 2, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300, 600, 900, 1800, 3600];
-const REP_NUFORC = { sphere: "Sphere", disc: "Disk", tictac: "Oval (tic-tac)", irregular: "Irregular", boomerang: "Chevron / boomerang", triangle: "Triangle" };
+const REP_NUFORC = { sphere: "Sphere", disc: "Disk", tictac: "Oval (tic-tac)", irregular: "Other (irregular)", boomerang: "Chevron / boomerang", triangle: "Triangle" };
 var repDue = "";                                                 // a var: replay() may read it before this line has run
 let rp = null, repCmp = 0, repCmpT = 0, repDelArm = 0;
 let idbP = null;                                                 // the photo drawer: one database, one store, keyed by the trip
@@ -7461,7 +7462,7 @@ function repShrink(file) {                                       // 1600 px on t
     im.src = u;
   });
 }
-function repDurTxt(s) { return !s ? "" : s < 60 ? txf("{n} SECONDS", { n: s }) : s < 3600 ? (s < 120 ? tx("1 MINUTE") : txf("{n} MINUTES", { n: Math.round(s / 60) })) : tx("AN HOUR OR MORE"); }
+function repDurTxt(s) { return !s ? "" : s === 60 ? tx("1 MINUTE") : s < 120 ? txf("{n} SECONDS", { n: s }) : s < 3600 ? txf("{n} MINUTES", { n: Math.round(s / 60) }) : tx("AN HOUR OR MORE"); }   // 90 s stays 90 SECONDS
 function repSummary(p) {
   return [tx(REP_SAW[p.saw] || ""), p.shape ? tx(REP_SHAPE[p.shape]) : "", p.dir ? p.dir + (typeof p.az === "number" ? " " + p.az + "°" : "") : "",
     p.alt ? tx(REP_ALT[p.alt]) : "", repDurTxt(p.dur), p.ph ? tx("PHOTO") : ""].filter(Boolean).join(" · ");
@@ -7494,7 +7495,7 @@ function repOpen(id, auto) {
   const p = r.rep || {};
   if (rp && rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
   rp = { id, saw: p.saw || "", shape: p.shape || "", dir: p.dir || "", az: typeof p.az === "number" ? p.az : null, alt: p.alt || "",
-    durI: Math.max(0, REP_DUR.indexOf(p.dur || 0)), ph: null, phDirty: false, had: !!r.rep, dirty: false };
+    durI: Math.max(0, REP_DUR.indexOf(p.dur || 0)), ph: null, phWas: !!p.ph, phDirty: false, had: !!r.rep, dirty: false };
   $("repTrip").textContent = r.d + " · " + repWhen(r.t);
   $("repTxt").value = p.txt || ""; $("repTxt").placeholder = tx("WHAT HAPPENED, IN YOUR OWN WORDS · 280 LETTERS");
   $("repDur").max = REP_DUR.length - 1; $("repDur").value = rp.durI;
@@ -7509,6 +7510,12 @@ function repRow(id) {                                            // the board li
   const host = $("bdMine").querySelector('.bdRep[data-id="' + id + '"]'), t = readLog().find((x) => x.id === id);
   if (host && t) host.outerHTML = bdRep(t);
 }
+function repPhLost(id) {                                         // the browser would not keep the photo: the report must not claim one
+  const L = readLog(), t = L.find((x) => x.id === id);
+  if (t && t.rep) { delete t.rep.ph; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {} repRow(id); }
+  if (rp && rp.id === id) { rp.phWas = false; rp.phDirty = !!rp.ph; repStat(tx("THE PHOTO COULD NOT BE KEPT IN THIS BROWSER · THE REST OF THE REPORT IS SAVED")); }   // SAVE tries again
+  log("THE PHOTO COULD NOT BE KEPT IN THIS BROWSER · THE REST OF THE REPORT IS SAVED", "alert");
+}
 function repSave(quiet) {
   if (!rp) return false;
   if (!rp.saw) { repStat(tx("PICK WHAT YOU SAW FIRST · NOTHING IS A FINE ANSWER")); return false; }
@@ -7520,12 +7527,12 @@ function repSave(quiet) {
     if (rp.alt) rep.alt = rp.alt; if (REP_DUR[rp.durI]) rep.dur = REP_DUR[rp.durI];
   }
   const txt = $("repTxt").value.replace(/\s+/g, " ").trim().slice(0, 280); if (txt) rep.txt = txt;
-  const keep = !none && !!rp.ph; if (keep) rep.ph = 1;
+  const keep = !none && (!!rp.ph || (rp.phWas && !rp.phDirty)); if (keep) rep.ph = 1;   // a stored photo still being read back is still kept
   t.rep = rep; delete t.repAsk;
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
-  if (keep && rp.phDirty) idbPut(rp.id, rp.ph.blob).catch(() => log("THE PHOTO COULD NOT BE KEPT IN THIS BROWSER · THE REST OF THE REPORT IS SAVED", "alert"));
+  if (keep && rp.phDirty) { const id = rp.id; idbPut(id, rp.ph.blob).catch(() => repPhLost(id)); }
   if (!keep && (rp.phDirty || none)) idbDel(rp.id).catch(() => {});
-  rp.phDirty = false; rp.dirty = false; rp.had = true;
+  rp.phDirty = false; rp.dirty = false; rp.had = true; rp.phWas = keep;
   const ids = new Set(L.map((x) => x.id));                       // a photo whose trip fell off the end of the log goes too
   idbKeys().then((ks) => ks.forEach((k) => { if (!ids.has(k)) idbDel(k).catch(() => {}); })).catch(() => {});
   repRow(rp.id); repRender();
@@ -7549,6 +7556,7 @@ function repCmpTick() {
 function repClose() {
   if (!rp) { $("repPick").classList.add("hide"); return; }
   repCmpStop();
+  if (rp.dirty && !rp.saw && $("repTxt").value.trim()) rp.saw = "other";   // words written but nothing picked: kept as SOMETHING ELSE, never thrown away
   if (rp.dirty && rp.saw) repSave();                              // a report you started is kept
   if (rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
   rp = null; sfx("cover"); $("repPick").classList.add("hide");
@@ -7556,7 +7564,7 @@ function repClose() {
 function repNuforc(r) {                                          // laid out in the order of the NUFORC web form, in plain sentence case for its readers
   const p = r.rep, d = new Date(r.t), two = (v) => String(v).padStart(2, "0");
   const z = -d.getTimezoneOffset(), zs = "UTC" + (z >= 0 ? "+" : "-") + two(Math.floor(Math.abs(z) / 60)) + ":" + two(Math.abs(z) % 60);
-  const dur = !p.dur ? "Not noted" : p.dur < 60 ? p.dur + " seconds" : p.dur < 3600 ? (p.dur < 120 ? "About 1 minute" : "About " + Math.round(p.dur / 60) + " minutes") : "An hour or more";
+  const dur = !p.dur ? "Not noted" : p.dur === 60 ? "About 1 minute" : p.dur < 120 ? p.dur + " seconds" : p.dur < 3600 ? "About " + Math.round(p.dur / 60) + " minutes" : "An hour or more";
   const shape = p.shape ? REP_NUFORC[p.shape] : p.saw === "light" ? "Light" : p.saw === "orb" ? "Orb" : "Other";
   const alt = { low: "low, near the horizon", mid: "about halfway up the sky", high: "high overhead" }[p.alt] || "";
   const dir = p.dir ? "Toward " + p.dir + (typeof p.az === "number" ? " (" + p.az + " degrees, read from the phone compass)" : "") + (alt ? ", " + alt : "") : alt ? alt.charAt(0).toUpperCase() + alt.slice(1) : "Not noted";
@@ -7627,7 +7635,7 @@ $("bRepDel").onclick = () => {                                   // two taps, fo
   if (!repDelArm) { repDelArm = setTimeout(() => { repDelArm = 0; $("bRepDel").textContent = tx("DELETE THIS REPORT"); }, 4000); $("bRepDel").textContent = tx("SURE? TAP AGAIN TO DELETE IT"); return; }
   clearTimeout(repDelArm); repDelArm = 0;
   const L = readLog(), t = L.find((x) => x.id === rp.id);
-  if (t) { delete t.rep; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {} }
+  if (t) { delete t.rep; t.repAsk = 1; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {} }   // deleted on purpose: the LOG key does not ask again
   idbDel(rp.id).catch(() => {});
   const id = rp.id; rp.dirty = false; repClose(); repRow(id);
   log("SIGHTING REPORT DELETED FROM THIS DEVICE", "cy");
@@ -8631,7 +8639,7 @@ $("bRoomClose").onclick = () => { sfx("cover"); $("roomPick").classList.add("hid
    The link carries the start instant (?at=<unix seconds>), the system (?s=) and the setup (?c=). No room and no server: each
    phone counts down on its own clock (phones keep network time) and one tap arms it, which also lets the sound play. A phone
    that opens the link late starts at once and skips ahead through the stages it missed; the descent and the ground keep their own clock. */
-let schedAt = 0, schedUrl = "", schedFrom = false, schedArmed = false, schedTick = 0, schedLate = 0, schedLateT = 0, schedSeen = "", schedWalk = 0, schedBeep = 0;
+let schedAt = 0, schedUrl = "", schedFrom = false, schedArmed = false, schedTick = 0, schedLate = 0, schedLateT = 0, schedSeen = "", schedWalk = 0, schedBeep = 0, schedFire = 0;
 const SCHED_LATE_MAX = 60 * 60000;                               // an hour after the start it is somebody else's night
 function schedFmt(t) {                                          // the day and month in the language on screen, the digits plain
   const o = { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", numberingSystem: "latn" };
@@ -8712,7 +8720,16 @@ function schedLoop() {
   if (!schedAt) return;
   const left = schedAt - Date.now();
   if (schedArmed) {
+    if (document.hidden) return;                                 // locked or in another app: it waits, then catches up the moment the page is back
+    if (left <= 0 && -left > SCHED_LATE_MAX) {                   // armed, then away for hours: no session starts by itself the next morning
+      schedArmed = false; if (phase === "chart") wakeOff();
+      log(tx("THIS SESSION IS PROBABLY OVER · THE CHART IS YOURS"), "cy"); return schedRender();
+    }
     if (left <= 0) return schedGo(-left);                        // a phone that slept through it wakes here and catches up
+    if (left <= 1000 && !schedFire) schedFire = setTimeout(() => {   // the last second on a timer of its own: the start lands on the instant, not on the next tick
+      schedFire = 0;
+      if (schedArmed && schedAt && !document.hidden && Date.now() >= schedAt - 8) schedGo(Math.max(0, Date.now() - schedAt));
+    }, left);
     const s = Math.ceil(left / 1000);
     if (s <= 10 && s !== schedBeep) { schedBeep = s; sfx("key"); }
     if (S.wake !== false && !wakeLk && !wakeAsk && !document.hidden) wakeOn();   // a flight in between may have let it go
@@ -8720,6 +8737,7 @@ function schedLoop() {
   schedRender();
 }
 function schedLoad(T, url, from) {
+  if (schedArmed && phase === "chart") wakeOff();                // armed for another time: that screen lock is let go
   schedAt = T; schedUrl = url; schedFrom = !!from; schedArmed = false; schedBeep = 0;
   clearInterval(schedTick); schedTick = setInterval(schedLoop, 250);
   $("schedRow").classList.remove("hide");
@@ -8966,7 +8984,14 @@ $("bCkBuzzOn").onclick = () => {                                 // the same swi
   const c = $("ckBuzz"); c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true }));
   ckShow("bCkBuzzOn", false); ckSet("ckBuzzRes", "ok", tx("THE BUZZ WORKS AND IS ON"));
 };
-$("bCkGps").onclick = () => { useGps(); let k = 0; const t = setInterval(() => { if (targetIsMine || ++k > 24) { clearInterval(t); checkSky(); } }, 500); };
+function gpsFromCard(done) {                                     // GPS asked from a card: wait for the answer however long the permission box takes (it used to give up after 12 s)
+  useGps(); let k = 0;
+  const t = setInterval(() => {
+    if (gpsState === "ask" && ++k < 240) return;                 // two minutes at the very most
+    clearInterval(t); done(gpsState === "ok" ? "" : gpsState === "denied" ? "GPS DENIED — TARGET UNCHANGED" : "GPS UNAVAILABLE");
+  }, 500);
+}
+$("bCkGps").onclick = () => { ckSet("ckSkyRes", "na", tx("GPS: ACQUIRING...")); gpsFromCard((why) => { checkSky(); if (why) ckSet("ckSkyRes", "bad", tx(why)); }); };
 /* ---------------- TONIGHT: the Sun and the Moon for the spot, worked out on the phone ----------------
    Low-precision positions (the Sun to about 0.01 deg, the Moon to about 0.3 deg): rise and set to a minute or two, which is all a night out needs.
    Only the cloud forecast comes from outside (Open-Meteo), and only when the card is opened. */
@@ -9060,7 +9085,7 @@ function ntUp(o, which, t) {                                     // from the sam
 function txf(en, v) { return tx(en).replace(/\{([a-z])\}/g, (m, k) => (k in v ? v[k] : m)); }   // a dictionary line with blanks the numbers fill
 function ntHM(t) { return new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
 const NT_KEY = "ce5.clouds.v1";
-let ntCl = null, ntState = "", ntTick = 0, ntReq = 0;
+let ntCl = null, ntState = "", ntTick = 0, ntReq = 0, ntGpsWhy = "";
 function ntSpotR() { return [Math.round(TARGET.lat * 10) / 10, Math.round(TARGET.lon * 10) / 10]; }
 function ntCloudAt(cl, t) {                                      // the forecast hour nearest t
   if (!cl) return null;
@@ -9199,7 +9224,7 @@ function ntRender(nowIn) {
   else v = tx("NO CLEAR DARK WINDOW TONIGHT");
   put("ntVerdict", v); $("ntVerdict").classList.toggle("warn", !good);
   const def = Math.abs(TARGET.lat - 39.76849) < 1e-4 && Math.abs(TARGET.lon + 86.15806) < 1e-4;
-  put("ntSpot", (targetIsMine ? tx("FOR YOUR OWN SPOT") : def ? tx("FOR THE DEFAULT SPOT IN INDIANAPOLIS · TAP GPS FOR YOUR OWN SKY") : tx("FOR A SPOT FROM A SHARED LINK · TAP GPS FOR YOUR OWN SKY")) + " · " + tx("TIMES IN THIS PHONE'S CLOCK"));
+  put("ntSpot", (ntGpsWhy && !targetIsMine ? tx(ntGpsWhy) + " · " : "") + (targetIsMine ? tx("FOR YOUR OWN SPOT") : def ? tx("FOR THE DEFAULT SPOT IN INDIANAPOLIS · TAP GPS FOR YOUR OWN SKY") : tx("FOR A SPOT FROM A SHARED LINK · TAP GPS FOR YOUR OWN SKY")) + " · " + tx("TIMES IN THIS PHONE'S CLOCK"));
   $("ntGpsRow").classList.toggle("hide", targetIsMine);
   const when = (t) => (new Date(t).toDateString() === new Date(now).toDateString() ? ntHM(t) : new Date(t).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }));
   put("ntSrc", ntState === "ask" ? tx("ASKING OPEN-METEO FOR THE CLOUDS AT YOUR SPOT, ROUNDED TO ABOUT 10 KM")
@@ -9210,7 +9235,7 @@ function ntRender(nowIn) {
 }
 function nightOpen() {
   sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide");
-  $("nightPick").classList.remove("hide"); ntFetch();
+  ntGpsWhy = ""; $("nightPick").classList.remove("hide"); ntFetch();
   clearInterval(ntTick);
   ntTick = setInterval(() => { if ($("nightPick").classList.contains("hide")) { clearInterval(ntTick); ntTick = 0; } else ntRender(); }, 60000);   // the NOW line walks
 }
@@ -9222,7 +9247,7 @@ $("bNight").onclick = nightOpen;
 $("bNightInfo").onclick = nightOpen;
 $("bNightClose").onclick = nightClose;
 $("nightPick").addEventListener("click", (e) => { if (e.target === $("nightPick")) nightClose(); });
-$("bNtGps").onclick = () => { useGps(); let k = 0; const t = setInterval(() => { if (targetIsMine || ++k > 24) { clearInterval(t); if (!$("nightPick").classList.contains("hide")) ntFetch(); } }, 500); };
+$("bNtGps").onclick = () => { ntGpsWhy = "GPS: ACQUIRING..."; ntRender(); gpsFromCard((why) => { ntGpsWhy = why; if (!$("nightPick").classList.contains("hide")) ntFetch(); }); };
 window.addEventListener("resize", () => { if (!$("nightPick").classList.contains("hide")) ntRender(); });
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
 $("rVoiceVol").oninput = (e) => { S.voiceVol = +e.target.value / 100; $("vVoiceVol").textContent = e.target.value; if (voiceEl) voiceEl.volume = voiceVol(); };   // the clip in flight follows the knob
@@ -9296,6 +9321,9 @@ const schedParam = (location.search.match(/[?&]at=(\d{9,11})/) || [])[1];   // a
 if (schedParam) {
   if (/[?&]all=1/.test(location.search) && !allChannels) { try { $("bAll").onclick(); } catch (e) {} }
   schedLoad(+schedParam * 1000, location.href.split("#")[0], true); schedWhenFree();
+  if (Date.now() - schedParam * 1000 > SCHED_LATE_MAX) {         // long over: said once, then the time leaves the address, so the next visit is an ordinary one
+    try { history.replaceState(null, "", location.pathname + location.search.replace(/([?&])at=\d+&?/, "$1").replace(/[?&]$/, "") + location.hash); } catch (e) {}
+  }
 }
 setTimeout(() => { if (S.pursue) loadPursue(); if (S.uso) loadUso(); }, 12000);
 setTimeout(() => { if (guideDue() && intro) return; fsCallout(); }, 14000);   // with the opening off (or stuck) the callout still comes; on the first night the guide hands over to it   // the files, whichever way the opening went
