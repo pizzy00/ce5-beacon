@@ -7504,9 +7504,11 @@ function repOpen(id, auto) {
   const mk = r.marks || [], ma = mk.find((x) => typeof x.az === "number");
   if (ma && !p.dir) { rp.az = ma.az; rp.dir = compass8(ma.az); }   // the direction marked in the moment fills the FACING row
   $("repTrip").textContent = r.d + " · " + repWhen(r.t) + (mk.length ? " · MARKED " + mk.slice(0, 4).map(markHm).join(", ") : "");
+  const mn = mk.find((x) => !x.sat);
+  if (mn) satCheck(mn.t, typeof mn.az === "number" ? mn.az : null).then((m) => { if (!m) return; markSat(id, mn.t, m); if (rp && rp.id === id && !auto) repStat(m); });
   $("repTxt").value = p.txt || ""; $("repTxt").placeholder = tx("WHAT HAPPENED, IN YOUR OWN WORDS · 280 LETTERS");
   $("repDur").max = REP_DUR.length - 1; $("repDur").value = rp.durI;
-  repStat(auto ? tx("JUST LANDED · DID YOU SEE ANYTHING? · NOTHING IS A FINE ANSWER") : "");
+  repStat(auto ? tx("JUST LANDED · DID YOU SEE ANYTHING? · NOTHING IS A FINE ANSWER") : (mk[0] && mk[0].sat) || "");
   clearTimeout(repDelArm); repDelArm = 0; $("bRepDel").textContent = tx("DELETE THIS REPORT");
   if (p.ph) idbGet(id).then((b) => { if (rp && rp.id === id && b && !rp.ph) { rp.ph = { blob: b, url: URL.createObjectURL(b) }; repRender(); } })
     .catch(() => repStat(tx("THE PHOTO COULD NOT BE READ BACK IN THIS BROWSER")));
@@ -7584,6 +7586,7 @@ function repNuforc(r) {                                          // laid out in 
     "Location: city ____ , state or province ____ , country ____", "",
     "Description:", (p.txt || "I saw " + saw + "."), "",
     "Context: seen during a CE-5 contact session, using the CE-5 Beacon web app (" + publicLink() + "), session destination " + r.d + ".",
+    mk && mk.sat ? "Satellite check by CE-5 Beacon for the marked second (orbits from CelesTrak): " + mk.sat.replace(/^SKY CHECK[^:]*: /, "") : "",
     p.ph ? "Photo: attached separately." : ""].join("\n").replace(/\n+$/, "");
 }
 function repExport() {
@@ -8536,28 +8539,99 @@ $("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
 let markT = 0;
 function markHm(m) { const d = new Date(m.t), two = (v) => String(v).padStart(2, "0"); return two(d.getHours()) + ":" + two(d.getMinutes()) + ":" + two(d.getSeconds()); }
 function markSave(at, az) {                                      // on this session's trip (the newest, logged at the landing), device only
-  const L = readLog(), t = L[L.length - 1]; if (!t || Date.now() - t.t > 6 * 3600000) return;
+  const L = readLog(), t = L[L.length - 1]; if (!t || Date.now() - t.t > 6 * 3600000) return null;
   const k = (t.marks = t.marks || []), i = k.findIndex((x) => x.t === at);
   if (i >= 0) { if (az !== null) k[i].az = az; } else { k.push(az === null ? { t: at } : { t: at, az }); while (k.length > 20) k.shift(); }
   try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+  return t.id;
 }
+function markSat(id, at, msg) {                                  // the sky check's answer, kept on its mark
+  const L = readLog(), t = L.find((x) => x.id === id), m = t && (t.marks || []).find((x) => x.t === at); if (!m) return;
+  m.sat = msg; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+}
+function markCheck(id, at, az) { satCheck(at, az).then((m) => { if (m && id) markSat(id, at, m); }); }
 function markSay(at, az) { log("MARKED " + markHm({ t: at }) + (az === null ? "" : " \u00b7 FACING " + compass8(az) + " " + az + "\u00b0") + " \u00b7 IT IS IN YOUR SIGHTING REPORT", "cy"); }
 $("bMark").onclick = () => {
   const at = Date.now(); sfx("key"); buzzRaw(60);
   const az0 = typeof heading === "number" ? Math.round(heading) % 360 : null;
-  markSave(at, az0);
-  if (az0 !== null || !window.DeviceOrientationEvent) return markSay(at, az0);
+  const id = markSave(at, az0);
+  if (az0 !== null || !window.DeviceOrientationEvent) { markSay(at, az0); return markCheck(id, at, az0); }
   const go = () => {                                             // no compass running: listen a moment, then fill in the direction
     window.addEventListener("deviceorientationabsolute", onOrient); window.addEventListener("deviceorientation", onOrient);
     clearTimeout(markT); markT = setTimeout(() => {
       markT = 0; const az = typeof heading === "number" ? Math.round(heading) % 360 : null;
       if (!pointOn && !repCmp) { window.removeEventListener("deviceorientationabsolute", onOrient); window.removeEventListener("deviceorientation", onOrient); heading = null; }
-      if (az !== null) markSave(at, az); markSay(at, az);
+      if (az !== null) markSave(at, az); markSay(at, az); markCheck(id, at, az);
     }, 1500);
   };
-  if (typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then((r) => (r === "granted" ? go() : markSay(at, null))).catch(() => markSay(at, null));   // iPhone asks inside the tap
+  const none = () => { markSay(at, null); markCheck(id, at, null); };
+  if (typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then((r) => (r === "granted" ? go() : none())).catch(none);   // iPhone asks inside the tap
   else go();
 };
+/* SKY CHECK (v79): which satellites were lit up in that part of your sky at the marked second. Most moving lights at night are
+   satellites catching the Sun (Starlink above all), so this is the first thing to rule out. Orbits come from CelesTrak (the ~150
+   brightest objects incl. the ISS, plus every Starlink) and are worked out on this phone with satellite.js; the spot never leaves it. */
+const SAT_SRC = { visual: "https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle", starlink: "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle" };
+const SAT_FRESH = 2 * 3600000;                                   // CelesTrak asks for one download per two hours at most
+let satLibP = null; const satMem = {};
+function satLib() {
+  if (window.satellite) return Promise.resolve(window.satellite);
+  return satLibP || (satLibP = new Promise((ok, no) => {
+    const sc = document.createElement("script"); sc.src = "sat/satellite.min.js";
+    sc.onload = () => (window.satellite ? ok(window.satellite) : no(new Error("lib"))); sc.onerror = () => { satLibP = null; no(new Error("lib")); };
+    document.head.appendChild(sc);
+  }));
+}
+async function satTle(g) {                                       // memory, the browser cache under two hours old, CelesTrak, then any old copy
+  const m = satMem[g]; if (m && Date.now() - m.t < SAT_FRESH) return m;
+  let c = null; try { c = await caches.open("ce5-sat"); } catch (e) {}
+  const hit = c ? await c.match(SAT_SRC[g]).catch(() => null) : null, ht = hit ? +(hit.headers.get("x-ce5-t") || 0) : 0;
+  if (hit && Date.now() - ht < SAT_FRESH) return (satMem[g] = { txt: await hit.text(), t: ht });
+  try {
+    const r = await fetch(SAT_SRC[g], { cache: "no-store" }); if (!r.ok) throw new Error("http " + r.status);
+    const txt = await r.text(); if (txt.indexOf("\n1 ") < 0) throw new Error("not orbits");
+    const t = Date.now();
+    if (c) c.put(SAT_SRC[g], new Response(txt, { headers: { "x-ce5-t": String(t), "content-type": "text/plain" } })).catch(() => {});
+    return (satMem[g] = { txt, t });
+  } catch (e) { if (hit) return (satMem[g] = { txt: await hit.text(), t: ht }); throw e; }
+}
+function satSunVec(when) {                                       // the Sun's direction (low precision, plenty for a shadow test)
+  const n = when / 86400000 + 2440587.5 - 2451545, rd = Math.PI / 180, g = (357.528 + 0.9856003 * n) * rd;
+  const l = (280.46 + 0.9856474 * n + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * rd, e = (23.439 - 4e-7 * n) * rd;
+  return [Math.cos(l), Math.cos(e) * Math.sin(l), Math.sin(e) * Math.sin(l)];
+}
+function satScan(sl, txt, when, lat, lon) {                      // every object in a TLE text above 10 degrees: where it stands, and is the Sun on it
+  const d = new Date(when), gm = sl.gstime(d), rd = Math.PI / 180, sun = satSunVec(when);
+  const obs = { latitude: lat * rd, longitude: lon * rd, height: 0.2 };
+  const zen = [Math.cos(lat * rd) * Math.cos(gm + lon * rd), Math.cos(lat * rd) * Math.sin(gm + lon * rd), Math.sin(lat * rd)];
+  const sunEl = Math.asin(zen[0] * sun[0] + zen[1] * sun[1] + zen[2] * sun[2]) / rd;
+  const L = txt.split(/\r?\n/), out = [];
+  for (let i = 1; i < L.length - 1; i++) {
+    if (L[i].charAt(0) !== "1" || L[i + 1].charAt(0) !== "2") continue;
+    let rec, pv; try { rec = sl.twoline2satrec(L[i], L[i + 1]); pv = sl.propagate(rec, d); } catch (e) { continue; }
+    const p = pv && pv.position; i++; if (!p || typeof p.x !== "number") continue;
+    const la = sl.ecfToLookAngles(obs, sl.eciToEcf(p, gm)), el = la.elevation / rd; if (el < 10) continue;
+    const dot = p.x * sun[0] + p.y * sun[1] + p.z * sun[2];
+    const lit = dot > 0 || Math.hypot(p.x - dot * sun[0], p.y - dot * sun[1], p.z - dot * sun[2]) > 6371;
+    out.push({ name: L[i - 2].trim(), az: Math.round(la.azimuth / rd) % 360, el: Math.round(el), lit });
+  }
+  return { sunEl, list: out };
+}
+async function satCheck(at, az) {                                // the answer as one line, or null with no orbits to hand
+  let sl, A, B;
+  try { sl = await satLib(); [A, B] = await Promise.all([satTle("visual"), satTle("starlink").catch(() => null)]); }
+  catch (e) { log("SKY CHECK: NO CONNECTION FOR THE SATELLITE ORBITS \u00b7 IT TRIES AGAIN WHEN YOU OPEN THE REPORT", "alert"); return null; }
+  const v = satScan(sl, A.txt, at, TARGET.lat, TARGET.lon), k = B ? satScan(sl, B.txt, at, TARGET.lat, TARGET.lon).list : [];
+  const near = (o) => o.lit && (az === null || Math.abs(((o.az - az + 540) % 360) - 180) <= 35);   // within 35 degrees of where you faced
+  const br = v.list.filter(near).sort((a, b) => b.el - a.el), sk = k.filter(near), way = az === null ? "" : " TOWARD " + compass8(az);
+  let msg;
+  if (v.sunEl > 0) msg = "SKY CHECK: THE SUN WAS UP \u00b7 SATELLITES DO NOT SHOW IN DAYLIGHT";
+  else if (!br.length && !sk.length) msg = "SKY CHECK: NO SUNLIT SATELLITE" + way + " AT THAT SECOND \u00b7 RULE OUT PLANES (THEY BLINK) AND PLANETS (THEY DO NOT MOVE), THEN IT IS WORTH WRITING UP";
+  else msg = "SKY CHECK" + way + ": " + br.slice(0, 3).map((o) => o.name + " " + compass8(o.az) + " " + o.el + "\u00b0 UP").join(" \u00b7 ") +
+    (sk.length ? (br.length ? " \u00b7 " : "") + sk.length + " STARLINK" : "") + " \u00b7 LIT BY THE SUN, A SATELLITE LOOKS LIKE A STEADY STAR GLIDING ACROSS";
+  if (!targetIsMine) msg += " \u00b7 FOR THE DEFAULT SPOT, TAP GPS FOR YOURS";
+  log(msg, "cy"); return msg;
+}
 $("bCard").onclick = () => { sfx("key"); shareCard(); };
 $("bShare").onclick = () => { sfx("key"); shareCard(); };                  // the chart's own share, top right (09-04)
 $("msgMorse").textContent = morseString(S.msg);
