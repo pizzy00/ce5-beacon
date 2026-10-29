@@ -9504,7 +9504,7 @@ function rvRender() {
       (rv.img ? '<figure><img class="rvMine" alt="Your sketch" src="' + rv.img + '"><figcaption>YOUR SKETCH</figcaption></figure>' : "") + "</div>" +
       "<p>" + t.lore + "</p>" +
       "<p class=\"rvDim\">YOU SENSED: " + (rv.pick.map((k) => RV_D[k]).join(", ") || "NOTHING PICKED") + (rv.aol ? " · SET APART: " + rv.aol.replace(/[<>&"]/g, "") : "") + "</p>" +
-      '<p class="rvDim">THE JUDGE\'S SCORES (FIGURE OF MERIT: HOW MUCH OF EACH PLACE YOU GOT, TIMES HOW MUCH OF WHAT YOU SAID FITS IT):' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
+      '<p class="rvDim">THE JUDGE\'S SCORES (FIGURE OF MERIT: HOW MUCH OF EACH PLACE YOU GOT, TIMES HOW MUCH OF WHAT YOU SAID FITS IT): ' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p><p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE</p>';
     next = "A NEW SESSION";
   }
