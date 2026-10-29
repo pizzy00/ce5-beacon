@@ -972,6 +972,7 @@
     <button class="btn cy hide key" id="bTone">Tone</button>
     <button class="btn hide key" id="bSend">Send</button>
     <button class="btn cy hide key" id="bCard" title="A picture of tonight to share, with the link on it">Card</button>
+    <button class="btn rd hide key" id="bMark" title="Saw something? Tap the moment you see it: the time and the way the phone faces go into your sighting report">Mark</button>
     <button class="btn hide key" id="bTarget">Retarget</button>
     <button class="btn cy key" id="bGps">GPS</button>
     <button class="btn cy key" id="bBoard" aria-label="Travellers board" title="Travellers board">LOG</button>
@@ -6091,7 +6092,7 @@ function arrive() {
     : modeOf() === "bermuda" ? "RELAY: DEEP CHANNEL OPEN · THE TRIANGLE" : S.polaris ? "RELAY: POLARIS GATE OPEN" : "RELAY: SOLAR CHANNEL OPEN");
   $("bStop").classList.add("hide");
   document.body.classList.remove("run"); document.body.classList.add("active");
-  ["bReplay", "bTone", "bTarget", "bGps", "bSend", "bCard"].forEach((b) => $(b).classList.remove("hide"));
+  ["bReplay", "bTone", "bTarget", "bGps", "bSend", "bCard", "bMark"].forEach((b) => $(b).classList.remove("hide"));
   idleArm();                                                    // the quiet clock: a minute untouched and the chart comes back
   const callOut = () => {                                        // the message goes out last
     flyStop(); bridgeStop();                                    // on the ground: the wind dies
@@ -6168,7 +6169,7 @@ function replay() {
   setTimeout(measureCtl, 50);
   clearTimeout(beaconTimer); if (beacon) { map.removeLayer(beacon); beacon = null; }
   retargetMode = false; $("bTarget").classList.remove("on");
-  ["bReplay", "bTone", "bTarget", "bSend", "bCard"].forEach((b) => $(b).classList.add("hide"));
+  ["bReplay", "bTone", "bTarget", "bSend", "bCard", "bMark"].forEach((b) => $(b).classList.add("hide"));
   stopMorse();
   $("bGps").classList.remove("hide");
   $("bEngage").classList.remove("hide"); $("bAll").classList.remove("hide");
@@ -7500,7 +7501,9 @@ function repOpen(id, auto) {
   if (rp && rp.ph && rp.ph.url) URL.revokeObjectURL(rp.ph.url);
   rp = { id, saw: p.saw || "", shape: p.shape || "", dir: p.dir || "", az: typeof p.az === "number" ? p.az : null, alt: p.alt || "",
     durI: Math.max(0, REP_DUR.indexOf(p.dur || 0)), ph: null, phWas: !!p.ph, phDirty: false, had: !!r.rep, dirty: false };
-  $("repTrip").textContent = r.d + " · " + repWhen(r.t);
+  const mk = r.marks || [], ma = mk.find((x) => typeof x.az === "number");
+  if (ma && !p.dir) { rp.az = ma.az; rp.dir = compass8(ma.az); }   // the direction marked in the moment fills the FACING row
+  $("repTrip").textContent = r.d + " · " + repWhen(r.t) + (mk.length ? " · MARKED " + mk.slice(0, 4).map(markHm).join(", ") : "");
   $("repTxt").value = p.txt || ""; $("repTxt").placeholder = tx("WHAT HAPPENED, IN YOUR OWN WORDS · 280 LETTERS");
   $("repDur").max = REP_DUR.length - 1; $("repDur").value = rp.durI;
   repStat(auto ? tx("JUST LANDED · DID YOU SEE ANYTHING? · NOTHING IS A FINE ANSWER") : "");
@@ -7566,16 +7569,17 @@ function repClose() {
   rp = null; sfx("cover"); $("repPick").classList.add("hide");
 }
 function repNuforc(r) {                                          // laid out in the order of the NUFORC web form, in plain sentence case for its readers
-  const p = r.rep, d = new Date(r.t), two = (v) => String(v).padStart(2, "0");
+  const p = r.rep, mk = (r.marks || [])[0], d = new Date(mk ? mk.t : r.t), two = (v) => String(v).padStart(2, "0");
   const z = -d.getTimezoneOffset(), zs = "UTC" + (z >= 0 ? "+" : "-") + two(Math.floor(Math.abs(z) / 60)) + ":" + two(Math.abs(z) % 60);
   const dur = !p.dur ? "Not noted" : p.dur === 60 ? "About 1 minute" : p.dur < 120 ? p.dur + " seconds" : p.dur < 3600 ? "About " + Math.round(p.dur / 60) + " minutes" : "An hour or more";
   const shape = p.shape ? REP_NUFORC[p.shape] : p.saw === "light" ? "Light" : p.saw === "orb" ? "Orb" : "Other";
   const alt = { low: "low, near the horizon", mid: "about halfway up the sky", high: "high overhead" }[p.alt] || "";
   const dir = p.dir ? "Toward " + p.dir + (typeof p.az === "number" ? " (" + p.az + " degrees, read from the phone compass)" : "") + (alt ? ", " + alt : "") : alt ? alt.charAt(0).toUpperCase() + alt.slice(1) : "Not noted";
   const saw = { light: "a light", orb: "an orb", craft: "a craft", other: "something I could not name" }[p.saw] || "something";
-  return ["NUFORC report draft, made on my phone by CE-5 Beacon. Paste each part into the matching box at https://nuforc.org/", "",
+  return ["NUFORC report draft, made on my phone by CE-5 Beacon. Paste each part into the matching box at https://nuforc.org/",
+    "Before sending: check the time and direction against satellite passes (Starlink trains and the ISS are the most common look-alikes), for example at https://www.heavens-above.com/", "",
     "Date of event: " + d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate()),
-    "Time of event: " + two(d.getHours()) + ":" + two(d.getMinutes()) + " (" + zs + ", when the session I was running landed)",
+    "Time of event: " + two(d.getHours()) + ":" + two(d.getMinutes()) + " (" + zs + (mk ? ", marked on my phone the moment I saw it)" : ", when the session I was running landed)"),
     "Duration: " + dur, "Shape: " + shape, "Direction: " + dir,
     "Location: city ____ , state or province ____ , country ____", "",
     "Description:", (p.txt || "I saw " + saw + "."), "",
@@ -8527,6 +8531,33 @@ $("ckMorseTone").onchange = (e) => (S.mTone = e.target.checked);
 $("rWpm").oninput = (e) => { S.mWpm = +e.target.value; $("vWpm").textContent = S.mWpm; };
 $("rMInt").oninput = (e) => { S.mInt = +e.target.value / 100; $("vMInt").textContent = e.target.value; };
 $("bSend").onclick = () => { log("RESENDING", "cy"); sendMorse(S.msg); };
+/* MARK (v78): the second you see something, one tap keeps the time and the way the phone faces. Witness reports are only as good
+   as their time and direction (NUFORC asks for both, and both are what a satellite check needs), and memory rounds them off. */
+let markT = 0;
+function markHm(m) { const d = new Date(m.t), two = (v) => String(v).padStart(2, "0"); return two(d.getHours()) + ":" + two(d.getMinutes()) + ":" + two(d.getSeconds()); }
+function markSave(at, az) {                                      // on this session's trip (the newest, logged at the landing), device only
+  const L = readLog(), t = L[L.length - 1]; if (!t || Date.now() - t.t > 6 * 3600000) return;
+  const k = (t.marks = t.marks || []), i = k.findIndex((x) => x.t === at);
+  if (i >= 0) { if (az !== null) k[i].az = az; } else { k.push(az === null ? { t: at } : { t: at, az }); while (k.length > 20) k.shift(); }
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
+}
+function markSay(at, az) { log("MARKED " + markHm({ t: at }) + (az === null ? "" : " \u00b7 FACING " + compass8(az) + " " + az + "\u00b0") + " \u00b7 IT IS IN YOUR SIGHTING REPORT", "cy"); }
+$("bMark").onclick = () => {
+  const at = Date.now(); sfx("key"); buzzRaw(60);
+  const az0 = typeof heading === "number" ? Math.round(heading) % 360 : null;
+  markSave(at, az0);
+  if (az0 !== null || !window.DeviceOrientationEvent) return markSay(at, az0);
+  const go = () => {                                             // no compass running: listen a moment, then fill in the direction
+    window.addEventListener("deviceorientationabsolute", onOrient); window.addEventListener("deviceorientation", onOrient);
+    clearTimeout(markT); markT = setTimeout(() => {
+      markT = 0; const az = typeof heading === "number" ? Math.round(heading) % 360 : null;
+      if (!pointOn && !repCmp) { window.removeEventListener("deviceorientationabsolute", onOrient); window.removeEventListener("deviceorientation", onOrient); heading = null; }
+      if (az !== null) markSave(at, az); markSay(at, az);
+    }, 1500);
+  };
+  if (typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then((r) => (r === "granted" ? go() : markSay(at, null))).catch(() => markSay(at, null));   // iPhone asks inside the tap
+  else go();
+};
 $("bCard").onclick = () => { sfx("key"); shareCard(); };
 $("bShare").onclick = () => { sfx("key"); shareCard(); };                  // the chart's own share, top right (09-04)
 $("msgMorse").textContent = morseString(S.msg);
