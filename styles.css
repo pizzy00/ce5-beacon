@@ -807,6 +807,27 @@ body.intro #bNight { opacity: 0 !important; pointer-events: none !important; }
   #bNight { top: calc(196px + env(safe-area-inset-top, 0px)); right: 48px; }
   #nightHint { top: calc(199px + env(safe-area-inset-top, 0px)); right: 86px; }
 }
+/* ---- the REMOTE VIEWING key (v83): foot of the column, amber so it stands out from the green keys ---- */
+#bRv { position: fixed; right: 10px; top: calc(310px + env(safe-area-inset-top, 0px)); z-index: 9;
+  width: 30px; height: 30px; border: 1px solid rgba(255,196,107,0.75); border-radius: 3px; color: var(--amber);
+  background: linear-gradient(180deg, rgba(40,30,14,0.95), rgba(16,11,4,0.95));
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.65), 0 0 9px rgba(255,196,107,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: opacity 0.5s ease; }
+#bRv svg { width: 18px; height: 18px; display: block; }
+#bRv:active { background: rgba(255,196,107,0.3); }
+#bRv.callout, #bRv.new { animation: rvPulse 1.6s ease-out infinite; }
+@keyframes rvPulse { 0% { box-shadow: 0 0 0 0 rgba(255,196,107,0.85); } 100% { box-shadow: 0 0 0 16px rgba(255,196,107,0); } }
+body.run #bRv, body.active #bRv { opacity: 0.3; }
+body.intro #bRv { opacity: 0 !important; pointer-events: none !important; }
+#rvHint { position: fixed; right: 48px; top: calc(313px + env(safe-area-inset-top, 0px)); z-index: 9; pointer-events: none;
+  color: var(--amber); font-size: 9px; letter-spacing: 0.18em; white-space: nowrap;
+  background: rgba(0,0,0,0.78); border: 1px solid rgba(255,196,107,0.55); border-radius: 4px; padding: 5px 9px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+#rvHint.hide { display: none; }
+@media (max-height: 449px) {                                    /* a phone on its side: under tonight's sky in the left-hand column */
+  #bRv { top: calc(234px + env(safe-area-inset-top, 0px)); right: 48px; }
+  #rvHint { top: calc(237px + env(safe-area-inset-top, 0px)); right: 86px; }
+}
 /* ---- a scheduled session (v74): the countdown card, the picker in the group card ---- */
 #schedPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
 #schedPick.hide { display: none; }

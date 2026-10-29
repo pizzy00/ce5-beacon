@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=49" />
+<link rel="stylesheet" href="styles.css?v=50" />
 </head>
 <body class="intro introHud">
 
@@ -594,6 +594,7 @@
 <div id="roomHint" class="hide display">GROUP SESSION · ONE PHONE LEADS ▸</div>
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
 <div id="nightHint" class="hide display">TONIGHT'S SKY &#183; DARK, MOON, CLOUDS ▸</div>
+<div id="rvHint" class="hide display" data-nol10n>REMOTE VIEWING &#183; A BLIND PRACTICE ▸</div>
 <div id="langPick" class="hide">
   <div id="langCard">
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
@@ -959,6 +960,11 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M8 2.5l1.3 2.7 2.7 1.3-2.7 1.3L8 10.5 6.7 7.8 4 6.5l2.7-1.3z"/>
     <path d="M8.5 21h9a3.5 3.5 0 0 0 .5-6.96 5 5 0 0 0-9.6 1.2A2.9 2.9 0 0 0 8.5 21z"/></svg>
+</button>
+<button id="bRv" aria-label="Remote viewing" title="Remote viewing: a blind practice on the places in the lore">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M3 12s3.4-5.5 9-5.5S21 12 21 12s-3.4 5.5-9 5.5S3 12 3 12z"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>
+    <path d="M12 1.5v3M12 19.5v3M1.5 12h0M22.5 12h0"/></svg>
 </button>
 <div id="fade"></div>
 <div id="crt"></div>
@@ -3489,7 +3495,7 @@ function lblFlush() {
   const q = LBL; LBL = null;
   q.sort((a, b) => b.pri - a.pri);
   const kept = [];
-  for (const id of ["bFull", "bMute", "bLang", "bRed", "bShare", "bRoom", "bIdea"]) {         // the buttons up the right side are not free ground
+  for (const id of ["bFull", "bMute", "bLang", "bRed", "bShare", "bRoom", "bIdea", "bNight", "bRv"]) {         // the buttons up the right side are not free ground
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (r.width < 1) continue;
     kept.push({ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4, must: true, text: "" });
@@ -4341,7 +4347,7 @@ function fpsTick(t) {
   fpsRaf = requestAnimationFrame(fpsTick);
 }
 let fsShown = false, calloutQueue = [];
-const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"], ["ideaHint", "bIdea"], ["nightHint", "bNight"]];   // top to bottom, tonight's sky under the hand
+const CORNER_KEYS = [["fsHint", "bFull"], ["muteHint", "bMute"], ["langHint", "bLang"], ["redHint", "bRed"], ["shareHint", "bShare"], ["roomHint", "bRoom"], ["ideaHint", "bIdea"], ["nightHint", "bNight"], ["rvHint", "bRv"]];   // top to bottom, tonight's sky under the hand
 function fsCallout() {                                           // the corner keys introduce themselves one at a time
   if (fsShown || document.fullscreenElement) return;
   fsShown = true;
@@ -7155,7 +7161,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#rvPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#rvPick,#bNight,#bRv,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -9526,6 +9532,8 @@ function rvRender() {
 function rvOpen() { sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide"); $("rvPick").classList.remove("hide"); rvRender(); }
 function rvClose() { if ($("rvPick").classList.contains("hide")) return; sfx("cover"); $("rvPick").classList.add("hide"); clearInterval(rvCool); rvCool = 0; }
 $("bRvInfo").onclick = rvOpen;
+$("bRv").onclick = () => { try { localStorage.setItem("ce5.rvkey.v1", "1"); } catch (e) {} $("bRv").classList.remove("new"); rvOpen(); };
+try { if (!localStorage.getItem("ce5.rvkey.v1")) $("bRv").classList.add("new"); } catch (e) {}   // it glows until the first tap
 $("bRvClose").onclick = rvClose;
 $("rvPick").addEventListener("click", (e) => { if (e.target === $("rvPick")) rvClose(); });
 $("bRvBack").onclick = () => { if (rv.step >= 2 && rv.step <= 5) { rv.step--; sfx("key"); rvRender(); } };
