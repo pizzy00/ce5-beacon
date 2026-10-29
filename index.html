@@ -9426,9 +9426,9 @@ function rvNew() {                                               // sealed: chos
   while (pick.length < 4) pick.push(idx.splice(rvRand(idx.length), 1)[0]);
   rv = { step: 1, tgt: pick[0], dec: pick.slice(1), num: (1000 + rvRand(9000)) + "-" + (1000 + rvRand(9000)), pick: [], aol: "", img: "", t: Date.now() };
 }
-function rvScore(pick, t) {                                      // overlap of your impressions with a place's true ones (0 to 1)
+function rvScore(pick, t) {                                      // the SAIC figure of merit (May, Utts et al. 1990): accuracy x reliability, 0 to 1
   const d = new Set(t.d.split(" ")); let a = 0; for (const k of pick) if (d.has(k)) a++;
-  const u = new Set(pick.concat([...d])).size; return u ? a / u : 0;
+  return pick.length && d.size ? (a / d.size) * (a / pick.length) : 0;
 }
 function rvOdds(n, k) {                                          // the chance of k or more hits in n tries at 1 in 4 by luck alone
   let p = 0; for (let i = k; i <= n; i++) { let c = 1; for (let j = 0; j < i; j++) c = c * (n - j) / (j + 1); p += c * Math.pow(0.25, i) * Math.pow(0.75, n - i); } return p;
@@ -9475,12 +9475,12 @@ function rvRender() {
   clearInterval(rvCool); rvCool = 0;
   if (st === 0) {
     h = "<p>A practice in the remote viewing protocol the US funded from the 1970s to 1995 (Stargate). A place is sealed at random from seventeen in the UAP lore, from Area 51 to the ice of Antarctica. You get only a number. You describe what comes, and sketch it, before you know where it is.</p>" +
-      "<p>Then a blind judge ranks what you put down against the real place and three decoys, so luck alone ranks the right one first one time in four. The record keeps score against that, honestly. Most careful studies found results close to chance; this is a way to try it for yourself.</p>" +
+      "<p>Then a blind judge ranks what you put down against the real place and three decoys, scoring the way the program's own analysts did (the figure of merit, May and Utts, 1990: how much of the place you got, times how much of what you said was right). Luck alone ranks the right one first one time in four. The record keeps score against that, honestly. Most careful studies found results close to chance; this is a way to try it for yourself.</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + "</p>";
     next = "BEGIN A SESSION";
   } else if (st === 1) {
     h = "<p>YOUR TARGET IS SEALED. NOBODY HERE KNOWS IT YET, NOT EVEN THE SCREEN.</p><div class=\"rvNum\">" + rv.num + "</div>" +
-      "<p>This is your tasking number. It means nothing on its own; it is a handle for your attention. Write it at the top of a page if you like.</p>";
+      "<p>This is your tasking number. It means nothing on its own; it is a handle for your attention. In the Army's coordinate method you write the number, then let your pen make one fast mark before you think (the ideogram). Start from that first feel.</p>";
   } else if (st === 2) {
     h = "<p>COOL DOWN. Breathe slowly. Let the day go. Look at the number for a moment, then let your eyes rest.</p>" +
       '<div class="rvNum" id="rvCool">60</div><p class="rvDim">Go on when you are ready. The first impressions that come, fast and before you reason, are the ones that count.</p>';
@@ -9504,7 +9504,7 @@ function rvRender() {
       (rv.img ? '<figure><img class="rvMine" alt="Your sketch" src="' + rv.img + '"><figcaption>YOUR SKETCH</figcaption></figure>' : "") + "</div>" +
       "<p>" + t.lore + "</p>" +
       "<p class=\"rvDim\">YOU SENSED: " + (rv.pick.map((k) => RV_D[k]).join(", ") || "NOTHING PICKED") + (rv.aol ? " · SET APART: " + rv.aol.replace(/[<>&"]/g, "") : "") + "</p>" +
-      '<p class="rvDim">THE JUDGE\'S SCORES (HOW MUCH OF WHAT YOU SENSED FITS EACH PLACE): ' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
+      '<p class="rvDim">THE JUDGE\'S SCORES (FIGURE OF MERIT: HOW MUCH OF EACH PLACE YOU GOT, TIMES HOW MUCH OF WHAT YOU SAID FITS IT):' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p><p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE</p>';
     next = "A NEW SESSION";
   }
