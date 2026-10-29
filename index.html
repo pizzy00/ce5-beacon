@@ -3588,6 +3588,8 @@ function drawPyramids(sx, sy, RZ, sunV) {
   ctx.restore();
   if (!S.sites && (earthZoom > 1.25 || gvK() > 0.5)) {           // the places are off: the model still says where it is
     const g = orthPt(GIZA.lon, GIZA.lat, sx, sy, RZ, earthTiltDraw), r1 = g.x > sx;
+    const nameK = Math.max(1, Math.min(2.1, 1 + (Math.max(earthZoom, gvK() > 0.5 ? 1.75 : 0) - 1.25) * 1.15));   // the same sizing the place names use (drawEarthHub)
+    const nameFont = (base) => (base * nameK).toFixed(2) + "px ui-monospace, Menlo, monospace";
     lblQ({ text: "GIZA", font: nameFont(6.5), color: "#ffd27a", alpha: 0.9 * fade, x: g.x + (r1 ? 9 : -9) * nameK, y: g.y + 2.5 * nameK, align: r1 ? "left" : "right", pri: 1,
       alts: [[g.x + (r1 ? -9 : 9) * nameK, g.y + 2.5 * nameK, r1 ? "right" : "left"], [g.x, g.y + 12 * nameK, "center"]] });
   }
@@ -7970,7 +7972,6 @@ function setupApply(o, quiet) {                                  // the factory 
   if (!quiet) log("SETUP RECEIVED \u00b7 " + n + " SETTINGS RETUNED", "cy");
   return n > 0;
 }
-function shareLink() { const v = ($("shareIn") && $("shareIn").value) || ""; return v || location.href.split("#")[0]; }
 function publicLink() { return location.origin + location.pathname; }   // never the #ll= spot: this one goes to strangers
 function shareLink() { return publicLink() + (selected && selected.id ? "?s=" + selected.id : ""); }   // opens on the same system (09-04)
 function cardLink() { return shareLink().replace(/^https?:\/\//, "").replace(/\/$/, ""); }   // lower case: the path and ?s= are case-sensitive, people retype what they see
@@ -8591,7 +8592,11 @@ function markSat(id, at, msg) {                                  // the sky chec
   m.sat = msg; try { localStorage.setItem(LOG_KEY, JSON.stringify(L)); } catch (e) {}
 }
 function markCheck(id, at, az) { satCheck(at, az).then((m) => { if (m && id) markSat(id, at, m); }); }
-function markSay(at, az) { log("MARKED " + markHm({ t: at }) + (az === null ? "" : " \u00b7 FACING " + compass8(az) + " " + az + "\u00b0") + " \u00b7 IT IS IN YOUR SIGHTING REPORT", "cy"); }
+function markSay(at, az) {                                      // only says the report has it when the report has it
+  const t = readLog().slice(-1)[0], kept = !!(t && (t.marks || []).some((x) => x.t === at));
+  log("MARKED " + markHm({ t: at }) + (az === null ? "" : " \u00b7 FACING " + compass8(az) + " " + az + "\u00b0") +
+    (kept ? " \u00b7 IT IS IN YOUR SIGHTING REPORT" : " \u00b7 WRITE IT DOWN: THIS BROWSER COULD NOT KEEP IT (NO LANDING IN THE LAST SIX HOURS, OR ITS STORAGE IS FULL)"), kept ? "cy" : "alert");
+}
 $("bMark").onclick = () => {
   const at = Date.now(); sfx("key"); buzzRaw(60);
   const az0 = typeof heading === "number" ? Math.round(heading) % 360 : null;
@@ -9473,7 +9478,8 @@ function rvSeal() {                                              // the judge: b
   const L = rvRead(); L.push({ t: rv.t, num: rv.num, tgt: RV_T[rv.tgt].id, dec: rv.dec.map((i) => RV_T[i].id), pick: rv.pick, aol: rv.aol, rank: rv.rank, tie, hit: rv.hit, img: rv.img });
   while (L.length > 200) L.shift();
   for (let i = 0; i < L.length - 12; i++) delete L[i].img;      // the last twelve sketches are kept, the scores all
-  try { localStorage.setItem(RV_KEY, JSON.stringify(L)); } catch (e) {}
+  const keep = () => { try { localStorage.setItem(RV_KEY, JSON.stringify(L)); return true; } catch (e) { return false; } };
+  if (!keep()) { L.forEach((r) => delete r.img); if (!keep()) log("REMOTE VIEWING: THIS BROWSER'S STORAGE IS FULL \u00b7 THIS SESSION COULD NOT BE ADDED TO YOUR RECORD", "alert"); }   // full: drop the sketches, keep the scores
   log("REMOTE VIEWING " + rv.num + " · " + (rv.hit === 1 ? "A HIT" : rv.hit ? "A SHARED FIRST PLACE" : "RANKED " + rv.rank + " OF 4") + " · " + RV_T[rv.tgt].name, "cy");
 }
 function rvRender() {
