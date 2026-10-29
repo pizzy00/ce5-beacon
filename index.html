@@ -475,7 +475,7 @@
 <div id="info" class="hide">
   <div id="infoCard">
     <div class="setHead display">CE-5 PROTOCOL — FIELD CARD <span id="bInfoClose">✕</span></div>
-    <div class="bdBtns col" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span><span class="setBtn" id="bNightInfo">TONIGHT'S SKY &#183; WHEN IT GETS DARK, THE MOON AND THE CLOUDS</span></div>
+    <div class="bdBtns col" style="margin: 10px 0 4px"><span class="setBtn" id="bAppLog">APPLICATION LOG — EVERY CHANGE, DATED, IN THE OPEN</span><span class="setBtn" id="bPriv">PRIVACY — WHAT WE DO AND DO NOT COLLECT</span><span class="setBtn" id="bSee">COULD WE EVEN SEE THEM? — WHAT OUR TELESCOPES CAN AND CANNOT DO</span><span class="setBtn" id="bShape">THE SHAPES PEOPLE REPORT — A FIELD GUIDE, AND WHO DENIES IT</span><span class="setBtn" id="bNightInfo">TONIGHT'S SKY &#183; WHEN IT GETS DARK, THE MOON AND THE CLOUDS</span><span class="setBtn" id="bRvInfo">REMOTE VIEWING &#183; A BLIND PRACTICE ON THE PLACES IN THE LORE, SCORED AGAINST CHANCE</span></div>
     <div class="setRow">
       <div class="setLbl">WHAT IT IS</div>
       <div class="infoP">A <b>Close Encounter of the Fifth Kind</b> is contact that people initiate on purpose
@@ -803,6 +803,41 @@
       <div class="bdBtns hide" id="ckSkyBtns"><span class="setBtn" id="bCkGps">GPS</span></div>
       <div class="setStat ckRes" id="ckSkyRes" data-nol10n></div></div>
     <div class="bdBtns"><span class="setBtn" id="bCheckDone">ALL SET</span></div>
+  </div>
+</div>
+<style>
+#rvPick { position: fixed; inset: 0; z-index: 26; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; }
+#rvPick.hide { display: none; }
+#rvCard { max-width: 560px; width: calc(100% - 24px); max-height: 86vh; overflow-y: auto; box-sizing: border-box;
+  background: linear-gradient(180deg, #141814, #0a0d0a); border: 1px solid rgba(255,196,107,0.35); border-radius: 8px;
+  padding: 14px 44px 16px 14px; color: #f0ecdd; font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; }
+#rvCard .setHead { position: relative; }
+#bRvClose { position: absolute; right: -32px; top: -2px; cursor: pointer; color: var(--amber); font-size: 16px; }
+#rvCard p { line-height: 1.55; margin: 7px 0; }
+#rvCard .rvNum { font-size: 24px; letter-spacing: 0.2em; color: #9be7ff; text-align: center; margin: 12px 0; }
+#rvCard .rvChips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+#rvCard .rvChip { cursor: pointer; user-select: none; }
+#rvCard .rvChip.on { background: rgba(155,231,255,0.22); color: #eafcff; border-color: #cff4ff; box-shadow: 0 0 8px rgba(155,231,255,0.35); }
+#rvSketch { width: 100%; max-width: 360px; aspect-ratio: 1 / 1; background: #f4f1e8; border-radius: 4px; touch-action: none; display: block; margin: 8px auto; cursor: crosshair; }
+#rvCard textarea { width: 100%; box-sizing: border-box; min-height: 54px; background: #0b0f0b; color: #f0ecdd; border: 1px solid rgba(255,196,107,0.35); font: inherit; padding: 6px; }
+#rvCard .rvNav { display: flex; gap: 8px; justify-content: space-between; margin-top: 12px; }
+#rvCard .rvNav .hide { visibility: hidden; display: inline-block; }
+#rvCard .rvPair { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0; }
+#rvCard .rvPair figure { margin: 0; text-align: center; }
+#rvCard .rvMap { position: relative; width: 240px; height: 240px; overflow: hidden; border-radius: 4px; background: #111; }
+#rvCard .rvMap img { position: absolute; width: 256px; height: 256px; max-width: none; }
+#rvCard .rvMap i { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -13px 0 0 -13px; border: 2px solid #ff5a3c; border-radius: 50%; }
+#rvCard img.rvMine { width: 240px; height: 240px; border-radius: 4px; background: #f4f1e8; display: block; }
+#rvCard figcaption { margin-top: 4px; opacity: 0.75; }
+#rvCard .rvScore { font-size: 14px; color: #ffc46b; margin: 10px 0 6px; }
+#rvCard .rvRec { color: #9be7ff; }
+#rvCard .rvDim { opacity: 0.7; }
+</style>
+<div id="rvPick" class="hide" data-nol10n>
+  <div id="rvCard" role="dialog" aria-label="Remote viewing">
+    <div class="setHead display">REMOTE VIEWING <span id="bRvClose" role="button" aria-label="Close">&#10005;</span></div>
+    <div id="rvBody"></div>
+    <div class="rvNav"><span class="setBtn" id="bRvBack" role="button">BACK</span><span class="setBtn" id="bRvNext" role="button">NEXT</span></div>
   </div>
 </div>
 <div id="nightPick" class="hide">
@@ -6136,7 +6171,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick", "repPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick", "repPick", "rvPick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -7120,7 +7155,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#rvPick,#bNight,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -9356,6 +9391,153 @@ $("bNight").onclick = nightOpen;
 $("bNightInfo").onclick = nightOpen;
 $("bNightClose").onclick = nightClose;
 $("nightPick").addEventListener("click", (e) => { if (e.target === $("nightPick")) nightClose(); });
+/* REMOTE VIEWING (v80): a blind practice on the classic coordinate protocol of the Stargate years. A target is sealed at random and
+   you get only a tasking number; you cool down, put down impressions and a sketch, and park any "it looks like..." guess apart
+   (the protocol calls those analytic overlay). Then the judge scores you blind: it ranks your impressions against the real target
+   and three decoys, so chance alone ranks the target first one time in four, and the running record says how you are doing
+   against chance. Only then is the place shown, on satellite imagery, beside your sketch. Everything stays on this device. */
+const RV_D = { water: "WATER", ice: "ICE OR SNOW", mount: "MOUNTAINS, PEAKS", flat: "FLAT AND OPEN", desert: "SAND OR BARE ROCK", green: "GREEN, TREES OR GRASS",
+  made: "MADE BY HANDS (BUILDINGS, LINES)", cold: "COLD", hot: "HOT", dry: "DRY", wet: "WET OR HUMID", remote: "EMPTY, FAR FROM PEOPLE" };
+const RV_T = [
+  { id: "a51", name: "AREA 51 (GROOM LAKE), NEVADA", lat: 37.235, lon: -115.8111, z: 12, d: "flat desert made dry hot remote", lore: "The base at the heart of Bob Lazar's 1989 story of craft kept and studied there. The runways and hangars are real; the craft are the claim." },
+  { id: "pyr", name: "THE 'PYRAMID' PEAK, ELLSWORTH MOUNTAINS, ANTARCTICA", lat: -79.9766, lon: -81.958, z: 11, d: "ice mount cold dry remote", lore: "A four-sided peak that went round the world in 2016 as an alien pyramid under the ice. Geologists read it as a peak shaped by frost." },
+  { id: "nsw", name: "NEW SWABIA (QUEEN MAUD LAND), ANTARCTICA", lat: -72, lon: 5, z: 7, d: "ice flat cold dry remote", lore: "The lore puts a hidden base here and says Operation Highjump (1946 to 1947) went to find it. The records show a large Navy mapping and training expedition." },
+  { id: "skw", name: "SKINWALKER RANCH, UTAH", lat: 40.2585, lon: -109.8908, z: 13, d: "desert mount dry remote made", lore: "Decades of reports of lights, craft and strange animal deaths, studied by Bigelow's NIDS in the 1990s and later by a Pentagon-funded program." },
+  { id: "dul", name: "ARCHULETA MESA, DULCE, NEW MEXICO", lat: 36.97, lon: -106.98, z: 11, d: "mount green dry remote", lore: "Said since 1979 to hide an underground base shared with non-human beings. No physical evidence has ever surfaced." },
+  { id: "pin", name: "PINE GAP, AUSTRALIA", lat: -23.799, lon: 133.737, z: 13, d: "desert made mount dry hot remote", lore: "A joint US and Australian station whose white domes feed the lore. It is a satellite ground station, secret in what it does." },
+  { id: "bai", name: "LAKE BAIKAL, SIBERIA", lat: 53.5, lon: 108, z: 7, d: "water mount cold green remote", lore: "The deepest lake on Earth. A story told since the 1990s has Soviet navy divers meeting tall swimmers in silver suits at 50 meters in 1982." },
+  { id: "sha", name: "MOUNT SHASTA, CALIFORNIA", lat: 41.4092, lon: -122.1949, z: 11, d: "mount ice green cold remote", lore: "A volcano said to hold Telos, a city of Lemurians, and to draw lights and lens-shaped clouds that look like craft." },
+  { id: "hes", name: "HESSDALEN VALLEY, NORWAY", lat: 62.795, lon: 11.19, z: 11, d: "green mount cold wet remote", lore: "Lights seen often since the early 1980s and watched by instruments since 1983. What makes them is still open." },
+  { id: "ren", name: "RENDLESHAM FOREST, ENGLAND", lat: 52.088, lon: 1.433, z: 13, d: "green flat made wet", lore: "December 1980: US airmen at RAF Woodbridge reported a craft among the trees, and their deputy base commander taped a later night's search." },
+  { id: "mar", name: "MARFA, TEXAS", lat: 30.264, lon: -103.888, z: 12, d: "flat green dry hot remote", lore: "Glowing balls over the grassland since at least the 1950s. A 2004 study matched most to car headlights; a few reports remain unexplained." },
+  { id: "lag", name: "LAGUNA CARTAGENA, PUERTO RICO", lat: 18.0103, lon: -67.1017, z: 13, d: "water green wet hot", lore: "Local lore says craft dive into this lagoon and the nearby sea, part of the Caribbean's stories of craft under water." },
+  { id: "giz", name: "THE GIZA PYRAMIDS, EGYPT", lat: 29.9792, lon: 31.1342, z: 15, d: "desert made dry hot", lore: "Built about 4,500 years ago. The ancient astronaut idea says they had help; the quarries, ramps and the workers' town say people did it." },
+  { id: "naz", name: "THE NAZCA LINES, PERU", lat: -14.6922, lon: -75.149, z: 15, d: "desert flat made dry hot", lore: "Giant figures scraped into the desert 1,500 to 2,500 years ago, best seen from the air, which is why some called them runways." },
+  { id: "wpa", name: "WRIGHT-PATTERSON AIR FORCE BASE, OHIO", lat: 39.8261, lon: -84.0483, z: 13, d: "made flat green", lore: "Hangar 18 in the lore, where the Roswell debris and bodies were said to go in 1947. Project Blue Book was run from here." },
+  { id: "ros", name: "THE ROSWELL DEBRIS FIELD, NEW MEXICO", lat: 33.95, lon: -105.31, z: 11, d: "flat desert dry hot remote", lore: "July 1947: the Army announced a flying disc, then a weather balloon; in 1994 it said Project Mogul. The questions never stopped." },
+  { id: "ber", name: "THE BERMUDA TRIANGLE", lat: 25, lon: -71, z: 6, d: "water wet hot remote", lore: "Open ocean between Miami, Bermuda and San Juan, home of the unit in this app's lore." }
+];
+const RV_KEY = "ce5.rv.v1";
+let rv = { step: 0 }, rvCool = 0;
+function rvRead() { try { return JSON.parse(localStorage.getItem(RV_KEY) || "[]") || []; } catch (e) { return []; } }
+function rvRand(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+function rvNew() {                                               // sealed: chosen at random, never shown until the judge has scored you
+  const idx = RV_T.map((_, i) => i), pick = [];
+  while (pick.length < 4) pick.push(idx.splice(rvRand(idx.length), 1)[0]);
+  rv = { step: 1, tgt: pick[0], dec: pick.slice(1), num: (1000 + rvRand(9000)) + "-" + (1000 + rvRand(9000)), pick: [], aol: "", img: "", t: Date.now() };
+}
+function rvScore(pick, t) {                                      // overlap of your impressions with a place's true ones (0 to 1)
+  const d = new Set(t.d.split(" ")); let a = 0; for (const k of pick) if (d.has(k)) a++;
+  const u = new Set(pick.concat([...d])).size; return u ? a / u : 0;
+}
+function rvOdds(n, k) {                                          // the chance of k or more hits in n tries at 1 in 4 by luck alone
+  let p = 0; for (let i = k; i <= n; i++) { let c = 1; for (let j = 0; j < i; j++) c = c * (n - j) / (j + 1); p += c * Math.pow(0.25, i) * Math.pow(0.75, n - i); } return p;
+}
+function rvRecord() {
+  const L = rvRead(), n = L.length; if (!n) return "NO SESSIONS YET.";
+  const h = L.reduce((a, r) => a + (r.hit || 0), 0), hs = Math.round(h * 10) / 10;
+  let line = n + " SESSION" + (n === 1 ? "" : "S") + " · " + hs + " HIT" + (hs === 1 ? "" : "S") + " · CHANCE ALONE WOULD GIVE ABOUT " + (Math.round(n * 2.5) / 10);
+  if (n >= 5 && h > n / 4) { const p = rvOdds(n, Math.round(h)); line += " · ODDS OF DOING THIS WELL BY LUCK: ABOUT 1 IN " + Math.max(1, Math.round(1 / p)); }
+  else if (n < 5) line += " · AFTER 5 SESSIONS IT SAYS HOW LIKELY YOUR SCORE IS BY LUCK";
+  return line;
+}
+function rvMap(t) {                                              // satellite imagery around the place, the spot ringed in the middle
+  const n = Math.pow(2, t.z), x = (t.lon + 180) / 360 * n, lr = t.lat * Math.PI / 180, y = (1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n;
+  const tx = Math.floor(x), ty = Math.floor(y), ox = 120 - (x - tx) * 256, oy = 120 - (y - ty) * 256; let h = "";
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    const X = ((tx + dx) % n + n) % n, Y = ty + dy; if (Y < 0 || Y >= n) continue;
+    h += '<img alt="" src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/' + t.z + "/" + Y + "/" + X + '" style="left:' + Math.round(ox + dx * 256) + "px;top:" + Math.round(oy + dy * 256) + 'px">';
+  }
+  return '<div class="rvMap" data-z="' + t.z + '">' + h + "<i></i></div>";
+}
+function rvInk() {                                               // the sketch pad: a finger or a mouse, dark ink on paper
+  const c = $("rvSketch"); if (!c) return; const g = c.getContext("2d"); c.width = 600; c.height = 600;
+  g.fillStyle = "#f4f1e8"; g.fillRect(0, 0, 600, 600); g.strokeStyle = g.fillStyle = "#1b1b1b"; g.lineWidth = 6; g.lineCap = g.lineJoin = "round";
+  if (rv.img) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, 600, 600); im.src = rv.img; }
+  let last = null;
+  const at = (e) => { const b = c.getBoundingClientRect(); return [(e.clientX - b.left) * 600 / b.width, (e.clientY - b.top) * 600 / b.height]; };
+  c.onpointerdown = (e) => { try { c.setPointerCapture(e.pointerId); } catch (x) {} last = at(e); g.beginPath(); g.arc(last[0], last[1], 3, 0, 7); g.fill(); };
+  c.onpointermove = (e) => { if (!last) return; const p = at(e); g.beginPath(); g.moveTo(last[0], last[1]); g.lineTo(p[0], p[1]); g.stroke(); last = p; };
+  c.onpointerup = c.onpointercancel = () => { if (!last) return; last = null; rv.img = c.toDataURL("image/jpeg", 0.6); };
+}
+function rvSeal() {                                              // the judge: blind, by the numbers, then the record
+  const all = [rv.tgt].concat(rv.dec).map((i) => ({ i, sc: rvScore(rv.pick, RV_T[i]) }));
+  const ts = all[0].sc, above = all.slice(1).filter((x) => x.sc > ts).length, tie = all.slice(1).filter((x) => x.sc === ts).length;
+  rv.rank = 1 + above; rv.tie = tie; rv.hit = above ? 0 : 1 / (1 + tie); rv.all = all; rv.step = 6;
+  const L = rvRead(); L.push({ t: rv.t, num: rv.num, tgt: RV_T[rv.tgt].id, dec: rv.dec.map((i) => RV_T[i].id), pick: rv.pick, aol: rv.aol, rank: rv.rank, tie, hit: rv.hit, img: rv.img });
+  while (L.length > 200) L.shift();
+  for (let i = 0; i < L.length - 12; i++) delete L[i].img;      // the last twelve sketches are kept, the scores all
+  try { localStorage.setItem(RV_KEY, JSON.stringify(L)); } catch (e) {}
+  log("REMOTE VIEWING " + rv.num + " · " + (rv.hit === 1 ? "A HIT" : rv.hit ? "A SHARED FIRST PLACE" : "RANKED " + rv.rank + " OF 4") + " · " + RV_T[rv.tgt].name, "cy");
+}
+function rvRender() {
+  const B = $("rvBody"), st = rv.step; let h = "", next = "NEXT";
+  clearInterval(rvCool); rvCool = 0;
+  if (st === 0) {
+    h = "<p>A practice in the remote viewing protocol the US funded from the 1970s to 1995 (Stargate). A place is sealed at random from seventeen in the UAP lore, from Area 51 to the ice of Antarctica. You get only a number. You describe what comes, and sketch it, before you know where it is.</p>" +
+      "<p>Then a blind judge ranks what you put down against the real place and three decoys, so luck alone ranks the right one first one time in four. The record keeps score against that, honestly. Most careful studies found results close to chance; this is a way to try it for yourself.</p>" +
+      '<p class="rvRec">YOUR RECORD: ' + rvRecord() + "</p>";
+    next = "BEGIN A SESSION";
+  } else if (st === 1) {
+    h = "<p>YOUR TARGET IS SEALED. NOBODY HERE KNOWS IT YET, NOT EVEN THE SCREEN.</p><div class=\"rvNum\">" + rv.num + "</div>" +
+      "<p>This is your tasking number. It means nothing on its own; it is a handle for your attention. Write it at the top of a page if you like.</p>";
+  } else if (st === 2) {
+    h = "<p>COOL DOWN. Breathe slowly. Let the day go. Look at the number for a moment, then let your eyes rest.</p>" +
+      '<div class="rvNum" id="rvCool">60</div><p class="rvDim">Go on when you are ready. The first impressions that come, fast and before you reason, are the ones that count.</p>';
+    let k = 60; rvCool = setInterval(() => { k--; const e = $("rvCool"); if (!e || k < 0) { clearInterval(rvCool); rvCool = 0; return; } e.textContent = k ? String(k) : "READY"; }, 1000);
+  } else if (st === 3) {
+    h = "<p>IMPRESSIONS. Tap what you sense about the place. Skip what you do not. Feelings count as much as pictures.</p>" + '<div class="rvChips" id="rvChips">' +
+      Object.keys(RV_D).map((k) => '<span class="setBtn rvChip' + (rv.pick.indexOf(k) >= 0 ? " on" : "") + '" data-v="' + k + '" role="button" aria-pressed="' + (rv.pick.indexOf(k) >= 0) + '">' + RV_D[k] + "</span>").join("") + "</div>" +
+      '<p class="rvDim">ANY "IT LOOKS LIKE..." GUESS GOES HERE, SET APART. THE JUDGE DOES NOT USE IT; THE PROTOCOL SAYS THESE GUESSES MISLEAD.</p><textarea id="rvAol" maxlength="200" placeholder="IT LOOKS LIKE..."></textarea><p id="rvMsg" class="rvDim"></p>';
+  } else if (st === 4) {
+    h = "<p>SKETCH. Shapes and lines, not a picture: a horizon, a mass, a structure, water. Quick and loose.</p>" + '<canvas id="rvSketch" aria-label="Sketch pad"></canvas>' +
+      '<div class="rvChips"><span class="setBtn" id="bRvClear" role="button">CLEAR THE SKETCH</span></div>';
+  } else if (st === 5) {
+    h = "<p>READY TO SEAL. Once sealed, nothing can be changed. The judge ranks your " + rv.pick.length + " impression" + (rv.pick.length === 1 ? "" : "s") +
+      " against the target and three decoys, then the place is shown.</p>";
+    next = "SEAL IT AND JUDGE";
+  } else {
+    const t = RV_T[rv.tgt];
+    h = '<div class="rvScore">' + (rv.hit === 1 ? "A HIT · THE TARGET RANKED FIRST OF 4" : rv.hit ? "A SHARED FIRST PLACE · TIED WITH " + rv.tie + " DECOY" + (rv.tie === 1 ? "" : "S") : "RANKED " + rv.rank + " OF 4 · NOT A HIT THIS TIME") + "</div>" +
+      "<p>THE TARGET WAS: <b>" + t.name + "</b></p>" +
+      '<div class="rvPair"><figure>' + rvMap(t) + "<figcaption>THE PLACE</figcaption></figure>" +
+      (rv.img ? '<figure><img class="rvMine" alt="Your sketch" src="' + rv.img + '"><figcaption>YOUR SKETCH</figcaption></figure>' : "") + "</div>" +
+      "<p>" + t.lore + "</p>" +
+      "<p class=\"rvDim\">YOU SENSED: " + (rv.pick.map((k) => RV_D[k]).join(", ") || "NOTHING PICKED") + (rv.aol ? " · SET APART: " + rv.aol.replace(/[<>&"]/g, "") : "") + "</p>" +
+      '<p class="rvDim">THE JUDGE\'S SCORES (HOW MUCH OF WHAT YOU SENSED FITS EACH PLACE): ' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
+      '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p><p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE</p>';
+    next = "A NEW SESSION";
+  }
+  B.innerHTML = h;
+  $("bRvNext").textContent = next;
+  $("bRvBack").classList.toggle("hide", st < 2 || st === 6);
+  if (st === 3) {
+    $("rvAol").value = rv.aol;
+    $("rvAol").oninput = (e) => { rv.aol = e.target.value.slice(0, 200); };
+    $("rvChips").onclick = (e) => {
+      const c = e.target.closest(".rvChip"); if (!c) return; const k = c.dataset.v, i = rv.pick.indexOf(k);
+      if (i >= 0) rv.pick.splice(i, 1); else rv.pick.push(k);
+      c.classList.toggle("on", i < 0); c.setAttribute("aria-pressed", String(i < 0)); sfx("key"); $("rvMsg").textContent = "";
+    };
+  }
+  if (st === 4) { rvInk(); $("bRvClear").onclick = () => { rv.img = ""; rvInk(); }; }
+  $("rvCard").scrollTop = 0;
+}
+function rvOpen() { sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide"); $("rvPick").classList.remove("hide"); rvRender(); }
+function rvClose() { if ($("rvPick").classList.contains("hide")) return; sfx("cover"); $("rvPick").classList.add("hide"); clearInterval(rvCool); rvCool = 0; }
+$("bRvInfo").onclick = rvOpen;
+$("bRvClose").onclick = rvClose;
+$("rvPick").addEventListener("click", (e) => { if (e.target === $("rvPick")) rvClose(); });
+$("bRvBack").onclick = () => { if (rv.step >= 2 && rv.step <= 5) { rv.step--; sfx("key"); rvRender(); } };
+$("bRvNext").onclick = () => {
+  sfx("key");
+  if (rv.step === 0) rvNew();
+  else if (rv.step === 3 && !rv.pick.length) { $("rvMsg").textContent = "PICK AT LEAST ONE IMPRESSION. ANY THAT COMES IS FINE."; return; }
+  else if (rv.step === 5) rvSeal();
+  else if (rv.step === 6) rvNew();
+  else rv.step++;
+  rvRender();
+};
 $("bNtGps").onclick = () => { ntGpsWhy = "GPS: ACQUIRING..."; ntRender(); gpsFromCard((why) => { ntGpsWhy = why; if (!$("nightPick").classList.contains("hide")) ntFetch(); }); };
 window.addEventListener("resize", () => { if (!$("nightPick").classList.contains("hide")) ntRender(); });
 $("rVoice").oninput = (e) => { S.voiceRate = +e.target.value; S.voiceRateSet = true; $("vVoice").textContent = S.voiceRate; if (voiceEl) voiceEl.playbackRate = S.voiceRate; };   // the clip in flight follows the slider
