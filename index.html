@@ -8664,18 +8664,71 @@ function satScan(sl, txt, when, lat, lon) {                      // every object
   }
   return { sunEl, list: out };
 }
+/* v86: the planets, the Moon and the brightest stars, worked out on the phone (no connection needed). Venus, Jupiter and Sirius are
+   the lights most often taken for something else. Planets: Paul Schlyter's elements with the big Jupiter-Saturn terms (a few arc
+   minutes); stars: J2000 places carried to the date. */
+const SKY_PL = [["MERCURY", 48.3313, 3.24587e-5, 7.0047, 5.0e-8, 29.1241, 1.01444e-5, 0.387098, 0.205635, 5.59e-10, 168.6562, 4.0923344368],
+  ["VENUS", 76.6799, 2.4659e-5, 3.3946, 2.75e-8, 54.891, 1.38374e-5, 0.72333, 0.006773, -1.302e-9, 48.0052, 1.6021302244],
+  ["MARS", 49.5574, 2.11081e-5, 1.8497, -1.78e-8, 286.5016, 2.92961e-5, 1.523688, 0.093405, 2.516e-9, 18.6021, 0.5240207766],
+  ["JUPITER", 100.4542, 2.76854e-5, 1.303, -1.557e-7, 273.8777, 1.64505e-5, 5.20256, 0.048498, 4.469e-9, 19.895, 0.0830853001],
+  ["SATURN", 113.6634, 2.3898e-5, 2.4886, -1.081e-7, 339.3939, 2.97661e-5, 9.55475, 0.055546, -9.499e-9, 316.967, 0.0334442282]];
+const SKY_ST = [["SIRIUS", 6.7525, -16.716], ["CANOPUS", 6.3992, -52.696], ["ALPHA CENTAURI", 14.66, -60.834], ["ARCTURUS", 14.261, 19.182], ["VEGA", 18.6156, 38.784],
+  ["CAPELLA", 5.2782, 45.998], ["RIGEL", 5.2423, -8.202], ["PROCYON", 7.655, 5.225], ["ACHERNAR", 1.6286, -57.237], ["BETELGEUSE", 5.9195, 7.407],
+  ["ALTAIR", 19.8464, 8.868], ["ALDEBARAN", 4.5987, 16.509], ["ANTARES", 16.4901, -26.432], ["SPICA", 13.4199, -11.161], ["POLLUX", 7.7553, 28.026],
+  ["FOMALHAUT", 22.9608, -29.622], ["DENEB", 20.6905, 45.28], ["REGULUS", 10.1395, 11.967]];
+function skyPlanets(ms) {                                        // right ascension (hours) and declination (degrees) of the five naked-eye planets
+  const d = ms / 86400000 + 2440587.5 - 2451543.5, r = Math.PI / 180, s = (a) => Math.sin(a * r), c = (a) => Math.cos(a * r);
+  const kep = (M, e) => { let E = M + e / r * s(M) * (1 + e * c(M)); for (let k = 0; k < 6; k++) E -= (E - e / r * s(E) - M) / (1 - e * c(E)); return E; };
+  const ws = 282.9404 + 4.70935e-5 * d, es = 0.016709 - 1.151e-9 * d, Es = kep(356.047 + 0.9856002585 * d, es);
+  const xv = c(Es) - es, yv = Math.sqrt(1 - es * es) * s(Es), ls = Math.atan2(yv, xv) / r + ws, rs = Math.hypot(xv, yv);
+  const xs = rs * c(ls), ys = rs * s(ls), ecl = 23.4393 - 3.563e-7 * d;
+  const Mj = 19.895 + 0.0830853001 * d, Mt = 316.967 + 0.0334442282 * d, out = [];
+  for (const p of SKY_PL) {
+    const N = p[1] + p[2] * d, i = p[3] + p[4] * d, w = p[5] + p[6] * d, a = p[7], e = p[8] + p[9] * d, E = kep(p[10] + p[11] * d, e);
+    const x = a * (c(E) - e), y = a * Math.sqrt(1 - e * e) * s(E), rr = Math.hypot(x, y), u = Math.atan2(y, x) / r + w;
+    const X = rr * (c(N) * c(u) - s(N) * s(u) * c(i)), Y = rr * (s(N) * c(u) + c(N) * s(u) * c(i)), Z = rr * s(u) * s(i);
+    let lon = Math.atan2(Y, X) / r, lat = Math.atan2(Z, Math.hypot(X, Y)) / r;
+    if (p[0] === "JUPITER") lon += -0.332 * s(2 * Mj - 5 * Mt - 67.6) - 0.056 * s(2 * Mj - 2 * Mt + 21) + 0.042 * s(3 * Mj - 5 * Mt + 21) - 0.036 * s(Mj - 2 * Mt) + 0.022 * c(Mj - Mt) + 0.023 * s(2 * Mj - 3 * Mt + 52) - 0.016 * s(Mj - 5 * Mt - 69);
+    if (p[0] === "SATURN") { lon += 0.812 * s(2 * Mj - 5 * Mt - 67.6) - 0.229 * c(2 * Mj - 4 * Mt - 2) + 0.119 * s(Mj - 2 * Mt - 3) + 0.046 * s(2 * Mj - 6 * Mt - 69) + 0.014 * s(Mj - 3 * Mt + 32); lat += -0.02 * c(2 * Mj - 4 * Mt - 2) + 0.018 * s(2 * Mj - 6 * Mt - 49); }
+    const xg = rr * c(lon) * c(lat) + xs, yg = rr * s(lon) * c(lat) + ys, zg = rr * s(lat);
+    const ye = yg * c(ecl) - zg * s(ecl), ze = yg * s(ecl) + zg * c(ecl);
+    out.push({ name: p[0], ra: ((Math.atan2(ye, xg) / r + 360) % 360) / 15, dec: Math.atan2(ze, Math.hypot(xg, ye)) / r });
+  }
+  return out;
+}
+function skyBright(at, az, lat, lon) {                           // what bright, steady thing stood there: the Moon, planets, then stars, each 5 degrees up or more
+  const sp = ntSun(at), sunEl = skyAltAz(sp.ra, sp.dec, lat, lon, at).alt;
+  const near = (o) => o.el >= 5 && (az === null || Math.abs(((o.az - az + 540) % 360) - 180) <= 35), out = [];
+  const put = (name, ra, dec, kind) => { const q = skyAltAz(ra, dec, lat, lon, at), o = { name, az: Math.round(q.az) % 360, el: Math.round(q.alt), kind }; if (near(o)) out.push(o); };
+  const mo = ntMoon(at); put("THE MOON", mo.ra, mo.dec, "moon");
+  if (sunEl < 0) for (const p of skyPlanets(at)) put(p.name, p.ra, p.dec, "planet");
+  if (sunEl < -6) {
+    const yr = (at - 946728000000) / 31557600000, r = Math.PI / 180;
+    for (const t of SKY_ST) put(t[0], t[1] + (0.012812 + 0.005567 * Math.sin(t[1] * 15 * r) * Math.tan(t[2] * r)) * yr / 15, t[2] + 0.005567 * Math.cos(t[1] * 15 * r) * yr, "star");
+  }
+  return { sunEl, list: az === null ? out.filter((o) => o.kind !== "star").concat(out.filter((o) => o.kind === "star").sort((a, b) => b.el - a.el).slice(0, 3)) : out };
+}
+function skyBrightSay(list) { return list.slice(0, 4).map((o) => o.name + " " + compass8(o.az) + " " + o.el + "\u00b0 UP").join(" \u00b7 "); }
 async function satCheck(at, az) {                                // the answer as one line, or null with no orbits to hand
   let sl, A, B;
+  const bs = skyBright(at, az, TARGET.lat, TARGET.lon).list;
   try { sl = await satLib(); [A, B] = await Promise.all([satTle("visual"), satTle("starlink").catch(() => null)]); }
-  catch (e) { log("SKY CHECK: NO CONNECTION FOR THE SATELLITE ORBITS \u00b7 IT TRIES AGAIN WHEN YOU OPEN THE REPORT", "alert"); return null; }
+  catch (e) {
+    log("SKY CHECK: NO CONNECTION FOR THE SATELLITE ORBITS \u00b7 IT TRIES AGAIN WHEN YOU OPEN THE REPORT", "alert");
+    if (bs.length) log("SKY CHECK, WORKED OUT ON THE PHONE: " + skyBrightSay(bs) + " \u00b7 A PLANET OR A STAR HOLDS STILL", "cy");
+    return null;
+  }
   const v = satScan(sl, A.txt, at, TARGET.lat, TARGET.lon), k = B ? satScan(sl, B.txt, at, TARGET.lat, TARGET.lon).list : [];
   const near = (o) => o.lit && (az === null || Math.abs(((o.az - az + 540) % 360) - 180) <= 35);   // within 35 degrees of where you faced
   const br = v.list.filter(near).sort((a, b) => b.el - a.el), sk = k.filter(near), way = az === null ? "" : " TOWARD " + compass8(az);
   let msg;
   if (v.sunEl > 0) msg = "SKY CHECK: THE SUN WAS UP \u00b7 SATELLITES DO NOT SHOW IN DAYLIGHT";
-  else if (!br.length && !sk.length) msg = "SKY CHECK: NO SUNLIT SATELLITE" + way + " AT THAT SECOND \u00b7 RULE OUT PLANES (THEY BLINK) AND PLANETS (THEY DO NOT MOVE), THEN IT IS WORTH WRITING UP";
+  else if (!br.length && !sk.length) msg = "SKY CHECK: NO SUNLIT SATELLITE" + way + " AT THAT SECOND \u00b7 " +
+    (bs.length ? "BUT " + skyBrightSay(bs) + " \u00b7 A PLANET OR A STAR HOLDS STILL: IF YOURS MOVED, RULE OUT PLANES (THEY BLINK), THEN IT IS WORTH WRITING UP"
+               : "NO BRIGHT PLANET OR STAR THERE EITHER \u00b7 RULE OUT PLANES (THEY BLINK), THEN IT IS WORTH WRITING UP");
   else msg = "SKY CHECK" + way + ": " + br.slice(0, 3).map((o) => o.name + " " + compass8(o.az) + " " + o.el + "\u00b0 UP").join(" \u00b7 ") +
     (sk.length ? (br.length ? " \u00b7 " : "") + sk.length + " STARLINK" : "") + " \u00b7 LIT BY THE SUN, A SATELLITE LOOKS LIKE A STEADY STAR GLIDING ACROSS";
+  if (v.sunEl <= 0 && (br.length || sk.length) && bs.length) msg += " \u00b7 ALSO THERE, HOLDING STILL: " + skyBrightSay(bs);
   if (!targetIsMine) msg += " \u00b7 FOR THE DEFAULT SPOT, TAP GPS FOR YOURS";
   log(msg, "cy"); return msg;
 }
