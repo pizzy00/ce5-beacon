@@ -41,7 +41,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=50" />
+<link rel="stylesheet" href="styles.css?v=51" />
 </head>
 <body class="intro introHud">
 
@@ -596,6 +596,7 @@
 <div id="ideaHint" class="hide display">SEND ME YOUR IDEAS ▸</div>
 <div id="nightHint" class="hide display">TONIGHT'S SKY &#183; DARK, MOON, CLOUDS ▸</div>
 <div id="rvHint" class="hide display" data-nol10n>REMOTE VIEWING &#183; A BLIND PRACTICE ▸</div>
+<div id="instBar" class="hide display" data-nol10n><span id="instTxt"></span><button id="bInstYes">INSTALL</button><button id="bInstNo">NOT NOW</button></div>
 <div id="langPick" class="hide">
   <div id="langCard">
     <div class="setHead display">LANGUAGE · IDIOMA · 语言 <span id="bLangClose">✕</span></div>
@@ -9659,6 +9660,29 @@ async function rvShare() {
   } catch (e) { say("THE PICTURE DID NOT DRAW \u00b7 TAKE A SCREENSHOT INSTEAD"); }
   rvSharing = false;
 }
+/* v88: the home-screen nudge. Installed, the console opens with no signal at all, which is what a dark field needs. */
+const INST_KEY = "ce5.install.v1";
+let instEvt = null, instShown = false;
+const instIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); instEvt = e; });   // hold the browser's own prompt until asked for
+window.addEventListener("appinstalled", () => { instEvt = null; instDone("in"); log("INSTALLED \u00b7 IT NOW OPENS FROM YOUR HOME SCREEN, WITH OR WITHOUT A SIGNAL", "cy"); });
+function instDone(v) { try { localStorage.setItem(INST_KEY, v); } catch (e) {} $("instBar").classList.add("hide"); instShown = false; }
+function instSeen() { try { return !!localStorage.getItem(INST_KEY); } catch (e) { return true; } }
+function instTry() {                                             // on the chart, after a first landing, once
+  if (instShown || standalone || instSeen() || !(instEvt || instIos)) return;
+  if (phase !== "chart" || intro !== null || document.body.classList.contains("run") || !readLog().length) return;
+  if (document.querySelector("#rvPick:not(.hide), #repPick:not(.hide), #nightPick:not(.hide), #settings:not(.hide), #info:not(.hide)")) return;
+  instShown = true;
+  $("instTxt").textContent = instEvt ? "KEEP THE BEACON ON YOUR HOME SCREEN \u00b7 IT THEN OPENS WITH NO SIGNAL" : "KEEP THE BEACON ON YOUR HOME SCREEN: TAP THE SHARE KEY, THEN ADD TO HOME SCREEN \u00b7 IT THEN OPENS WITH NO SIGNAL";
+  $("bInstYes").textContent = instEvt ? "INSTALL" : "GOT IT"; $("bInstNo").classList.toggle("hide", !instEvt);
+  $("instBar").classList.remove("hide");
+}
+$("bInstYes").onclick = () => {
+  sfx("key"); const e = instEvt; instDone("seen"); if (!e) return;
+  instEvt = null; try { e.prompt(); } catch (x) {}
+};
+$("bInstNo").onclick = () => { sfx("key"); instDone("no"); };
+setInterval(instTry, 4000);
 function rvOpen() { sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide"); $("rvPick").classList.remove("hide"); rvRender(); }
 function rvClose() { if ($("rvPick").classList.contains("hide")) return; sfx("cover"); $("rvPick").classList.add("hide"); clearInterval(rvCool); rvCool = 0; }
 $("bRvInfo").onclick = rvOpen;

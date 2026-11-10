@@ -824,6 +824,16 @@ body.intro #bRv { opacity: 0 !important; pointer-events: none !important; }
   background: rgba(0,0,0,0.78); border: 1px solid rgba(255,196,107,0.55); border-radius: 4px; padding: 5px 9px;
   box-shadow: 0 0 12px rgba(0,0,0,0.7); }
 #rvHint.hide { display: none; }
+/* ---- the home-screen nudge (v88): one quiet bar at the top of the chart, clear of the key column ---- */
+#instBar { position: fixed; left: 10px; right: 52px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 9; max-width: 560px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--amber); font-size: 10px; letter-spacing: 0.14em; line-height: 1.5;
+  background: rgba(0,0,0,0.86); border: 1px solid rgba(255,196,107,0.55); border-radius: 4px; padding: 8px 10px; box-shadow: 0 0 12px rgba(0,0,0,0.7); }
+#instBar.hide, #instBar button.hide { display: none; }
+#instBar span { flex: 1 1 180px; }
+#instBar button { font: inherit; letter-spacing: 0.14em; color: var(--amber); background: rgba(255,196,107,0.12); border: 1px solid rgba(255,196,107,0.7);
+  border-radius: 3px; padding: 7px 10px; min-height: 32px; }
+#instBar button:active { background: rgba(255,196,107,0.3); }
+body.run #instBar, body.active #instBar, body.intro #instBar { display: none; }
 @media (max-height: 449px) {                                    /* a phone on its side: under tonight's sky in the left-hand column */
   #bRv { top: calc(234px + env(safe-area-inset-top, 0px)); right: 48px; }
   #rvHint { top: calc(237px + env(safe-area-inset-top, 0px)); right: 86px; }
