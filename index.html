@@ -9571,7 +9571,9 @@ function rvRender() {
       "<p>" + t.lore + "</p>" +
       "<p class=\"rvDim\">YOU SENSED: " + (rv.pick.map((k) => RV_D[k]).join(", ") || "NOTHING PICKED") + (rv.aol ? " · SET APART: " + rv.aol.replace(/[<>&"]/g, "") : "") + "</p>" +
       '<p class="rvDim">THE JUDGE\'S SCORES (FIGURE OF MERIT: HOW MUCH OF EACH PLACE YOU GOT, TIMES HOW MUCH OF WHAT YOU SAID FITS IT): ' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
-      '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p><p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE</p>';
+      '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p>' +
+      '<div class="rvChips"><span class="setBtn" id="bRvShare" role="button">SHARE THIS RESULT AS A PICTURE</span></div><p id="rvShareMsg" class="rvDim"></p>' +
+      '<p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE UNLESS YOU SHARE ONE</p>';
     next = "A NEW SESSION";
   }
   B.innerHTML = h;
@@ -9587,7 +9589,75 @@ function rvRender() {
     };
   }
   if (st === 4) { rvInk(); $("bRvClear").onclick = () => { rv.img = ""; rvInk(); }; }
+  if (st === 6) $("bRvShare").onclick = () => { sfx("key"); rvShare(); };
   $("rvCard").scrollTop = 0;
+}
+/* v87: the result as one picture (1080 x 1350, the tall post size): the sketch beside the place, the result and the record. The
+   imagery tiles are asked for again with CORS so the canvas can be read back; a tile that will not load leaves a dark square. */
+function rvLoadImg(src, cors) {
+  return new Promise((ok) => { const im = new Image(); if (cors) im.crossOrigin = "anonymous"; im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+}
+async function rvCardDraw() {
+  const t = RV_T[rv.tgt], c = document.createElement("canvas"), g = c.getContext("2d"); c.width = 1080; c.height = 1350;
+  const F = (px, b) => (b ? "bold " : "") + px + "px ui-monospace, Menlo, Consolas, monospace";
+  g.fillStyle = "#07090b"; g.fillRect(0, 0, 1080, 1350);
+  g.strokeStyle = "rgba(255,196,107,0.55)"; g.lineWidth = 3; g.strokeRect(24, 24, 1032, 1302);
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.fillStyle = "#ffc46b"; g.font = F(46, true); g.fillText("REMOTE VIEWING", 540, 110);
+  g.fillStyle = "#8fd9a8"; g.font = F(26); g.fillText("A BLIND SESSION \u00b7 TASKING " + rv.num, 540, 156);
+  g.fillStyle = "#ffffff"; g.font = F(34, true);
+  g.fillText(rv.hit === 1 ? "A HIT \u00b7 THE TARGET RANKED FIRST OF 4" : rv.hit ? "A SHARED FIRST PLACE OF 4" : "RANKED " + rv.rank + " OF 4 \u00b7 NOT A HIT THIS TIME", 540, 226);
+  const S = 480, y0 = 280, xa = 48, xb = 552;                    // two squares: my sketch, then the place
+  g.fillStyle = "#f4f1e8"; g.fillRect(xa, y0, S, S);
+  if (rv.img) { const im = await rvLoadImg(rv.img, false); if (im) g.drawImage(im, xa, y0, S, S); }
+  else { g.fillStyle = "#555"; g.font = F(26); g.fillText("NO SKETCH THIS TIME", xa + S / 2, y0 + S / 2); }
+  g.fillStyle = "#11161a"; g.fillRect(xb, y0, S, S);
+  const n = Math.pow(2, t.z), x = (t.lon + 180) / 360 * n, lr = t.lat * Math.PI / 180, y = (1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n;
+  const tx = Math.floor(x), ty = Math.floor(y), k = S / 240, ox = 120 - (x - tx) * 256, oy = 120 - (y - ty) * 256, jobs = [];
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    const X = ((tx + dx) % n + n) % n, Y = ty + dy; if (Y < 0 || Y >= n) continue;
+    jobs.push(rvLoadImg("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/" + t.z + "/" + Y + "/" + X + "?c=1", true).then((im) => ({ im, dx, dy })));
+  }
+  const tiles = await Promise.all(jobs); let got = 0;
+  g.save(); g.beginPath(); g.rect(xb, y0, S, S); g.clip();
+  for (const q of tiles) if (q.im) { got++; g.drawImage(q.im, xb + (ox + q.dx * 256) * k, y0 + (oy + q.dy * 256) * k, 256 * k, 256 * k); }
+  g.restore();
+  if (!got) { g.fillStyle = "#8a8f94"; g.font = F(24); g.fillText("THE MAP DID NOT LOAD", xb + S / 2, y0 + S / 2); }
+  else { g.strokeStyle = "#ffc46b"; g.lineWidth = 4; g.beginPath(); g.arc(xb + S / 2, y0 + S / 2, 34, 0, 7); g.stroke(); }
+  g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 2; g.strokeRect(xa, y0, S, S); g.strokeRect(xb, y0, S, S);
+  g.fillStyle = "#8fd9a8"; g.font = F(24); g.fillText("MY SKETCH, MADE BLIND", xa + S / 2, y0 + S + 40); g.fillText("THE PLACE", xb + S / 2, y0 + S + 40);
+  const wrap = (txt, yy, px, col, bold, max) => {                // centred lines no wider than the card
+    g.font = F(px, bold); g.fillStyle = col; const W = txt.split(" "); let line = "", rows = 0;
+    for (const w of W) { const tr = line ? line + " " + w : w; if (g.measureText(tr).width > 960 && line) { g.fillText(line, 540, yy); yy += px * 1.3; line = w; if (++rows >= max) return yy; } else line = tr; }
+    if (line) { g.fillText(line, 540, yy); yy += px * 1.3; } return yy;
+  };
+  let yy = wrap("THE TARGET WAS: " + t.name, y0 + S + 110, 32, "#ffffff", true, 3);
+  yy = wrap("I SENSED: " + (rv.pick.map((p) => RV_D[p]).join(", ") || "NOTHING PICKED"), yy + 16, 24, "#c9d1d9", false, 3);
+  yy = wrap("THE JUDGE RANKS IT BLIND AGAINST THREE DECOYS. LUCK ALONE WINS 1 TIME IN 4.", yy + 16, 22, "#8a8f94", false, 2);
+  wrap("MY RECORD: " + rvRecord(), yy + 16, 24, "#ffc46b", false, 3);
+  g.fillStyle = "#8fd9a8"; g.font = F(28, true); g.fillText("CE-5 BEACON \u00b7 pizzy00.github.io/ce5-beacon", 540, 1262);
+  g.fillStyle = "#6b7178"; g.font = F(18); g.fillText("IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS", 540, 1298);
+  return c;
+}
+let rvSharing = false;
+async function rvShare() {
+  if (rvSharing || rv.step !== 6) return; rvSharing = true;
+  const say = (m) => { const e = $("rvShareMsg"); if (e) e.textContent = m; };
+  say("DRAWING THE PICTURE...");
+  try {
+    const cv = await rvCardDraw(), blob = await new Promise((ok) => cv.toBlob(ok, "image/png"));
+    if (!blob) throw new Error("blob");
+    const file = new File([blob], "ce5-remote-viewing-" + rv.num + ".png", { type: "image/png" });
+    const text = "My blind remote viewing session on CE-5 Beacon \u00b7 " + (rv.hit === 1 ? "a hit" : rv.hit ? "a shared first place" : "ranked " + rv.rank + " of 4") + " \u00b7 https://pizzy00.github.io/ce5-beacon/";
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      say(""); await navigator.share({ files: [file], title: "CE-5 Beacon remote viewing", text }).then(() => say("SHARED")).catch(() => say(""));
+    } else {
+      const url = URL.createObjectURL(blob), a = document.createElement("a");   // no share sheet: save it
+      a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000); say("PICTURE SAVED \u00b7 POST IT WHEREVER YOU LIKE");
+    }
+  } catch (e) { say("THE PICTURE DID NOT DRAW \u00b7 TAKE A SCREENSHOT INSTEAD"); }
+  rvSharing = false;
 }
 function rvOpen() { sfx("cover"); $("settings").classList.add("hide"); $("info").classList.add("hide"); $("rvPick").classList.remove("hide"); rvRender(); }
 function rvClose() { if ($("rvPick").classList.contains("hide")) return; sfx("cover"); $("rvPick").classList.add("hide"); clearInterval(rvCool); rvCool = 0; }
