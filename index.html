@@ -7419,7 +7419,8 @@ $("setCard").addEventListener("change", (e) => { if (e.target.matches("input, se
 $("setCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bClose")) sfx("cover"); });
 $("sysCard").addEventListener("change", (e) => { if (e.target.matches("input")) sfx("key"); });
 $("sysCard").addEventListener("click", (e) => { if (e.target.closest(".setBtn, #bSysClose")) sfx("cover"); });
-const BOARD_HOME = location.hostname === "pizzy00.github.io";   // only the real site talks to the board
+const BOARD_HOME = location.hostname === "pizzy00.github.io"    // only the real site talks to the board,
+  && !navigator.webdriver && !/bot|crawl|spider|headless|lighthouse|preview/i.test(navigator.userAgent);   // v90: and never a test browser or a robot
 const VISIT_KEY = "ce5.visit.day";
 function countVisit() {                                          // one VISIT per device per day, riding the same queue
   if (!BOARD_HOME) return;
@@ -9512,10 +9513,31 @@ const RV_KEY = "ce5.rv.v1";
 let rv = { step: 0 }, rvCool = 0;
 function rvRead() { try { return JSON.parse(localStorage.getItem(RV_KEY) || "[]") || []; } catch (e) { return []; } }
 function rvRand(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
-function rvNew() {                                               // sealed: chosen at random, never shown until the judge has scored you
-  const idx = RV_T.map((_, i) => i), pick = [];
-  while (pick.length < 4) pick.push(idx.splice(rvRand(idx.length), 1)[0]);
-  rv = { step: 1, tgt: pick[0], dec: pick.slice(1), num: (1000 + rvRand(9000)) + "-" + (1000 + rvRand(9000)), pick: [], aol: "", img: "", t: Date.now() };
+/* v90: a group session. The link carries a seed and how many targets the pool had then (so a later, larger pool cannot
+   change it), never the target. Every phone with the link runs the same seeded draw: same target, decoys and tasking number. */
+function rvSeedRand(seed) {
+  let a = seed >>> 0;
+  return (n) => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) % n; };
+}
+function rvGroupFrom(str) {
+  const m = /^([0-9a-f]{8})-(\d{1,3})$/.exec(str || ""); if (!m) return null;
+  const k = Math.min(+m[2], RV_T.length); return k >= 4 ? { seed: parseInt(m[1], 16), n: k, hex: m[1] + "-" + k } : null;
+}
+let rvGroup = rvGroupFrom((location.search.match(/[?&]rvg=([0-9a-f]{8}-\d{1,3})/) || [])[1]);
+function rvGroupLink(g) { return location.origin + location.pathname + "?rvg=" + g.hex; }
+function rvNew(g) {                                              // sealed: chosen at random, never shown until the judge has scored you
+  const R = g ? rvSeedRand(g.seed) : rvRand, idx = RV_T.slice(0, g ? g.n : RV_T.length).map((_, i) => i), pick = [];
+  while (pick.length < 4) pick.push(idx.splice(R(idx.length), 1)[0]);
+  rv = { step: 1, tgt: pick[0], dec: pick.slice(1), num: (1000 + R(9000)) + "-" + (1000 + R(9000)), pick: [], aol: "", img: "", t: Date.now(), grp: g ? g.hex : "" };
+}
+function rvInvite() {                                            // make a group link, hand it over, and join it yourself
+  const a = new Uint32Array(1); crypto.getRandomValues(a);
+  rvGroup = rvGroupFrom(a[0].toString(16).padStart(8, "0") + "-" + RV_T.length);
+  const link = rvGroupLink(rvGroup), text = "Join my blind remote viewing session on CE-5 Beacon. Same sealed target for everyone with this link:";
+  rvRender();
+  const say = (m) => { const e = $("rvGrpMsg"); if (e) e.textContent = m; };
+  if (navigator.share) { navigator.share({ title: "CE-5 Beacon group remote viewing", text, url: link }).catch(() => {}); say("LINK READY \u00b7 " + link); return; }
+  try { navigator.clipboard.writeText(link).then(() => say("LINK COPIED \u00b7 " + link), () => say("SEND THIS LINK \u00b7 " + link)); } catch (e) { say("SEND THIS LINK \u00b7 " + link); }
 }
 function rvScore(pick, t) {                                      // the SAIC figure of merit (May, Utts et al. 1990): accuracy x reliability, 0 to 1
   const d = new Set(t.d.split(" ")); let a = 0; for (const k of pick) if (d.has(k)) a++;
@@ -9555,7 +9577,7 @@ function rvSeal() {                                              // the judge: b
   const all = [rv.tgt].concat(rv.dec).map((i) => ({ i, sc: rvScore(rv.pick, RV_T[i]) }));
   const ts = all[0].sc, above = all.slice(1).filter((x) => x.sc > ts).length, tie = all.slice(1).filter((x) => x.sc === ts).length;
   rv.rank = 1 + above; rv.tie = tie; rv.hit = above ? 0 : 1 / (1 + tie); rv.all = all; rv.step = 6;
-  const L = rvRead(); L.push({ t: rv.t, num: rv.num, tgt: RV_T[rv.tgt].id, dec: rv.dec.map((i) => RV_T[i].id), pick: rv.pick, aol: rv.aol, rank: rv.rank, tie, hit: rv.hit, img: rv.img });
+  const L = rvRead(); L.push({ t: rv.t, num: rv.num, tgt: RV_T[rv.tgt].id, dec: rv.dec.map((i) => RV_T[i].id), pick: rv.pick, aol: rv.aol, rank: rv.rank, tie, hit: rv.hit, img: rv.img, g: rv.grp || undefined });
   while (L.length > 200) L.shift();
   for (let i = 0; i < L.length - 12; i++) delete L[i].img;      // the last twelve sketches are kept, the scores all
   const keep = () => { try { localStorage.setItem(RV_KEY, JSON.stringify(L)); return true; } catch (e) { return false; } };
@@ -9570,8 +9592,16 @@ function rvRender() {
       "<p>Then a blind judge ranks what you put down against the real place and three decoys, scoring the way the program's own analysts did (the figure of merit, May and Utts, 1990: how much of the place you got, times how much of what you said was right). Luck alone ranks the right one first one time in four. The record keeps score against that, honestly. Most careful studies found results close to chance; this is a way to try it for yourself.</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + "</p>";
     next = "BEGIN A SESSION";
+    if (rvGroup) {
+      h = '<div class="rvScore">A GROUP SESSION</div><p>You have a group link. Everyone who opens it gets the same sealed target and the same tasking number. ' +
+        "Nobody, you included, sees the place until they seal their own session. Then reveal together: show your phones, or share your result pictures.</p>" +
+        "<p class=\"rvDim\">IT COUNTS IN YOUR RECORD LIKE ANY SESSION. THE LINK HOLDS ONLY A RANDOM NUMBER, NEVER THE PLACE.</p>" +
+        '<div class="rvChips"><span class="setBtn" id="bRvSolo" role="button">NO THANKS, A SESSION OF MY OWN</span></div><p id="rvGrpMsg" class="rvDim"></p>' + h;
+      next = "BEGIN THE GROUP SESSION";
+    } else h += '<div class="rvChips"><span class="setBtn" id="bRvGroup" role="button">INVITE OTHERS: ONE TARGET FOR THE WHOLE GROUP</span></div><p id="rvGrpMsg" class="rvDim"></p>';
   } else if (st === 1) {
-    h = "<p>YOUR TARGET IS SEALED. NOBODY HERE KNOWS IT YET, NOT EVEN THE SCREEN.</p><div class=\"rvNum\">" + rv.num + "</div>" +
+    h = (rv.grp ? '<p class="rvDim">GROUP SESSION \u00b7 EVERYONE WITH THE LINK HAS THIS SAME NUMBER</p>' : "") +
+      "<p>YOUR TARGET IS SEALED. NOBODY HERE KNOWS IT YET, NOT EVEN THE SCREEN.</p><div class=\"rvNum\">" + rv.num + "</div>" +
       "<p>This is your tasking number. It means nothing on its own; it is a handle for your attention. In the Army's coordinate method you write the number, then let your pen make one fast mark before you think (the ideogram). Start from that first feel.</p>";
   } else if (st === 2) {
     h = "<p>COOL DOWN. Breathe slowly. Let the day go. Look at the number for a moment, then let your eyes rest.</p>" +
@@ -9598,6 +9628,7 @@ function rvRender() {
       "<p class=\"rvDim\">YOU SENSED: " + (rv.pick.map((k) => RV_D[k]).join(", ") || "NOTHING PICKED") + (rv.aol ? " · SET APART: " + rv.aol.replace(/[<>&"]/g, "") : "") + "</p>" +
       '<p class="rvDim">THE JUDGE\'S SCORES (FIGURE OF MERIT: HOW MUCH OF EACH PLACE YOU GOT, TIMES HOW MUCH OF WHAT YOU SAID FITS IT): ' + rv.all.map((x) => RV_T[x.i].name + " " + Math.round(x.sc * 100) + "%").join(" · ") + "</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + '</p>' +
+      (rv.grp ? '<p class="rvDim">GROUP SESSION ' + rv.num + ' \u00b7 EVERYONE IN THE GROUP HAD THIS SAME TARGET: COMPARE NOW</p>' : "") +
       '<div class="rvChips"><span class="setBtn" id="bRvShare" role="button">SHARE THIS RESULT AS A PICTURE</span></div><p id="rvShareMsg" class="rvDim"></p>' +
       '<p class="rvDim">IMAGERY: ESRI, MAXAR, EARTHSTAR GEOGRAPHICS · YOUR SESSIONS STAY ON THIS DEVICE UNLESS YOU SHARE ONE</p>';
     next = "A NEW SESSION";
@@ -9616,6 +9647,8 @@ function rvRender() {
   }
   if (st === 4) { rvInk(); $("bRvClear").onclick = () => { rv.img = ""; rvInk(); }; }
   if (st === 6) $("bRvShare").onclick = () => { sfx("key"); rvShare(); };
+  if (st === 0 && $("bRvGroup")) $("bRvGroup").onclick = () => { sfx("key"); rvInvite(); };
+  if (st === 0 && $("bRvSolo")) $("bRvSolo").onclick = () => { sfx("key"); rvGroup = null; rvRender(); };
   $("rvCard").scrollTop = 0;
 }
 /* v87: the result as one picture (1080 x 1350, the tall post size): the sketch beside the place, the result and the record. The
@@ -9714,11 +9747,15 @@ $("bRvInfo").onclick = rvOpen;
 $("bRv").onclick = () => { try { localStorage.setItem("ce5.rvkey.v1", "1"); } catch (e) {} $("bRv").classList.remove("new"); rvOpen(); };
 try { if (!localStorage.getItem("ce5.rvkey.v1")) $("bRv").classList.add("new"); } catch (e) {}   // it glows until the first tap
 $("bRvClose").onclick = rvClose;
+if (rvGroup) setTimeout(() => { if (rv.step === 0 || rv.step === 6) { rv = { step: 0 }; rvOpen(); } }, 1800);   // a group link opens straight onto the invitation
 $("rvPick").addEventListener("click", (e) => { if (e.target === $("rvPick")) rvClose(); });
 $("bRvBack").onclick = () => { if (rv.step >= 2 && rv.step <= 5) { rv.step--; sfx("key"); rvRender(); } };
 $("bRvNext").onclick = () => {
   sfx("key");
-  if (rv.step === 0) rvNew();
+  if (rv.step === 0) {
+    const g = rvGroup; rvNew(g); rvGroup = null;                 // a group link is used once; the next session is your own
+    if (g) { try { history.replaceState(null, "", location.pathname + location.search.replace(/([?&])rvg=[^&#]*&?/, "$1").replace(/[?&]$/, "") + location.hash); } catch (e) {} }
+  }
   else if (rv.step === 3 && !rv.pick.length) { $("rvMsg").textContent = "PICK AT LEAST ONE IMPRESSION. ANY THAT COMES IS FINE."; return; }
   else if (rv.step === 5) rvSeal();
   else if (rv.step === 6) rvNew();

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>CE-5 Beacon Logbook</title>
+<style>
+  :root { --bg: #070b12; --panel: #0d1420; --line: #1c2a3d; --ink: #cfd6ff; --dim: #7c88a8; --green: #8fd9a8; --cyan: #7fd3e6; --amber: #f2c46d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; }
+  main { max-width: 860px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: .14em; color: var(--green); }
+  h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .16em; color: var(--dim); font-weight: 600; }
+  .sub { color: var(--dim); font-size: 12px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; }
+  .tile b { display: block; font-size: 26px; color: var(--green); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .tile span { font-size: 11px; letter-spacing: .12em; color: var(--dim); }
+  section { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
+  .bars { display: flex; align-items: flex-end; gap: 3px; height: 150px; border-bottom: 1px solid var(--line); }
+  .bars i { flex: 1; background: var(--cyan); min-height: 1px; position: relative; opacity: .85; }
+  .bars i.t { background: var(--amber); }
+  .bars i.z { background: var(--line); }
+  .bars i:hover { opacity: 1; outline: 1px solid var(--ink); }
+  .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td { padding: 4px 0; border-bottom: 1px solid var(--line); }
+  td.n { text-align: right; color: var(--green); white-space: nowrap; padding-left: 10px; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .note { font-size: 12px; color: var(--dim); }
+  #tip { min-height: 1.5em; font-size: 12px; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>CE-5 BEACON LOGBOOK</h1>
+    <div class="sub" id="upd">READING THE BOARD...</div>
+  </header>
+  <div class="row" id="tiles"></div>
+  <section>
+    <h2>VISITS A DAY, LAST 30 DAYS (ONE PER DEVICE PER DAY)</h2>
+    <div class="bars" id="bars"></div>
+    <div class="axis"><span id="a0"></span><span id="a1"></span></div>
+    <div id="tip">TAP A BAR FOR ITS DAY</div>
+    <div class="note">Amber bars are days with a trip filed. From 11/11/2026 the app skips test browsers and robots, so the numbers after that date are real people. Before it, days when tests ran (like 10/29 and 11/10) are inflated.</div>
+  </section>
+  <div class="two">
+    <section><h2>LATEST TRIPS</h2><table id="trips"></table></section>
+    <section><h2>FAVOURITE DESTINATIONS</h2><table id="dests"></table></section>
+  </div>
+  <div class="two">
+    <section><h2>CONSOLE LANGUAGES (ALL TIME)</h2><table id="langs"></table></section>
+    <section><h2>IDEAS SENT IN</h2><table id="ideas"></table></section>
+  </div>
+</main>
+<script>
+const LANG = { en: "English", es: "Spanish", fr: "French", pt: "Portuguese", de: "German", zh: "Chinese", ru: "Russian", ja: "Japanese", hi: "Hindi", ar: "Arabic" };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const day = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const rows = (list) => list.length ? list.map((r) => "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>").join("") : '<tr><td class="note">NONE YET</td></tr>';
+fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()).then((b) => {
+  const V = (b.visits && b.visits.days) || {}, T = b.trips || [], now = new Date();
+  const sumDays = (n) => { let s = 0; for (let k = 0; k < n; k++) { const d = new Date(now); d.setDate(d.getDate() - k); s += V[day(d)] || 0; } return s; };
+  const tripDays = {}; T.forEach((x) => { if (x.t) { const k = day(new Date(x.t)); tripDays[k] = (tripDays[k] || 0) + 1; } });
+  const wk = T.filter((x) => x.t && Date.now() - x.t < 7 * 864e5).length;
+  $("tiles").innerHTML = [[V[day(now)] || 0, "VISITS TODAY"], [sumDays(7), "LAST 7 DAYS"], [sumDays(30), "LAST 30 DAYS"], [(b.visits && b.visits.total) || 0, "ALL TIME"], [T.length, "TRIPS ALL TIME"], [wk, "TRIPS THIS WEEK"]]
+    .map((x) => '<div class="tile"><b>' + x[0] + "</b><span>" + x[1] + "</span></div>").join("");
+  const D = []; for (let k = 29; k >= 0; k--) { const d = new Date(now); d.setDate(d.getDate() - k); D.push(day(d)); }
+  const top = Math.max(1, ...D.map((k) => V[k] || 0));
+  $("bars").innerHTML = D.map((k) => '<i data-k="' + k + '" class="' + (!V[k] ? "z" : tripDays[k] ? "t" : "") + '" style="height:' + Math.max(1, (V[k] || 0) / top * 100) + '%"></i>').join("");
+  $("a0").textContent = D[0]; $("a1").textContent = "TODAY";
+  $("bars").onclick = (e) => { const k = e.target.dataset && e.target.dataset.k; if (k) $("tip").textContent = k + " · " + (V[k] || 0) + " visits · " + (tripDays[k] || 0) + " trips"; };
+  $("trips").innerHTML = rows(T.slice(-12).reverse().map((x) => [esc(x.n) + " → " + esc(x.d), x.t ? ago(x.t) : ""]));
+  const dc = {}; T.forEach((x) => { dc[x.d] = (dc[x.d] || 0) + 1; });
+  $("dests").innerHTML = rows(Object.entries(dc).sort((a, c) => c[1] - a[1]).slice(0, 10).map((x) => [esc(x[0]), x[1]]));
+  const L = (b.visits && b.visits.langs) || {};
+  $("langs").innerHTML = rows(Object.entries(L).sort((a, c) => c[1] - a[1]).map((x) => [LANG[x[0]] || esc(x[0]), x[1]]));
+  const I = b.ideas || [];
+  $("ideas").innerHTML = rows(I.slice(-8).reverse().map((x) => [esc(x.n || "") + ": " + esc(x.txt || ""), x.t ? ago(x.t) : ""]));
+  $("upd").textContent = "BOARD UPDATED " + (b.updated ? new Date(b.updated).toLocaleString() : "?") + " · THE BOARD REFRESHES A FEW MINUTES AFTER EACH VISIT";
+}).catch(() => { $("upd").textContent = "COULD NOT READ THE BOARD. CHECK THE CONNECTION AND RELOAD."; });
+</script>
+</body>
+</html>
