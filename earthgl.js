@@ -13,7 +13,7 @@ window.EARTHGL = (() => {
     "precision highp float;",
     "uniform sampler2D uDay, uNight, uCloud;",
     "uniform float uC, uInv, uSp, uCp, uRotU, uCldU, uCloudAmt, uNightAmt, uRimK, uSpecK, uHasNight, uHasCloud;",
-    "uniform vec3 uSun, uHalf;",
+    "uniform vec3 uSun, uHalf;", "uniform float uAur, uT;",
     "const float PI = 3.14159265358979; const float TAU = 6.28318530717959;",
     "float sm(float a, float b, float x) { float t = clamp((x - a) / (b - a), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }",
     "void main() {",
@@ -45,6 +45,17 @@ window.EARTHGL = (() => {
     "    float caf = (ct.a > 0.999 ? ct.r : ct.a) * uCloudAmt;",
     "    if (caf > 0.004) { float cs = sh * 255.0, im = 1.0 - caf; col = vec3(col.r * im + cs * caf, col.g * im + cs * caf, col.b * im + cs * 1.04 * caf); }",
     "  }",
+    "  if (uAur > 0.0 && lam < 0.03) {",
+    "    float la = asin(s), lo = uv.x * TAU - PI;",
+    "    vec3 g = vec3(cos(la) * cos(lo), cos(la) * sin(lo), sin(la));",
+    "    float ml = asin(clamp(dot(g, vec3(0.0481, -0.1543, 0.9869)), -1.0, 1.0));",
+    "    float ad = abs(ml) - 1.165;",
+    "    float band = exp(-ad * ad / 0.0028) + 0.35 * exp(-(ad - 0.06) * (ad - 0.06) / 0.006);",
+    "    float mo = atan(g.y, g.x) + la * 3.0;",
+    "    float w = 0.12 + 0.88 * pow(0.5 + 0.5 * sin(mo * 9.0 + uT * 0.31), 2.0) * (0.5 + 0.5 * sin(mo * 4.0 - uT * 0.17 + 1.7));",
+    "    float a = band * w * uAur * (1.0 - sm(-0.14, 0.03, lam));",
+    "    col += vec3(70.0, 255.0, 150.0) * a * 0.5 + vec3(120.0, 30.0, 90.0) * a * 0.12 * step(0.0, ad);",
+    "  }",
     "  float e = 1.0 - nz, e2 = e * e, e4 = e2 * e2, rim = e4 * e4;",
     "  if (rim > 0.002) { float ra = rim * uRimK * (0.10 + 1.05 * atm); col += vec3(70.0, 190.0, 255.0) * ra; }",
     "  float haze = e2 * 0.11 * sh; col += vec3(34.0, 92.0, 150.0) * haze;",
@@ -73,7 +84,7 @@ window.EARTHGL = (() => {
       quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const p = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(p); gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
-      for (const k of ["uDay", "uNight", "uCloud", "uC", "uInv", "uSp", "uCp", "uRotU", "uCldU", "uCloudAmt", "uNightAmt", "uRimK", "uSpecK", "uHasNight", "uHasCloud", "uSun", "uHalf"]) U[k] = gl.getUniformLocation(prog, k);
+      for (const k of ["uDay", "uNight", "uCloud", "uC", "uInv", "uSp", "uCp", "uRotU", "uCldU", "uCloudAmt", "uNightAmt", "uRimK", "uSpecK", "uHasNight", "uHasCloud", "uSun", "uHalf", "uAur", "uT"]) U[k] = gl.getUniformLocation(prog, k);
       gl.uniform1i(U.uDay, 0); gl.uniform1i(U.uNight, 1); gl.uniform1i(U.uCloud, 2);
       gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
       G.ready = true; return true;
@@ -125,6 +136,7 @@ window.EARTHGL = (() => {
       gl.uniform1f(U.uRimK, (opt.rimAmt === undefined ? 1 : opt.rimAmt) * (1 + 0.95 * (sz < 0 ? -sz : 0)));
       gl.uniform1f(U.uSpecK, opt.spec === false ? 0 : 0.34 * 255);
       gl.uniform1f(U.uHasNight, nt ? 1 : 0); gl.uniform1f(U.uHasCloud, ct ? 1 : 0);
+      gl.uniform1f(U.uAur, opt.aurora === undefined ? 0 : opt.aurora); gl.uniform1f(U.uT, opt.time || 0);
       gl.uniform3f(U.uSun, sx, sy, sz); gl.uniform3f(U.uHalf, hx, hy, hz);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

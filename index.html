@@ -784,7 +784,7 @@
     <div class="bdBtns"><label class="setBtn" id="bRepPh" for="repFile">ADD A PHOTO</label><span class="setBtn dim hide" id="bRepPhOff">TAKE IT OFF</span></div>
     <input type="file" id="repFile" accept="image/*" hidden />
     <img id="repThumb" class="hide" alt="Your sighting photo" /></div>
-    <div class="bdBtns repBtns"><span class="setBtn" id="bRepSave">SAVE REPORT</span><span class="setBtn hide" id="bRepNuforc">EXPORT FOR NUFORC</span><span class="setBtn dim hide" id="bRepDel">DELETE THIS REPORT</span></div>
+    <div class="bdBtns repBtns"><span class="setBtn" id="bRepSave">SAVE REPORT</span><span class="setBtn hide" id="bRepNuforc">EXPORT FOR NUFORC</span><span class="setBtn hide" id="bRepSky">SKY CHECK AS A PICTURE</span><span class="setBtn dim hide" id="bRepDel">DELETE THIS REPORT</span></div>
     <div class="setStat" id="repStat" data-nol10n aria-live="polite"></div>
     <div class="setStat">NUFORC.ORG IS THE NATIONAL UFO REPORTING CENTER · EXPORT LAYS YOUR ANSWERS OUT IN THE ORDER OF ITS REPORT FORM, FOR YOU TO PASTE THERE YOURSELF · NOTHING IS SENT FROM HERE</div>
     <div class="setStat">SIGHTING REPORTS AND THEIR PHOTOS NEVER LEAVE THIS DEVICE UNLESS YOU SHARE THEM</div>
@@ -859,7 +859,8 @@
     </div>
     <div class="ntFoot">
       <div class="setStat" id="ntSpot" data-nol10n></div>
-      <div class="bdBtns" id="ntGpsRow"><span class="setBtn" id="bNtGps">GPS</span></div>
+      <div class="bdBtns" id="ntGpsRow"><span class="setBtn" id="bNtGps">GPS</span><span class="setBtn" id="bNtRemind">REMIND ME ON GOOD NIGHTS</span></div>
+      <div class="setStat" id="ntRemSay" data-nol10n></div>
       <div class="setStat ntSrc"><span id="ntSrc" data-nol10n></span><br /><span class="ntBy">WEATHER DATA BY <a href="https://open-meteo.com/" target="_blank" rel="noopener">OPEN-METEO.COM</a></span></div>
     </div>
   </div>
@@ -887,6 +888,8 @@
     <div class="setStat">A ROOM SENDS ONLY TIMING, THE CHOSEN SYSTEM AND THE HOST'S SETUP CODE BETWEEN THE PHONES, THROUGH THE FREE PEERJS RELAY · NEVER A LOCATION, NEVER A NAME · NOTHING IS STORED ANYWHERE</div>
     <div class="setLbl">TONIGHT'S SKY</div>
     <div class="setStat">ONLY WHEN YOU OPEN TONIGHT'S SKY, IT ASKS OPEN-METEO, A FREE WEATHER SERVICE WITH NO ACCOUNT, FOR THE CLOUD FORECAST AT YOUR SPOT ROUNDED TO ABOUT 10 KM &#183; LIKE ANY WEB SERVER IT SEES YOUR INTERNET ADDRESS &#183; THE SUN AND MOON TIMES ARE WORKED OUT ON THIS PHONE AND GO NOWHERE</div>
+    <div class="setLbl">GOOD-NIGHT REMINDER</div>
+    <div class="setStat">OFF UNLESS YOU TURN IT ON IN TONIGHT'S SKY &#183; THEN, A FEW TIMES A DAY, THE INSTALLED APP ASKS OPEN-METEO FOR TONIGHT'S CLOUD AT YOUR SPOT ROUNDED TO ABOUT 10 KM, AND SHOWS ONE NOTIFICATION ON A CLEAR, DARK NIGHT &#183; THE ROUNDED SPOT IS KEPT ONLY IN THIS APP ON THIS PHONE &#183; TAP THE KEY AGAIN TO STOP IT</div>
     <div class="setLbl">SIGHTING REPORTS</div>
     <div class="setStat">A SIGHTING REPORT AND ITS PHOTO STAY IN THIS BROWSER ON THIS DEVICE AND ARE NEVER SENT ANYWHERE &#183; THE PHOTO IS SAVED SMALLER, WHICH ALSO STRIPS ITS HIDDEN LOCATION TAG &#183; ONLY YOU CAN PASS ONE ON, BY EXPORTING IT YOURSELF &#183; CLEARING YOUR LOG ERASES THEM TOO</div>
     <div class="setLbl">THE PLUMBING</div>
@@ -3695,7 +3698,7 @@ function drawEarthHub(t) {
     let drew = false;
     if (S.gl && window.EARTHGL) {                                 // the setting: the same globe on the graphics chip, every frame
       if (!EARTHGL.fail) {
-        const gc = EARTHGL.draw({ tex: earthTex, night: earthNight, clouds: earthClouds, R: RZ, dpr: DPR, rot: earthRot, tilt: earthTiltDraw, sun: sunV, cloudRot: earthRot + cloudDrift, cloudAmt: S.cloudA });
+        const gc = EARTHGL.draw({ aurora: S.aurora === false ? 0 : 1, time: performance.now() / 1000, tex: earthTex, night: earthNight, clouds: earthClouds, R: RZ, dpr: DPR, rot: earthRot, tilt: earthTiltDraw, sun: sunV, cloudRot: earthRot + cloudDrift, cloudAmt: S.cloudA });
         if (gc) { ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2); drew = true; }
       }
       if (!drew && EARTHGL.fail && !glSaid) { glSaid = true; earthRef.dirty = true; log("WEBGL EARTH OFF · THE DRAWN GLOBE STAYS", "alert"); }
@@ -3877,6 +3880,7 @@ function landAt(i, sx, sy) {                                    // each route la
    Real people off the public board, flying the route they actually took. Each slot
    carries one traveller from the system they invited back toward Earth, then swaps
    itself for the next name on the board. Limited on purpose. */
+const fleetSysMemo = new Map();
 function drawFleetShips(t, posOf, px, py, sx, sy) {
   const N = Math.max(0, Math.min(6, S.fleetN | 0));
   if (!N || !fleetTrips || !fleetTrips.length) return;
@@ -3886,7 +3890,8 @@ function drawFleetShips(t, posOf, px, py, sx, sy) {
     const lap = Math.floor((t / LAP) + k / N);
     const trip = fleetTrips[(lap * N + k) % fleetTrips.length];   // a different traveller each lap
     if (!trip || !trip.n) continue;
-    const sys = SYSTEMS.find((q) => bare(q.name) === bare(trip.d));
+    let sys = fleetSysMemo.get(trip.d);                          // v92: looked up once per name, not every frame
+    if (sys === undefined) { const b = bare(trip.d); sys = SYSTEMS.find((q) => bare(q.name) === b) || null; fleetSysMemo.set(trip.d, sys); }
     let ax, ay, col;
     if (sys) {
       const a = posOf(sys);
@@ -4623,7 +4628,7 @@ let bridgeLoadP = null, bridgeOn = false;
 var glLoadP = null, glSaid = false;
 function glLoad() {                                              // earthgl.js, fetched once, only when the setting is on
   if (glLoadP) return glLoadP;
-  glLoadP = new Promise((res, rej) => { const el = document.createElement("script"); el.src = "earthgl.js?v=1"; el.onload = res; el.onerror = rej; document.head.appendChild(el); })
+  glLoadP = new Promise((res, rej) => { const el = document.createElement("script"); el.src = "earthgl.js?v=2"; el.onload = res; el.onerror = rej; document.head.appendChild(el); })
     .then(() => { earthRef.dirty = true; })
     .catch(() => { glLoadP = null; log("WEBGL EARTH COULD NOT LOAD · THE DRAWN GLOBE STAYS", "alert"); });
   return glLoadP;
@@ -7565,6 +7570,8 @@ function repRender() {
   $("bRepPh").textContent = tx(ph ? "ANOTHER PHOTO" : "ADD A PHOTO");
   $("bRepDel").classList.toggle("hide", !rp.had);
   $("bRepNuforc").classList.toggle("hide", !rp.saw || none);
+  const tr = readLog().find((x) => x.id === rp.id);
+  $("bRepSky").classList.toggle("hide", !(tr && (tr.marks || []).length));
 }
 function repOpen(id, auto) {
   const r = readLog().find((x) => x.id === id); if (!r) return;
@@ -7712,6 +7719,76 @@ $("repFile").onchange = (e) => {
 $("bRepPhOff").onclick = () => { if (!rp || !rp.ph) return; URL.revokeObjectURL(rp.ph.url); rp.ph = null; rp.phDirty = true; rp.dirty = true; repStat(tx("PHOTO TAKEN OFF · TAP SAVE")); repRender(); };
 $("bRepSave").onclick = () => { if (repSave()) sfx("key"); };
 $("bRepNuforc").onclick = () => repExport();
+$("bRepSky").onclick = () => { sfx("key"); skyProofShare(); };
+/* v91: the proof picture. A dome seen from below: the zenith in the middle, the horizon at the rim, north up, east left, the way
+   you faced shaded 35 degrees each side (the same window the satellite check uses). */
+function skyProofAll(at) {
+  const lat = TARGET.lat, lon = TARGET.lon, out = [], put = (name, ra, dec, kind) => { const q = skyAltAz(ra, dec, lat, lon, at); if (q.alt >= 0) out.push({ name, az: q.az, el: q.alt, kind }); };
+  const mo = ntMoon(at); put("MOON", mo.ra, mo.dec, "moon");
+  for (const p of skyPlanets(at)) put(p.name, p.ra, p.dec, "planet");
+  for (const t of SKY_ST) put(t[0], t[1], t[2], "star");
+  const sp = ntSun(at); return { list: out, sunEl: skyAltAz(sp.ra, sp.dec, lat, lon, at).alt };
+}
+function skyProofDraw(tr) {
+  const mk = (tr.marks || [])[0], at = mk.t, az = typeof mk.az === "number" ? mk.az : null;
+  const c = document.createElement("canvas"), g = c.getContext("2d"); c.width = 1080; c.height = 1350;
+  const F = (px, b) => (b ? "bold " : "") + px + "px ui-monospace, Menlo, Consolas, monospace";
+  g.fillStyle = "#05070c"; g.fillRect(0, 0, 1080, 1350);
+  g.strokeStyle = "rgba(143,217,168,0.5)"; g.lineWidth = 3; g.strokeRect(24, 24, 1032, 1302);
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.fillStyle = "#8fd9a8"; g.font = F(46, true); g.fillText("SKY CHECK", 540, 104);
+  const d = new Date(at); g.fillStyle = "#ffffff"; g.font = F(30);
+  g.fillText(d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) + " \u00b7 " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" }), 540, 152);
+  g.fillStyle = "#9aa4b8"; g.font = F(22); g.fillText(az === null ? "NO COMPASS HEADING AT THE MARK" : "FACING " + compass8(az) + " \u00b7 " + Math.round(az) + "\u00b0", 540, 190);
+  const cx = 540, cy = 620, R = 360, P = (a, e) => { const r = R * (90 - e) / 90, q = a * Math.PI / 180; return [cx - r * Math.sin(q), cy - r * Math.cos(q)]; };
+  const sky = skyProofAll(at);
+  const grd = g.createRadialGradient(cx, cy, 0, cx, cy, R); grd.addColorStop(0, sky.sunEl > 0 ? "#2b4c78" : "#0b1730"); grd.addColorStop(1, sky.sunEl > 0 ? "#6a8fbf" : "#13254a");
+  g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill();
+  if (az !== null) {                                             // the window you faced
+    g.fillStyle = "rgba(255,196,107,0.18)"; g.beginPath(); g.moveTo(cx, cy);
+    for (let a = az - 35; a <= az + 35.01; a += 2) { const p = P(a, 0); g.lineTo(p[0], p[1]); }
+    g.closePath(); g.fill(); g.strokeStyle = "rgba(255,196,107,0.7)"; g.lineWidth = 2; g.stroke();
+  }
+  g.strokeStyle = "rgba(207,214,255,0.22)"; g.lineWidth = 1.5;
+  for (const e of [30, 60]) { g.beginPath(); g.arc(cx, cy, R * (90 - e) / 90, 0, 7); g.stroke(); }
+  g.strokeStyle = "rgba(207,214,255,0.6)"; g.lineWidth = 2.5; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+  g.fillStyle = "#cfd6ff"; g.font = F(30, true); g.textBaseline = "middle";
+  [["N", 0], ["E", 90], ["S", 180], ["W", 270]].forEach(([k, a]) => { const r = R + 30, q = a * Math.PI / 180; g.fillText(k, cx - r * Math.sin(q), cy - r * Math.cos(q)); });
+  for (const o of sky.list) {
+    const p = P(o.az, o.el), big = o.kind === "moon" ? 16 : o.kind === "planet" ? 9 : 5;
+    g.fillStyle = o.kind === "moon" ? "#f4f1e8" : o.kind === "planet" ? "#ffd27a" : "#ffffff";
+    g.beginPath(); g.arc(p[0], p[1], big, 0, 7); g.fill();
+    if (o.kind !== "star" || o.el > 15) { g.font = F(o.kind === "star" ? 17 : 21, o.kind !== "star"); g.fillStyle = o.kind === "star" ? "#aab4d4" : "#ffe3a6"; g.fillText(o.name, p[0], p[1] - big - 14); }
+  }
+  g.textBaseline = "alphabetic";
+  g.fillStyle = "#6f7a94"; g.font = F(18); g.fillText("MIDDLE = STRAIGHT UP \u00b7 EDGE = THE HORIZON \u00b7 RINGS AT 30\u00b0 AND 60\u00b0 UP", 540, cy + R + 66);
+  const wrap = (txt, yy, px, col, max) => {
+    g.font = F(px); g.fillStyle = col; const W = txt.split(" "); let line = "", rows = 0;
+    for (const w of W) { const t2 = line ? line + " " + w : w; if (g.measureText(t2).width > 960 && line) { g.fillText(line, 540, yy); yy += px * 1.35; line = w; if (++rows >= max) return yy; } else line = t2; }
+    if (line) { g.fillText(line, 540, yy); yy += px * 1.35; } return yy;
+  };
+  const line = (mk.sat || "SKY CHECK NOT RUN YET \u00b7 OPEN THIS REPORT WITH A CONNECTION").replace(/^SKY CHECK:?\s*/, "");
+  wrap(line, cy + R + 118, 24, "#e8ecf4", 6);
+  g.fillStyle = "#8fd9a8"; g.font = F(26, true); g.fillText("CE-5 BEACON \u00b7 pizzy00.github.io/ce5-beacon", 540, 1268);
+  g.fillStyle = "#6b7178"; g.font = F(17); g.fillText("WORKED OUT ON THE PHONE FOR THE MARKED SECOND \u00b7 THE SPOT ITSELF IS NOT SHOWN", 540, 1302);
+  return c;
+}
+let skyProofBusy = false;
+async function skyProofShare() {
+  if (skyProofBusy || !rp) return; const tr = readLog().find((x) => x.id === rp.id); if (!tr || !(tr.marks || []).length) return;
+  skyProofBusy = true;
+  try {
+    const cv = skyProofDraw(tr), blob = await new Promise((ok) => cv.toBlob(ok, "image/png")); if (!blob) throw new Error("blob");
+    const file = new File([blob], "ce5-sky-check-" + tr.marks[0].t + ".png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "CE-5 Beacon sky check", text: "What was in the sky the second I marked it \u00b7 https://pizzy00.github.io/ce5-beacon/" }).catch(() => {});
+    } else {
+      const url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000); repStat(tx("PICTURE SAVED"));
+    }
+  } catch (e) { repStat(tx("THE PICTURE DID NOT DRAW")); }
+  skyProofBusy = false;
+}
 $("bRepDel").onclick = () => {                                   // two taps, four seconds apart at most
   if (!rp) return;
   if (!repDelArm) { repDelArm = setTimeout(() => { repDelArm = 0; $("bRepDel").textContent = tx("DELETE THIS REPORT"); }, 4000); $("bRepDel").textContent = tx("SURE? TAP AGAIN TO DELETE IT"); return; }
@@ -9330,6 +9407,38 @@ function ntCloudAt(cl, t) {                                      // the forecast
   return { cc: cl.cc[i], pp: cl.pp[i] || 0, t: cl.t0 + i * 3600000 };
 }
 function ntSaved() { try { const c = JSON.parse(localStorage.getItem(NT_KEY) || "null"); return c && Array.isArray(c.cc) && Array.isArray(c.pp) ? c : null; } catch (e) { return null; } }
+/* v92: the good-night reminder (see sw.js). Only Chrome on Android, installed, can check in the background without a server. */
+const REM_KEY = "ce5.remind.v1";
+function remOn() { try { return !!localStorage.getItem(REM_KEY); } catch (e) { return false; } }
+function remShow(msg) {
+  const b = $("bNtRemind"); if (b) b.textContent = remOn() ? "GOOD-NIGHT REMINDER: ON \u00b7 TAP TO STOP" : "REMIND ME ON GOOD NIGHTS";
+  if (msg !== undefined && $("ntRemSay")) $("ntRemSay").textContent = msg;
+}
+async function remToggle() {
+  const sw = navigator.serviceWorker ? await navigator.serviceWorker.ready.catch(() => null) : null;
+  if (remOn()) {
+    try { localStorage.removeItem(REM_KEY); } catch (e) {}
+    try { if (sw && sw.periodicSync) await sw.periodicSync.unregister("ce5-goodnight"); } catch (e) {}
+    if (sw && sw.active) sw.active.postMessage({ remind: null });
+    return remShow("REMINDER STOPPED");
+  }
+  if (!sw || !sw.periodicSync || !("Notification" in window)) return remShow(instIos
+    ? "AN IPHONE DOES NOT LET A WEB APP CHECK THE SKY IN THE BACKGROUND \u00b7 OPEN TONIGHT'S SKY BEFORE DARK INSTEAD"
+    : "THIS NEEDS CHROME ON ANDROID WITH THE BEACON INSTALLED ON THE HOME SCREEN \u00b7 INSTALL IT, THEN TAP THIS AGAIN");
+  let p = Notification.permission; if (p === "default") p = await Notification.requestPermission().catch(() => "denied");
+  if (p !== "granted") return remShow("NOTIFICATIONS ARE BLOCKED FOR THIS APP \u00b7 ALLOW THEM IN THE PHONE'S SETTINGS TO USE THIS");
+  try {
+    const st = await navigator.permissions.query({ name: "periodic-background-sync" }).catch(() => ({ state: "granted" }));
+    if (st.state !== "granted") return remShow("THE BROWSER HAS NOT ALLOWED BACKGROUND CHECKS YET \u00b7 INSTALL THE BEACON ON THE HOME SCREEN, THEN TRY AGAIN");
+    await sw.periodicSync.register("ce5-goodnight", { minInterval: 6 * 3600000 });
+  } catch (e) { return remShow("THE BROWSER WOULD NOT TAKE THE BACKGROUND CHECK \u00b7 IS THE BEACON INSTALLED ON THE HOME SCREEN?"); }
+  const [la, lo] = ntSpotR();
+  try { localStorage.setItem(REM_KEY, "1"); } catch (e) {}
+  if (sw.active) sw.active.postMessage({ remind: { la, lo } });
+  remShow("ON \u00b7 ONE NOTIFICATION ON A CLEAR NIGHT WITH A DIM MOON, AT MOST ONE A DAY \u00b7 THE PHONE DECIDES WHEN TO CHECK, USUALLY A FEW TIMES A DAY");
+}
+$("bNtRemind").onclick = () => { sfx("key"); remToggle(); };
+remShow();
 function ntFetch() {                                             // the one thing that leaves: the spot to a tenth of a degree, asked of Open-Meteo, only with the card open
   const [la, lo] = ntSpotR(), saved = ntSaved(), same = saved && saved.la === la && saved.lo === lo;
   if (same && Date.now() - saved.at < 3600000) { ntCl = saved; ntState = "ok"; return ntRender(); }
@@ -9507,7 +9616,41 @@ const RV_T = [
   { id: "naz", name: "THE NAZCA LINES, PERU", lat: -14.6922, lon: -75.149, z: 15, d: "desert flat made dry hot", lore: "Giant figures scraped into the desert 1,500 to 2,500 years ago, best seen from the air, which is why some called them runways." },
   { id: "wpa", name: "WRIGHT-PATTERSON AIR FORCE BASE, OHIO", lat: 39.8261, lon: -84.0483, z: 13, d: "made flat green", lore: "Hangar 18 in the lore, where the Roswell debris and bodies were said to go in 1947. Project Blue Book was run from here." },
   { id: "ros", name: "THE ROSWELL DEBRIS FIELD, NEW MEXICO", lat: 33.95, lon: -105.31, z: 11, d: "flat desert dry hot remote", lore: "July 1947: the Army announced a flying disc, then a weather balloon; in 1994 it said Project Mogul. The questions never stopped." },
-  { id: "ber", name: "THE BERMUDA TRIANGLE", lat: 25, lon: -71, z: 6, d: "water wet hot remote", lore: "Open ocean between Miami, Bermuda and San Juan, home of the unit in this app's lore." }
+  { id: "ber", name: "THE BERMUDA TRIANGLE", lat: 25, lon: -71, z: 6, d: "water wet hot remote", lore: "Open ocean between Miami, Bermuda and San Juan, home of the unit in this app's lore." },
+  { id: "phx", name: "PHOENIX LIGHTS, ARIZONA", lat: 33.4484, lon: -112.074, z: 10, d: "desert made flat mount hot dry", lore: "March 13, 1997: thousands reported a huge V of lights over Phoenix. The Air Force said the later lights were flares dropped near the Barry Goldwater Range." },
+  { id: "vgn", name: "VARGINHA, BRAZIL", lat: -21.5513, lon: -45.4303, z: 13, d: "made green hot wet", lore: "January 1996: three young women reported a strange creature in a vacant lot. Rumors of capture by the army followed; officials denied it." },
+  { id: "shg", name: "SHAG HARBOUR, NOVA SCOTIA", lat: 43.497, lon: -65.712, z: 11, d: "water green cold wet", lore: "October 4, 1967: many witnesses saw lit objects go into the harbour. The RCMP and Navy searched and found only yellow foam." },
+  { id: "ruw", name: "ARIEL SCHOOL, RUWA, ZIMBABWE", lat: -17.892, lon: 31.244, z: 15, d: "green made hot dry", lore: "September 16, 1994: over 60 schoolchildren reported a craft and beings in the bush beside their playground." },
+  { id: "col", name: "COLARES ISLAND, BRAZIL", lat: -0.937, lon: -48.283, z: 11, d: "water green hot wet remote", lore: "In 1977 islanders reported beams of light from the sky that burned them. The Brazilian Air Force ran Operation Prato to look into it." },
+  { id: "kec", name: "KECKSBURG, PENNSYLVANIA", lat: 40.1856, lon: -79.4597, z: 13, d: "green mount wet cold", lore: "December 9, 1965: a fireball came down in the woods and witnesses said the army hauled away an acorn-shaped object. Officials said nothing was found." },
+  { id: "soc", name: "SOCORRO, NEW MEXICO", lat: 34.0459, lon: -106.8956, z: 12, d: "desert mount made dry hot", lore: "April 24, 1964: policeman Lonnie Zamora reported an egg-shaped craft and two small figures in a gully. Blue Book listed it unexplained." },
+  { id: "azt", name: "HART CANYON, AZTEC, NEW MEXICO", lat: 36.879, lon: -107.95, z: 12, d: "desert mount dry remote", lore: "Said to be the site of a 1948 saucer crash with bodies. The tale traces to a 1950 book later tied to known con men." },
+  { id: "dug", name: "DUGWAY PROVING GROUND, UTAH", lat: 40.189, lon: -112.933, z: 10, d: "flat desert made dry remote", lore: "A closed Army test range in the salt desert, often named in the lore as a place where craft are kept." },
+  { id: "nim", name: "NIMITZ ENCOUNTER AREA, OFF SAN DIEGO", lat: 31.5, lon: -117.5, z: 7, d: "water hot dry remote", lore: "November 2004: Navy pilots from the USS Nimitz tracked a white Tic Tac shaped object here. The Navy released the FLIR video in 2020." },
+  { id: "stv", name: "STEPHENVILLE, TEXAS", lat: 32.2207, lon: -98.2023, z: 12, d: "flat green made hot", lore: "January 8, 2008: dozens in this ranch town reported a huge silent object with lights. Radar data later showed military jets in the area." },
+  { id: "ohr", name: "O'HARE AIRPORT, CHICAGO", lat: 41.9786, lon: -87.9048, z: 13, d: "made flat cold wet", lore: "November 7, 2006: airline staff reported a disc hovering over gate C17, then punching a hole in the clouds. The FAA called it weather." },
+  { id: "thr", name: "TEHRAN, IRAN", lat: 35.6892, lon: 51.389, z: 9, d: "made mount dry hot", lore: "September 19, 1976: Iranian F-4 jets chased a bright object over the city and reported their weapons and radios failing." },
+  { id: "eup", name: "EUPEN, BELGIUM", lat: 50.629, lon: 6.036, z: 12, d: "made green cold wet", lore: "November 29, 1989: police here reported a triangle of lights, starting the Belgian wave of over a thousand sightings into 1990." },
+  { id: "kai", name: "KAIKOURA COAST, NEW ZEALAND", lat: -42.4, lon: 173.7, z: 9, d: "water mount green wet cold", lore: "December 1978: a film crew on a cargo plane filmed lights off this coast, also seen on Wellington radar. Squid boats were later proposed." },
+  { id: "fal", name: "FALCON LAKE, MANITOBA", lat: 49.69, lon: -95.3, z: 11, d: "water green cold remote", lore: "May 20, 1967: prospector Stefan Michalak said a landed craft burned a grid pattern onto his chest. RCMP reports survive." },
+  { id: "sth", name: "STONEHENGE, ENGLAND", lat: 51.1789, lon: -1.8262, z: 16, d: "made green flat cold", lore: "A ring of standing stones raised about 5,000 years ago, aligned to the solstices. Some bluestones came from Wales, 150 miles away." },
+  { id: "teo", name: "TEOTIHUACAN, MEXICO", lat: 19.6925, lon: -98.8438, z: 15, d: "made mount dry hot flat", lore: "A vast city built about 2,000 years ago, with the Pyramids of the Sun and Moon along the Avenue of the Dead." },
+  { id: "pum", name: "PUMA PUNKU, BOLIVIA", lat: -16.5617, lon: -68.68, z: 16, d: "made flat mount cold dry", lore: "Cut andesite and sandstone blocks with sharp angles near Tiwanaku, about 1,500 years old. Some say the precision needed lost tools." },
+  { id: "gob", name: "GOBEKLI TEPE, TURKEY", lat: 37.2233, lon: 38.9224, z: 16, d: "made desert hot dry remote", lore: "Carved stone pillars set up about 11,500 years ago, before farming here. It changed what we thought hunter gatherers could build." },
+  { id: "baa", name: "BAALBEK, LEBANON", lat: 34.0069, lon: 36.2039, z: 16, d: "made mount dry hot green", lore: "Roman temples on a platform with stones near 800 tonnes. A quarry nearby holds blocks of over 1,000 tonnes, cut and never moved." },
+  { id: "eas", name: "EASTER ISLAND (RAPA NUI)", lat: -27.1127, lon: -109.3497, z: 11, d: "water green remote wet", lore: "Nearly 1,000 moai statues carved by the Rapa Nui people. Tradition says the statues walked to their places." },
+  { id: "ang", name: "ANGKOR WAT, CAMBODIA", lat: 13.4125, lon: 103.867, z: 15, d: "made green water hot wet", lore: "The largest religious monument on Earth, built in the 1100s. Some say its layout maps the stars." },
+  { id: "mpi", name: "MACHU PICCHU, PERU", lat: -13.1631, lon: -72.545, z: 15, d: "made mount green wet", lore: "An Inca estate built about 1450 on a ridge above the Urubamba. Its walls fit without mortar." },
+  { id: "sac", name: "SACSAYHUAMAN, CUSCO, PERU", lat: -13.5094, lon: -71.9817, z: 16, d: "made mount green cold dry", lore: "Inca zigzag walls of huge fitted stones, some over 100 tonnes. Lore says the stones were softened to fit." },
+  { id: "der", name: "DERINKUYU, CAPPADOCIA, TURKEY", lat: 38.3736, lon: 34.7347, z: 16, d: "made dry cold", lore: "An underground city cut into soft rock, about 85 meters deep, with room for thousands. Above ground you see only a town." },
+  { id: "nwg", name: "NEWGRANGE, IRELAND", lat: 53.6947, lon: -6.4755, z: 16, d: "made green wet cold water", lore: "A passage tomb built about 5,200 years ago. At the winter solstice dawn light fills its inner chamber." },
+  { id: "car", name: "CARNAC STONES, FRANCE", lat: 47.595, lon: -3.08, z: 15, d: "made green flat wet water", lore: "Over 3,000 standing stones set in long rows about 6,000 years ago. Local legend says they are Roman soldiers turned to stone." },
+  { id: "chc", name: "CHACO CANYON, NEW MEXICO", lat: 36.0604, lon: -107.9614, z: 16, d: "made desert dry remote", lore: "Great houses built by Ancestral Puebloans from about 850 to 1150. Some walls line up with sun and moon cycles." },
+  { id: "ser", name: "SERPENT MOUND, OHIO", lat: 39.0254, lon: -83.4302, z: 16, d: "made green wet", lore: "A 400 meter earthwork shaped like a snake on a crater ridge. Its head points to the summer solstice sunset." },
+  { id: "ulu", name: "ULURU, AUSTRALIA", lat: -25.3444, lon: 131.0369, z: 13, d: "desert flat hot dry remote mount", lore: "A sandstone monolith sacred to the Anangu people. It rises about 348 meters above the plain." },
+  { id: "kls", name: "MOUNT KAILASH, TIBET", lat: 31.0675, lon: 81.3119, z: 12, d: "mount ice cold dry desert remote", lore: "A peak sacred to four religions and never climbed. Its sharp faces lead some to call it a pyramid." },
+  { id: "vis", name: "BOSNIAN 'PYRAMID' HILL, VISOKO", lat: 43.977, lon: 18.176, z: 14, d: "mount green made cold", lore: "A hill claimed since 2005 to be a giant pyramid. Geologists say it is a natural formation." },
+  { id: "sil", name: "SILBURY HILL, ENGLAND", lat: 51.4157, lon: -1.8573, z: 16, d: "made green flat wet cold", lore: "The largest man-made mound in Europe, about 4,400 years old. Its purpose is still unknown." }
 ];
 const RV_KEY = "ce5.rv.v1";
 let rv = { step: 0 }, rvCool = 0;
@@ -9588,7 +9731,7 @@ function rvRender() {
   const B = $("rvBody"), st = rv.step; let h = "", next = "NEXT";
   clearInterval(rvCool); rvCool = 0;
   if (st === 0) {
-    h = "<p>A practice in the remote viewing protocol the US funded from the 1970s to 1995 (Stargate). A place is sealed at random from seventeen in the UAP lore, from Area 51 to the ice of Antarctica. You get only a number. You describe what comes, and sketch it, before you know where it is.</p>" +
+    h = "<p>A practice in the remote viewing protocol the US funded from the 1970s to 1995 (Stargate). A place is sealed at random from fifty-one in the UAP lore and ancient sites, from Area 51 to the ice of Antarctica. You get only a number. You describe what comes, and sketch it, before you know where it is.</p>" +
       "<p>Then a blind judge ranks what you put down against the real place and three decoys, scoring the way the program's own analysts did (the figure of merit, May and Utts, 1990: how much of the place you got, times how much of what you said was right). Luck alone ranks the right one first one time in four. The record keeps score against that, honestly. Most careful studies found results close to chance; this is a way to try it for yourself.</p>" +
       '<p class="rvRec">YOUR RECORD: ' + rvRecord() + "</p>";
     next = "BEGIN A SESSION";
