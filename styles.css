@@ -1038,6 +1038,16 @@ svg.shp { width: 72px; height: 54px; fill: none; stroke: var(--amber, #ffc46b);
 #shapeCard .setRow { margin-top: 16px; }
 #shapeCard .setRow > .setLbl:first-child { margin-bottom: 4px; }
 
+/* the 2025-2026 record card */
+#briefPick { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.86);
+  display: flex; align-items: flex-start; justify-content: center; padding: 18px 12px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#briefPick.hide { display: none; }
+#briefCard { margin: auto 0; width: min(92vw, 560px); background: #07090c;
+  border: 1px solid rgba(255,196,107,0.28); border-radius: 8px; padding: 16px 16px 12px; }
+#briefCard .setRow { margin-top: 14px; }
+#briefCard .setRow > .setLbl:first-child { margin-bottom: 4px; }
+
 /* Long-labelled buttons must not share a row: four of them in a flex line turn
    into 75px columns on a tablet and 140px on a phone. Stacked, each is one row. */
 .bdBtns.col { flex-direction: column; align-items: stretch; }
