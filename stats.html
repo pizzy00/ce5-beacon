@@ -60,7 +60,7 @@ const LANG = { en: "English", es: "Spanish", fr: "French", pt: "Portuguese", de:
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const day = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const ago = (t) => { const m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
 const rows = (list) => list.length ? list.map((r) => "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>").join("") : '<tr><td class="note">NONE YET</td></tr>';
 fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()).then((b) => {
   const V = (b.visits && b.visits.days) || {}, T = b.trips || [], now = new Date();

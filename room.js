@@ -8,9 +8,9 @@ window.ROOM = (() => {
   const LETTERS = "BCDFGHJKLMNPQRSTVWXZ";                       // no vowels: no words
   const mkCode = () => { let c = ""; for (let i = 0; i < 4; i++) c += LETTERS[Math.floor(Math.random() * LETTERS.length)]; return c; };
   const ID = (c) => "ce5-beacon-" + String(c || "").toUpperCase();
-  let peer = null, conns = [], hostConn = null, offset = 0, pongs = [], synced = false, pending = [];
+  let peer = null, conns = [], hostConn = null, offset = 0, pongs = [], synced = false, pending = [], joinT = 0;
   const state = (s, x) => { if (R.onState) { try { R.onState(s, x); } catch (e) {} } };
-  const reset = () => { R.code = ""; R.role = ""; R.peers = 0; R.ok = false; R.busy = false; conns = []; hostConn = null; offset = 0; pongs = []; synced = false; pending = []; };
+  const reset = () => { clearTimeout(joinT); joinT = 0; R.code = ""; R.role = ""; R.peers = 0; R.ok = false; R.busy = false; conns = []; hostConn = null; offset = 0; pongs = []; synced = false; pending = []; };
   const mkPeer = (id) => {
     const opts = { debug: 0, config: { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:global.stun.twilio.com:3478" }] } };
     return id ? new Peer(id, opts) : new Peer(opts);
@@ -25,7 +25,7 @@ window.ROOM = (() => {
   function wire(c) {
     c.on("data", (m) => handle(c, m));
     c.on("close", () => { if (R.role === "host") { conns = conns.filter((x) => x !== c); R.peers = conns.length; state("peers", R.peers); } else lost(); });
-    c.on("error", () => { if (R.role !== "host") lost(); });
+    c.on("error", () => { if (R.role === "host") { const before = conns.length; conns = conns.filter((x) => x !== c); if (conns.length !== before) { R.peers = conns.length; state("peers", R.peers); } } else lost(); });
   }
   function lost() { if (!R.ok) return; R.ok = false; state("lost"); }
   function sync() {                                              // three round trips, keep the tightest: host time = local time + offset
@@ -61,15 +61,18 @@ window.ROOM = (() => {
     if (code.length !== 4) return rej(new Error("bad code"));
     R.leave(); R.busy = true;
     let done = false;
-    const fail = (e) => { if (done) return; done = true; R.busy = false; try { if (peer) peer.destroy(); } catch (x) {} peer = null; rej(e || new Error("no room")); };
-    peer = mkPeer();
-    peer.on("open", () => {
-      hostConn = peer.connect(ID(code), { reliable: true });
+    const p = peer = mkPeer();
+    const fail = (e) => { if (done || p !== peer) return; done = true; clearTimeout(joinT); joinT = 0; R.busy = false; try { p.destroy(); } catch (x) {} peer = null; rej(e || new Error("no room")); };
+    p.on("open", () => {
+      if (done || p !== peer) return;
+      hostConn = p.connect(ID(code), { reliable: true });
+      hostConn.on("close", () => { if (!done) fail(new Error("closed")); });
+      hostConn.on("error", () => { if (!done) fail(new Error("error")); });
       wire(hostConn);
-      hostConn.on("open", () => { R.code = code; R.role = "follower"; R.ok = true; sync().then(() => { done = true; synced = true; R.busy = false; state("joined", code); res(code); const q = pending; pending = []; q.forEach((m) => handle(hostConn, m)); }); });
+      hostConn.on("open", () => { if (done || p !== peer) return; R.code = code; R.role = "follower"; sync().then(() => { if (done || p !== peer) return; done = true; clearTimeout(joinT); joinT = 0; R.ok = true; synced = true; R.busy = false; state("joined", code); res(code); const q = pending; pending = []; q.forEach((m) => handle(hostConn, m)); }); });
     });
-    peer.on("error", (e) => { if (!done) fail(e); else if (e && e.type !== "peer-unavailable") lost(); });
-    setTimeout(() => fail(new Error("timeout")), 12000);
+    p.on("error", (e) => { if (p !== peer) return; if (!done) fail(e); else if (e && e.type !== "peer-unavailable") lost(); });
+    joinT = setTimeout(() => fail(new Error("timeout")), 12000);
   });
   R.send = (m) => {
     try {

@@ -3,7 +3,7 @@
    and the two data files are all held locally. Live things (the travellers board, the satellite
    tiles of your own roof) are tried on the network first and simply fall away when there is none. */
 
-const VER = "ce5-v92";
+const VER = "ce5-v93";
 const SHELL = VER + "-shell";
 const LIVE = VER + "-live";
 
@@ -11,13 +11,13 @@ const LIVE = VER + "-live";
 const PRECACHE = [
   "./",
   "./index.html",
-  "./styles.css?v=51",
+  "./styles.css?v=52",
   "./manifest.json",
   "./vendor/leaflet/leaflet.js?v=1",
   "./vendor/leaflet/leaflet.min.css?v=1",
   "./vendor/three/three.min.js?v=1",
-  "./bridge.js?v=1",
-  "./room.js?v=1",
+  "./bridge.js?v=3",
+  "./room.js?v=2",
   "./earthgl.js?v=2",
   "./vendor/peerjs/peerjs.min.js?v=1",
   "./audio/bridge.ogg",
@@ -64,7 +64,10 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("message", (e) => {
   if (e.data === "skipWaiting") return self.skipWaiting();
-  if (e.data && "remind" in e.data) e.waitUntil(remSave(e.data.remind ? { la: e.data.remind.la, lo: e.data.remind.lo, last: "" } : null));
+  if (e.data && "remind" in e.data) e.waitUntil(e.data.remind
+    ? (e.data.remind.keepLast ? remLoad().then((cur) => remSave({ la: e.data.remind.la, lo: e.data.remind.lo, last: (cur && cur.last) || "" }))
+      : remSave({ la: e.data.remind.la, lo: e.data.remind.lo, last: "" }))
+    : remSave(null));
 });
 
 /* v92: the good-night reminder. The spot comes from the page already rounded to a tenth of a degree and is kept here only. */
@@ -84,9 +87,10 @@ async function remCheck(now) {
   if (o.last === remDay(d) || h < 12 || h > 21) return null;     // once a day, and only between noon and 9 PM
   const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + o.la + "&longitude=" + o.lo +
     "&hourly=cloud_cover&timezone=auto&forecast_days=2", { cache: "no-store" });
+  if (!r.ok) return null;
   const j = await r.json(), T = (j.hourly && j.hourly.time) || [], C = (j.hourly && j.hourly.cloud_cover) || [];
   const today = T.length ? T[0].slice(0, 10) : "", vals = [];
-  T.forEach((t, i) => { const hh = +t.slice(11, 13); if ((t.slice(0, 10) === today && hh >= 21) || (t.slice(0, 10) !== today && hh <= 1 && vals.length < 5)) vals.push(C[i]); });
+  T.forEach((t, i) => { const hh = +t.slice(11, 13); if (((t.slice(0, 10) === today && hh >= 21) || (t.slice(0, 10) !== today && hh <= 1 && vals.length < 5)) && typeof C[i] === "number" && isFinite(C[i])) vals.push(C[i]); });
   if (!vals.length) return null;
   const cloud = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length), lit = remMoon(d.getTime());
   if (cloud > 25 || lit > 0.6) return { ok: false, cloud, lit };

@@ -41,7 +41,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="vendor/leaflet/leaflet.min.css?v=1" />
 <script src="vendor/leaflet/leaflet.js?v=1"></script>
-<link rel="stylesheet" href="styles.css?v=51" />
+<link rel="stylesheet" href="styles.css?v=52" />
 </head>
 <body class="intro introHud">
 
@@ -859,7 +859,8 @@
     </div>
     <div class="ntFoot">
       <div class="setStat" id="ntSpot" data-nol10n></div>
-      <div class="bdBtns" id="ntGpsRow"><span class="setBtn" id="bNtGps">GPS</span><span class="setBtn" id="bNtRemind">REMIND ME ON GOOD NIGHTS</span></div>
+      <div class="bdBtns" id="ntGpsRow"><span class="setBtn" id="bNtGps">GPS</span></div>
+      <div class="bdBtns"><span class="setBtn" id="bNtRemind">REMIND ME ON GOOD NIGHTS</span></div>
       <div class="setStat" id="ntRemSay" data-nol10n></div>
       <div class="setStat ntSrc"><span id="ntSrc" data-nol10n></span><br /><span class="ntBy">WEATHER DATA BY <a href="https://open-meteo.com/" target="_blank" rel="noopener">OPEN-METEO.COM</a></span></div>
     </div>
@@ -1117,6 +1118,7 @@ function applySystems(boot) {                                    // S.sysOn -> S
   SYSTEMS = SYSTEMS_ALL.filter((s) => (s.id in on ? !!on[s.id] : !s.opt));
   if (!SYSTEMS.length) { SYSTEMS = [SYSTEMS_ALL[0]]; on.zeta = true; }   // at least one stays on
   if (boot) return;
+  if (typeof fleetSysMemo !== "undefined") fleetSysMemo.clear();
   if (selected && !selected.mode && !SYSTEMS.includes(selected)) {   // never mid-flight: the board would file the wrong destination
     if (phase === "chart") { selected = SYSTEMS[0]; log("DEPARTURE SET: " + selected.name + " (" + selected.tag + ")"); }
     else pendingResel = true;                                   // put it right the moment the chart is back
@@ -4637,7 +4639,7 @@ function bridgeLoad() {                                          // three.js + b
   if (bridgeLoadP) return bridgeLoadP;
   const one = (src) => new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   bridgeLoadP = (window.THREE ? Promise.resolve() : one("vendor/three/three.min.js?v=1"))
-    .then(() => window.BRIDGE ? null : one("bridge.js?v=2"))
+    .then(() => window.BRIDGE ? null : one("bridge.js?v=3"))
     .catch(() => { bridgeLoadP = null; });
   if (S.bridgeSnd === "bed") bridgeAudioLoad();
   return bridgeLoadP;
@@ -6202,7 +6204,7 @@ function idleArm(secs) {
 function idleFire() {
   idleTimer = 0;
   if (phase !== "active") return;
-  if (["settings", "info", "board", "checkPick", "nightPick", "schedPick", "repPick"].some((id) => $(id) && !$(id).classList.contains("hide"))) return idleArm();   // a card is up: they are still here
+  if (cardUp()) return idleArm();   // a card is up: they are still here
   if (morseBusy || voiceEl) { idleTimer = setTimeout(idleFire, 20000); return; }   // the message or the voice is still going out: not yet (his bug, 09-04)
   log("QUIET FOR " + S.idleBack + " S \u2014 BACK TO THE CHART FOR THE NEXT ONE", "cy");
   replay();
@@ -6314,6 +6316,9 @@ try {
   map.on("click", (e) => {
     if (!retargetMode || phase !== "active") return;
     TARGET = { lat: e.latlng.lat, lon: e.latlng.lng, exact: true };
+    targetIsMine = true; precached = ""; updateShareLink();
+    $("addrStatus").textContent = "LOCKED: " + fmtLL(TARGET.lat, TARGET.lon);
+    autoSave(); if (typeof remSyncSpot === "function") remSyncSpot();
     placeBeacon();
     log("TARGET UPDATED — " + fmtLL(TARGET.lat, TARGET.lon), "cy");
     retargetMode = false; $("bTarget").classList.remove("on");
@@ -7195,7 +7200,7 @@ function skipCurrent() {
   t0 = -1e9;                                                    // the space stages: the clock jumps to the end
 }
 document.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#rvPick,#bNight,#bRv,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate")) return;
+  if (e.target.closest("#ctl,#settings,#info,#board,#flash,#bFull,#bMute,#bLang,#bRed,#bShare,#bRoom,#roomPick,#checkPick,#nightPick,#schedPick,#repPick,#rvPick,#bNight,#bRv,#sitePick,#bIdea,#gvX,#sysPick,#langPick,#privPick,#logPick,#ideaPick,#seePick,#shapePick,#rotate,#guide,#instBar")) return;
   if (phase !== "chart" && faceTap(e)) return;                  // the portrait reads itself; it never skips the stage
   skipCurrent();
 });
@@ -7219,6 +7224,7 @@ function setTargetTo(lat, lon, name) {
   updateShareLink();
   targetIsMine = true;                                            // chosen here, so it is worth keeping
   autoSave();                                                     // GPS, an address and a map tap all stick now
+  if (typeof remSyncSpot === "function") remSyncSpot();
   if (phase === "active" && map) { placeBeacon(); map.flyTo([lat, lon], 17); }
 }
 function locate() {
@@ -7980,7 +7986,7 @@ const SETUP_CLAMP = {                                            // a bent code 
   vol: [0, 1], breath: [2, 8], spaceMul: [0.5, 2], flyby: [2, 25], originMul: [0.5, 3], diveMul: [0.5, 2], arrHold: [0, 40],
   nInt: [0.3, 1], nStretch: [0.5, 3], nRepeat: [1, 8], nWarn: [2, 15], pHold: [0.5, 5], bOrbit: [4, 30], bSites: [1, 8],
   bHold: [3, 25], bFly: [3, 15], mWpm: [5, 90], mInt: [0.1, 1], sysHold: [3, 20], shipSpd: [0.1, 10], shipN: [0.1, 1], lblBack: [0, 0.8], fleetN: [0, 6],
-  voiceVol: [0, 1], spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [12, 21], uTime: [1, 100000] };
+  voiceVol: [0, 1], spin: [0, 1.6], deepA: [0, 0.4], cloudA: [0, 0.4], cloudSpd: [0, 2], bcnHold: [0, 10], finalZ: [2, 21], uTime: [1, 100000] };
 function setupSlot(i) { const t = i.toString(36); return t.length < 2 ? "0" + t : t; }
 function setupNum(v) {                                           // .5 not 0.50000000001
   let t = (Math.round(v * 1000) / 1000).toString();
@@ -8868,7 +8874,7 @@ function roomLoad() {
   if (roomLoadP) return roomLoadP;
   const one = (src) => new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   roomLoadP = (window.Peer ? Promise.resolve() : one("vendor/peerjs/peerjs.min.js?v=1"))
-    .then(() => window.ROOM ? null : one("room.js?v=1"))
+    .then(() => window.ROOM ? null : one("room.js?v=2"))
     .then(roomWire)
     .catch(() => { roomLoadP = null; log("THE ROOM CODE COULD NOT LOAD \u00b7 CHECK THE CONNECTION", "alert"); throw new Error("room load"); });
   return roomLoadP;
@@ -9410,6 +9416,11 @@ function ntSaved() { try { const c = JSON.parse(localStorage.getItem(NT_KEY) || 
 /* v92: the good-night reminder (see sw.js). Only Chrome on Android, installed, can check in the background without a server. */
 const REM_KEY = "ce5.remind.v1";
 function remOn() { try { return !!localStorage.getItem(REM_KEY); } catch (e) { return false; } }
+function remSyncSpot() {
+  if (!remOn() || !navigator.serviceWorker) return;
+  const [la, lo] = ntSpotR();
+  navigator.serviceWorker.ready.then((sw) => { if (sw && sw.active) sw.active.postMessage({ remind: { la, lo, keepLast: true } }); }).catch(() => {});
+}
 function remShow(msg) {
   const b = $("bNtRemind"); if (b) b.textContent = remOn() ? "GOOD-NIGHT REMINDER: ON \u00b7 TAP TO STOP" : "REMIND ME ON GOOD NIGHTS";
   if (msg !== undefined && $("ntRemSay")) $("ntRemSay").textContent = msg;

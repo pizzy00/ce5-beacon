@@ -275,10 +275,10 @@
 
       // the eye: a slow roll and a drift, as if the fall had no floor
       const roll = style.roll;
-      cam.rotation.z = Math.sin(t * 0.31) * 0.22 * roll + t * 0.05 * speed * 0.15 * roll;
       cam.position.x = Math.sin(t * 0.7) * 0.9;
       cam.position.y = Math.cos(t * 0.53) * 0.7;
       cam.lookAt(Math.sin(t * 0.4) * 2.5, Math.cos(t * 0.33) * 1.8, -120);
+      cam.rotateZ(Math.sin(t * 0.31) * 0.22 * roll + t * 0.05 * speed * 0.15 * roll);
 
       // dust falls toward us
       const a = dust.geometry.attributes.position, arr = a.array, vel = dust.geometry.userData.vel, n = vel.length;
