@@ -2594,6 +2594,9 @@ function globeDirty(opt, out) {                                 // each sphere r
   if (Math.abs(last.cloudAmt - ca) > 0.005) return true;
   var s = opt.sun || { x: 0, y: 0, z: 1 };
   if (Math.abs(last.sxr - s.x) > 0.004 || Math.abs(last.syr - s.y) > 0.004 || Math.abs(last.szr - s.z) > 0.004) return true;
+  var aur = opt.aurora > 0 ? +opt.aurora : 0;
+  if (Math.abs((last.aur || 0) - aur) > 0.01) return true;
+  if (aur > 0 && !opt.fast && Math.abs((last.aurT || 0) - (opt.time || 0)) > 0.35) return true;
   return false;
 }
 function globeWrap(d) { d = d % 360; if (d > 180) d -= 360; if (d < -180) d += 360; return d; }
@@ -2657,6 +2660,7 @@ function renderGlobe(out, opt) {
   var nightAmt = GLOBE_NIGHT_AMT * ((opt.nightAmt === undefined) ? 1 : opt.nightAmt);
   // forward scattering: a planet lit from behind gets a brighter ring
   var rimK = GLOBE_RIM_AMT * ((opt.rimAmt === undefined) ? 1 : opt.rimAmt) * (1 + 0.95 * (sz < 0 ? -sz : 0));
+  var aurAmt = opt.aurora > 0 ? +opt.aurora : 0, aurT = opt.time || 0;
   var LS = (GL_N - 1) / 2;
 
   var y, i, k, o, len, x0, ny, lamRow, hRow, nx, nz, lam, li, sh, tx, ti, r, gg, b, ai;
@@ -2754,6 +2758,29 @@ function renderGlobe(out, opt) {
         }
       }
 
+      // aurora on the night side: same geomagnetic oval and drifting curtains as earthgl.js
+      if (aurAmt > 0 && lam < 0.03) {
+        var av = gvv[k];
+        if (av < 0.27 || av > 0.73) {
+          var la = (0.5 - av) * 3.141592653589793, lo = u * 6.28318530717959 - 3.141592653589793;
+          var cla = Math.cos(la), gx = cla * Math.cos(lo), gy = cla * Math.sin(lo), gzA = Math.sin(la);
+          var dotM = gx * 0.0481 - gy * 0.1543 + gzA * 0.9869;
+          if (dotM > 1) dotM = 1; else if (dotM < -1) dotM = -1;
+          var ad = Math.abs(Math.asin(dotM)) - 1.165;
+          var ad2 = ad - 0.06;
+          var band = Math.exp(-ad * ad / 0.0028) + 0.35 * Math.exp(-ad2 * ad2 / 0.006);
+          if (band > 0.004) {
+            var mo = Math.atan2(gy, gx) + la * 3.0;
+            var w1 = 0.5 + 0.5 * Math.sin(mo * 9.0 + aurT * 0.31);
+            var w = 0.12 + 0.88 * w1 * w1 * (0.5 + 0.5 * Math.sin(mo * 4.0 - aurT * 0.17 + 1.7));
+            var smt = (lam + 0.14) / 0.17; if (smt < 0) smt = 0; else if (smt > 1) smt = 1; smt = smt * smt * (3 - 2 * smt);
+            var aa = band * w * aurAmt * (1 - smt);
+            r += 35 * aa; gg += 127.5 * aa; b += 75 * aa;
+            if (ad >= 0) { r += 14.4 * aa; gg += 3.6 * aa; b += 10.8 * aa; }
+          }
+        }
+      }
+
       // atmosphere: blue rim on the limb, brightest toward the sun, plus a faint haze
       var rim = glRim[(nz * 511) | 0];
       if (rim > 0.002) {
@@ -2782,7 +2809,7 @@ function renderGlobe(out, opt) {
   oc.drawImage(g.buf, 0, 0, size, size, 0, 0, ow, ow);
 
   glLast = out._gl = { ow: ow, buf: size, lin: lin, cloudAmt: cloudAmt, tilt: tilt, rot: rot, cloudRot: cloudRot,
-             sxr: s.x, syr: s.y, szr: s.z,
+             sxr: s.x, syr: s.y, szr: s.z, aur: aurAmt, aurT: aurT,
              tex: opt.tex, night: opt.night || null, clouds: opt.clouds || null };
   glLastMs = globeNow() - t0;
   if (size >= 320 && !opt.fast) {                              // the big sphere sets the budget for the next one
@@ -3411,7 +3438,7 @@ function paintSphere(cvRef, tex, night, clouds, R, rot, tilt, sun, x) {
   x = x || {};
   const opt = { tex: tex, night: night, clouds: clouds, R: R, dpr: DPR, rot: rot, tilt: tilt,
     sun: sun, cloudRot: rot + (x.cloudRot || 0), cloudAmt: x.cloudAmt === undefined ? 1 : x.cloudAmt,
-    fast: !!x.fast, quality: 1 };
+    aurora: x.aurora || 0, time: x.time || 0, fast: !!x.fast, quality: 1 };
   const now = globeNow();                                     // a slow device is not asked for more than it can give
   if (cvRef.dirty || (globeDirty(opt, cv) && (opt.fast || now - (cvRef.t || 0) >= Math.min(400, (cvRef.ms || 0) * 3)))) {
     renderGlobe(cv, opt); cvRef.dirty = false; cvRef.t = globeNow(); cvRef.ms = glLastMs; cvRef.n = (cvRef.n | 0) + 1;
@@ -3809,7 +3836,7 @@ function drawEarthHub(t) {
     }
     if (!drew) {
       const gc = paintSphere(earthRef, earthTex, earthNight, earthClouds, RZ, earthRot, earthTiltDraw, sunV,
-        { cloudRot: cloudDrift, cloudAmt: S.cloudA, fast: dragEarth || Math.abs(earthVel) > 4 });
+        { cloudRot: cloudDrift, cloudAmt: S.cloudA, aurora: S.aurora === false ? 0 : 1, time: performance.now() / 1000, fast: dragEarth || Math.abs(earthVel) > 4 });
       ctx.drawImage(gc, gx, gy, RZ * 2, RZ * 2);                 // no crop: closer means bigger
     }
   } else {
