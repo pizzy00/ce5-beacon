@@ -1242,16 +1242,19 @@ const EXOPLANETS = [
   { n: "HD 20794 D", ra: 3.33, dec: -43.1, ly: 19.7, r: 1.90, sp: "G6 V", yr: 2025 },
   { n: "GJ 3378 B", ra: 6.02, dec: 59.6, ly: 25.2, r: 1.45, sp: "M4 V", yr: 2026 },
   { n: "HD 137010 B", ra: 15.41, dec: -19.7, ly: 146.3, r: 1.06, sp: "K V", yr: 2026 }
-].map((e, i) => ({ n: e.n, ly: e.ly, c: "#8ef0b0", up: i % 2 === 1,
+].map((e, i) => ({ n: e.n, ly: e.ly, r: e.r, sp: e.sp, yr: e.yr, c: "#8ef0b0", up: i % 2 === 1,
   az: (e.ra / 24) * 6.2832 + 0.35,                              // where it sits round the ring, by right ascension
   y: 0.56 - 0.10 * Math.log10(e.ly) }));                        // nearer worlds sit lower, like the systems
-function drawExo(t, posOf, ik) {                                // small green worlds, labelled, not pickable
+let exoHit = [];                                                // habitable worlds on screen, tappable for NASA archive stats
+function drawExo(t, posOf, ik) {                                // small green worlds, labelled and tappable
+  exoHit = [];
   if (!S.exo) return;
   const K = ik === undefined ? 1 : ik;                            // the opening: they cannot burn on an empty sky
   if (K <= 0.01) return;
   ctx.font = "7px ui-monospace, Menlo, monospace";
   for (const e of EXOPLANETS) {
     const q = posOf(e); if (!q) continue;
+    exoHit.push({ e, x: q.x, y: q.y });
     const k = q.k || 1, depth = dofK(k);
     ctx.globalAlpha = 0.85 * depth * K;
     glow(q.x, q.y, 5 * k, e.c, 0.35 * K);
@@ -3548,8 +3551,9 @@ const ISO = [
     tag: "THE SECOND \u00b7 AN HONEST COMET \u00b7 2019",
     note: "2I/BORISOV \u00b7 FOUND 30 AUG 2019 BY GENNADIY BORISOV, AN AMATEUR, ON A TELESCOPE HE BUILT HIMSELF \u00b7 PLAINLY A COMET, PLAINLY FROM SOMEWHERE ELSE" }
 ];
-let isoSaid = -1; const isoSaidSet = new Set();                   // each interstellar visitor introduces itself once
+let isoSaid = -1, isoHit = null; const isoSaidSet = new Set();    // each interstellar visitor introduces itself once, and can be tapped again
 function drawISO(t, sunX, sunY, sx, sy, RZ, IK) {
+  isoHit = null;
   if (!S.iso || IK.planets <= 0) return;
   const CROSS = 30, REST = 9, CYCLE = CROSS + REST;              // one crossing, then the sky is empty a while
   const which = Math.floor(t / CYCLE) % ISO.length;
@@ -3566,6 +3570,7 @@ function drawISO(t, sunX, sunY, sx, sy, RZ, IK) {
   if (Math.hypot(x - sx, y - sy) < RZ * 1.01) return;            // the world is in front of anything on its disc
   const k = IK.planets * Math.min(1, Math.min(u, 1 - u) * 7);    // fades in at the edge, fades out at the edge
   if (k <= 0.01) return;
+  isoHit = { o, x, y };
 
   ctx.save();
   const away = Math.atan2(y - sunY, x - sunX);                   // a comet tail points away from the Sun, always
@@ -7188,6 +7193,22 @@ function chartTap(cx, cy) {
     if (d < bd) { bd = d; best = s; }
   }
   if (best) { pickDeparture(best); if (S.chart3d && S.tapLook !== false) sysEnter(best); return true; }   // a tap on a star: pick it and lean straight in
+  if (S.iso && isoHit && Math.hypot(cx - isoHit.x, cy - isoHit.y) < 22) {
+    blip(880, 1180, 0.08, 0.04); log(isoHit.o.note, "cy"); return true;
+  }
+  if (S.exo && exoHit.length) {
+    let eb = null, ed = 18;
+    for (const h of exoHit) {
+      if (Math.hypot(h.x - G.cx, h.y - (G.cy + introLift())) < G.R * earthZoom) continue;
+      const d = Math.hypot(cx - h.x, cy - h.y);
+      if (d < ed) { ed = d; eb = h.e; }
+    }
+    if (eb) {
+      blip(820, 1080, 0.08, 0.04);
+      log(eb.n + " \u00b7 " + fmtLy(eb.ly) + (eb.r ? " \u00b7 ~" + eb.r.toFixed(2) + " EARTH RADII" : "") + (eb.sp ? " \u00b7 STAR " + eb.sp : "") + (eb.yr ? " \u00b7 FOUND " + eb.yr : "") + " \u00b7 HABITABLE-ZONE WORLD (NASA EXOPLANET ARCHIVE)", "cy");
+      return true;
+    }
+  }
   return false;
 }
 cvs.addEventListener("pointerdown", (e) => {

@@ -29,6 +29,8 @@
   td.n { text-align: right; color: var(--green); white-space: nowrap; padding-left: 10px; }
   .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
   .note { font-size: 12px; color: var(--dim); }
+  .warn { background: rgba(242,196,109,0.10); border: 1px solid var(--amber); color: var(--amber); padding: 10px 12px; font-size: 12px; display: none; }
+  .bars i:focus { opacity: 1; outline: 1px solid var(--green); }
   #tip { min-height: 1.5em; font-size: 12px; color: var(--ink); }
 </style>
 </head>
@@ -38,6 +40,7 @@
     <h1>CE-5 BEACON LOGBOOK</h1>
     <div class="sub" id="upd">READING THE BOARD...</div>
   </header>
+  <div class="warn" id="stale" role="status"></div>
   <div class="row" id="tiles"></div>
   <section>
     <h2>VISITS A DAY, LAST 30 DAYS (ONE PER DEVICE PER DAY)</h2>
@@ -62,7 +65,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const day = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 const ago = (t) => { const m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
 const rows = (list) => list.length ? list.map((r) => "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>").join("") : '<tr><td class="note">NONE YET</td></tr>';
-fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()).then((b) => {
+fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" + Date.now(), { cache: "no-store" }).then((r) => { if (!r.ok) throw 0; return r.json(); }).then((b) => {
   const V = (b.visits && b.visits.days) || {}, T = b.trips || [], now = new Date();
   const sumDays = (n) => { let s = 0; for (let k = 0; k < n; k++) { const d = new Date(now); d.setDate(d.getDate() - k); s += V[day(d)] || 0; } return s; };
   const tripDays = {}; T.forEach((x) => { if (x.t) { const k = day(new Date(x.t)); tripDays[k] = (tripDays[k] || 0) + 1; } });
@@ -71,9 +74,14 @@ fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" +
     .map((x) => '<div class="tile"><b>' + x[0] + "</b><span>" + x[1] + "</span></div>").join("");
   const D = []; for (let k = 29; k >= 0; k--) { const d = new Date(now); d.setDate(d.getDate() - k); D.push(day(d)); }
   const top = Math.max(1, ...D.map((k) => V[k] || 0));
-  $("bars").innerHTML = D.map((k) => '<i data-k="' + k + '" class="' + (!V[k] ? "z" : tripDays[k] ? "t" : "") + '" style="height:' + Math.max(1, (V[k] || 0) / top * 100) + '%"></i>').join("");
-  $("a0").textContent = D[0]; $("a1").textContent = "TODAY";
-  $("bars").onclick = (e) => { const k = e.target.dataset && e.target.dataset.k; if (k) $("tip").textContent = k + " · " + (V[k] || 0) + " visits · " + (tripDays[k] || 0) + " trips"; };
+  const peakDay = D.reduce((best, k) => ((V[k] || 0) > (V[best] || 0) ? k : best), D[0]);
+  const avg7 = (sumDays(7) / 7).toFixed(1);
+  $("bars").innerHTML = D.map((k) => '<i tabindex="0" role="button" aria-label="' + k + ": " + (V[k] || 0) + " visits, " + (tripDays[k] || 0) + ' trips" data-k="' + k + '" class="' + (!V[k] ? "z" : tripDays[k] ? "t" : "") + '" style="height:' + Math.max(1, (V[k] || 0) / top * 100) + '%"></i>').join("");
+  $("a0").textContent = D[0]; $("a1").textContent = "TODAY · 7D AVG " + avg7 + " · PEAK " + peakDay + " (" + (V[peakDay] || 0) + ")";
+  const showBar = (el) => { const k = el && el.dataset && el.dataset.k; if (k) $("tip").textContent = k + " · " + (V[k] || 0) + " visits · " + (tripDays[k] || 0) + " trips"; };
+  $("bars").onclick = (e) => showBar(e.target);
+  $("bars").addEventListener("focusin", (e) => showBar(e.target));
+  $("bars").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showBar(e.target); } });
   $("trips").innerHTML = rows(T.slice(-12).reverse().map((x) => [esc(x.n) + " → " + esc(x.d), x.t ? ago(x.t) : ""]));
   const dc = {}; T.forEach((x) => { dc[x.d] = (dc[x.d] || 0) + 1; });
   $("dests").innerHTML = rows(Object.entries(dc).sort((a, c) => c[1] - a[1]).slice(0, 10).map((x) => [esc(x[0]), x[1]]));
@@ -82,6 +90,13 @@ fetch("https://raw.githubusercontent.com/pizzy00/ce5-board/main/board.json?t=" +
   const I = b.ideas || [];
   $("ideas").innerHTML = rows(I.slice(-8).reverse().map((x) => [esc(x.n || "") + ": " + esc(x.txt || ""), x.t ? ago(x.t) : ""]));
   $("upd").textContent = "BOARD UPDATED " + (b.updated ? new Date(b.updated).toLocaleString() : "?") + " · THE BOARD REFRESHES A FEW MINUTES AFTER EACH VISIT";
+  if (b.updated) {
+    const hrs = (Date.now() - Date.parse(b.updated)) / 36e5;
+    if (hrs > 48) {
+      const stEl = $("stale"); stEl.style.display = "block";
+      stEl.textContent = "NOTICE: THE BOARD HAS NOT UPDATED IN " + Math.round(hrs / 24) + " DAYS. IF NEW VISITS ARE NOT LANDING, CHECK THE BOARD TOKEN.";
+    }
+  }
 }).catch(() => { $("upd").textContent = "COULD NOT READ THE BOARD. CHECK THE CONNECTION AND RELOAD."; });
 </script>
 </body>
