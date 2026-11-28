@@ -4456,7 +4456,7 @@ let PURSUE = null, pursueHit = [], pursueSeen = {};             // the released 
 function loadPursue() {
   if (PURSUE) return;
   PURSUE = { groups: [], n: 0, moon: 0, orbit: 0 };
-  fetch("pursue.json", { cache: "force-cache" }).then((r) => r.json()).then((d) => {
+  fetch("pursue.json", { cache: "force-cache" }).then((r) => { if (!r.ok) throw 0; return r.json(); }).then((d) => {
     const g = {};
     for (const r of d.records || []) {
       PURSUE.n++;
@@ -4474,7 +4474,7 @@ let USO = null, usoHit = [];                                    // public witnes
 function loadUso() {
   if (USO) return;
   USO = { recs: [] };
-  fetch("uso.json", { cache: "force-cache" }).then((r) => r.json()).then((d) => {
+  fetch("uso.json", { cache: "force-cache" }).then((r) => { if (!r.ok) throw 0; return r.json(); }).then((d) => {
     USO.recs = d.records || []; USO.src = d.source || "https://nuforc.org/";
     log("WATER SIGHTINGS IN: " + USO.recs.length + " PUBLIC NUFORC REPORTS ON OR OVER WATER (TEAL DOTS, TAP ONE) \u00b7 WITNESS REPORTS, NOT VERIFIED", "cy");
   }).catch(() => { USO = null; });
@@ -6346,7 +6346,7 @@ document.addEventListener("pointerdown", () => { if (phase === "active") idleArm
 document.addEventListener("keydown", () => { if (phase === "active") idleArm(); }, { capture: true });
 setInterval(() => { if (phase === "active" && !idleTimer && S.idleBack) idleArm(); }, 3000);   // back on the ground after the flash: the clock starts again
 /* a card over a run: the run waits (his ask, 09-04) */
-const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "briefPick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick", "repPick", "rvPick"];
+const CARD_IDS = ["settings", "info", "board", "sysPick", "seePick", "shapePick", "briefPick", "privPick", "logPick", "langPick", "ideaPick", "roomPick", "checkPick", "nightPick", "schedPick", "repPick", "rvPick", "sitePick"];
 function cardUp() { return CARD_IDS.some((id) => $(id) && !$(id).classList.contains("hide")); }
 function cardWatch() {
   const up = cardUp();
@@ -7150,7 +7150,8 @@ function siteOpen(q, quiet) {                                   // the card for 
   siteAt = q;
   $("siteName").textContent = q.n; $("siteLine").textContent = tx(q.s);
   $("siteStory").textContent = tx(SITE_STORY[q.id] || ""); $("siteStory").dir = uiLang === "ar" ? "rtl" : "ltr";
-  $("siteWhere").textContent = Math.abs(q.lat).toFixed(2) + "\u00b0 " + (q.lat < 0 ? "S" : "N") + " \u00b7 " + Math.abs(q.lon).toFixed(2) + "\u00b0 " + (q.lon < 0 ? "W" : "E");
+  const L = siteList(), idxPos = L.indexOf(q);
+  $("siteWhere").textContent = Math.abs(q.lat).toFixed(2) + "\u00b0 " + (q.lat < 0 ? "S" : "N") + " \u00b7 " + Math.abs(q.lon).toFixed(2) + "\u00b0 " + (q.lon < 0 ? "W" : "E") + (idxPos >= 0 ? " \u00b7 " + (idxPos + 1) + " OF " + L.length : "");
   $("siteCard").classList.toggle("claim", !!q.claim);
   $("settings").classList.add("hide"); $("sitePick").classList.remove("hide");
   earthGoal = { lon: q.lon }; earthAuto = false; earthVel = 0; clearTimeout(earthResume);   // the world turns to it
@@ -8032,7 +8033,7 @@ function openBoard() {
   $("bdAll").innerHTML = note + '<div class="setStat">LOADING\u2026</div>';
   const readBoard = () => fetch(BOARD_API, { headers: { "Accept": "application/vnd.github.raw+json" }, cache: "no-store" })
     .then((r) => { if (!r.ok) throw 0; return r.json(); })
-    .catch(() => fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" }).then((r) => r.json()));
+    .catch(() => fetch(BOARD_READ + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" }).then((r) => { if (!r.ok) throw 0; return r.json(); }));
   readBoard()
     .then((b) => {
       const lead = (b && b.leaders || []).slice(0, 25), last = (b && b.trips || []).slice(-8).reverse();
@@ -10020,7 +10021,7 @@ function instSeen() { try { return !!localStorage.getItem(INST_KEY); } catch (e)
 function instTry() {                                             // on the chart, after a first landing, once
   if (instShown || standalone || instSeen() || !(instEvt || instIos)) return;
   if (phase !== "chart" || intro !== null || document.body.classList.contains("run") || !readLog().length) return;
-  if (document.querySelector("#rvPick:not(.hide), #repPick:not(.hide), #nightPick:not(.hide), #settings:not(.hide), #info:not(.hide)")) return;
+  if (cardUp()) return;
   instShown = true;
   $("instTxt").textContent = instEvt ? "KEEP THE BEACON ON YOUR HOME SCREEN \u00b7 IT THEN OPENS WITH NO SIGNAL" : "KEEP THE BEACON ON YOUR HOME SCREEN: TAP THE SHARE KEY, THEN ADD TO HOME SCREEN \u00b7 IT THEN OPENS WITH NO SIGNAL";
   $("bInstYes").textContent = instEvt ? "INSTALL" : "GOT IT"; $("bInstNo").classList.toggle("hide", !instEvt);
@@ -10193,12 +10194,54 @@ $("setCard").addEventListener("input", (e) => {                 // a slider on t
     const t = lbl ? nrm(lbl.textContent) : (c.placeholder || c.id);
     if (t) c.setAttribute("aria-label", t);
   });
-  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "briefCard", "checkCard", "nightCard", "schedCard", "repCard"].forEach((id) => {
+  ["setCard", "sysCard", "ideaCard", "privCard", "logCard", "boardCard", "infoCard", "seeCard", "shapeCard", "briefCard", "checkCard", "nightCard", "schedCard", "repCard", "langCard", "rvCard", "guideCard"].forEach((id) => {
     const el = $(id); if (!el) return;
     el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
     const h = el.querySelector(".setHead, h2, h3"); if (h && !el.hasAttribute("aria-label")) el.setAttribute("aria-label", nrm(h.textContent).slice(0, 80));
   });
   const be = $("bEngage"); if (be) be.setAttribute("aria-label", "START");
+  /* Loop 2: universal Escape closes top card/view cleanly; arrows & swipe step through globe locations */
+  const CLOSE_MAP = [
+    ["sitePick", () => { sfx("cover"); siteClose(); }],
+    ["rvPick", () => rvClose()],
+    ["nightPick", () => nightClose()],
+    ["repPick", () => repClose()],
+    ["schedPick", () => schedClose()],
+    ["checkPick", () => checkClose()],
+    ["briefPick", () => { sfx("cover"); $("briefPick").classList.add("hide"); }],
+    ["shapePick", () => { sfx("cover"); $("shapePick").classList.add("hide"); }],
+    ["seePick", () => { sfx("cover"); $("seePick").classList.add("hide"); }],
+    ["privPick", () => { sfx("cover"); $("privPick").classList.add("hide"); }],
+    ["logPick", () => { sfx("cover"); $("logPick").classList.add("hide"); }],
+    ["langPick", () => { sfx("cover"); $("langPick").classList.add("hide"); }],
+    ["ideaPick", () => { sfx("cover"); $("ideaPick").classList.add("hide"); }],
+    ["roomPick", () => { sfx("cover"); $("roomPick").classList.add("hide"); }],
+    ["sysPick", () => { sfx("cover"); $("sysPick").classList.add("hide"); }],
+    ["board", () => { sfx("cover"); $("board").classList.add("hide"); }],
+    ["info", () => { sfx("cover"); $("info").classList.add("hide"); }],
+    ["settings", () => { sfx("cover"); $("settings").classList.add("hide"); }]
+  ];
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      for (const [id, fn] of CLOSE_MAP) {
+        const el = $(id);
+        if (el && !el.classList.contains("hide")) { e.preventDefault(); fn(); return; }
+      }
+      if (sysView) { e.preventDefault(); sysLeave(); return; }
+      if (phase === "chart" && globeView && !globeView.out) { e.preventDefault(); globeToggle(); return; }
+    } else if (!$("sitePick").classList.contains("hide")) {
+      if (e.key === "ArrowRight") { e.preventDefault(); siteStep(1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); siteStep(-1); }
+    }
+  });
+  let swX = 0, swY = 0, swOn = false;
+  $("siteCard").addEventListener("pointerdown", (e) => { swX = e.clientX; swY = e.clientY; swOn = true; }, { passive: true });
+  $("siteCard").addEventListener("pointerup", (e) => {
+    if (!swOn) return; swOn = false;
+    const dx = e.clientX - swX, dy = e.clientY - swY;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) siteStep(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  $("siteCard").addEventListener("pointercancel", () => { swOn = false; }, { passive: true });
 })();
 </script>
 </body>
